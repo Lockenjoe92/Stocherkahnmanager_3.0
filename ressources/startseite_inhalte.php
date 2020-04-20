@@ -131,6 +131,8 @@ function parallax_mit_text_generieren($BausteinID){
         $ContainerContent = container_builder($Content);
         $SectionContainerContent = section_builder($ContainerContent, '', 'no-pad-bot');
 
+        var_dump($Ergebnis['uri_bild']);
+
         #Bild
         $BildHTML = '<img src="' . $Ergebnis['uri_bild'] . '" alt="startseite background img">';
         $Bild = parallax_content_builder($BildHTML, '', '');
