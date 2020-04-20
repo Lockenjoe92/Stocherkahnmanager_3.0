@@ -7,7 +7,7 @@
  */
 
 # Include all ressources
-include_once "./ressourcen.php";
+include_once "./ressources/ressourcen.php";
 
 # Generate Content
 $HTML = startseite_inhalt_home();
