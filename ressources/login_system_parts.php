@@ -183,7 +183,7 @@ function session_manager($Necessary_User_Role = NULL){
                 $Ergebnis = false;
             } else {
 
-                if($_SESSION['sess_id'] != $Vals['register_secret']){
+                if($_SESSION['sess_id'] != md5($Vals['register_secret'])){
                     echo "Sess ID wrong!";
                     $Ergebnis = false;
                 } else {
