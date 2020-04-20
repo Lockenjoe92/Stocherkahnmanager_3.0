@@ -247,7 +247,7 @@ function register_formular($Parser){
     $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
     $FormHTML = section_builder(table_builder($TableHTML));
     $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
-    $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(button_link_creator('Zur&uuml;ck', './index.php', 'arrow_left', '')))));
+    $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
 
     $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
 
@@ -339,11 +339,16 @@ function register_parser(){
             $DAUerror .= "Gib bitte ein Passwort an!<br>";
         } else {
 
+            $PSWDcheck = check_password($_POST['password_'.$arg.'']);
             if($_POST['password_'.$arg.''] != $_POST['password_verify_'.$arg.'']){
                 $DAUcounter ++;
                 $DAUerror .= "Die eingegebenen Passw&ouml;rter sind nicht identisch!<br>";
             }
 
+            if($PSWDcheck != 'OK') {
+                $DAUcounter++;
+                $DAUerror .= $PSWDcheck;
+            }
         }
 
         ## DAU auswerten
@@ -389,5 +394,3 @@ function register_parser(){
 
     } else{return null;}
 }
-
-?>
