@@ -364,7 +364,7 @@ function register_parser(){
                 $_POST['mail_'.$arg.''], $_POST['password_'.$arg.''], null);
 
             #Lade User ID
-            if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = '?'"))) {
+            if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
                 echo "Prepare failed: (" . $link->errno . ") " . $link->error;
                 return $Antwort['erfolg'] = false;
             }
