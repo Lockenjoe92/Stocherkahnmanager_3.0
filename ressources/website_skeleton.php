@@ -169,7 +169,7 @@ function site_navbar(){
     $HTML .= '<li><a href="./usereinstellungen.php">Einstellungen</a></li>';
     $HTML .= "</ul>";
 
-    $HTML .= '<nav class="white" role="navigation">';
+    $HTML .= '<nav class="'.lade_db_einstellung('site_menue_color').'" role="navigation">';
     $HTML .= '<div class="nav-wrapper container '.lade_db_einstellung('site_menue_color').'">';
 
     $HTML .= navbar_links_big();
