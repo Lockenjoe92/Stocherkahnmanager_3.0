@@ -236,20 +236,23 @@ function register_formular($Parser){
 
     $HTML .= section_builder("<h5>".$Parser['meldung']."</h5>");
 
-    $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
-    $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
-    $TableHTML .= table_form_string_item('Stra&szlig;e', 'strasse_large', $_POST['strasse_large'], '');
-    $TableHTML .= table_form_string_item('Hausnummer', 'hausnummer_large', $_POST['hausnummer_large'], '');
-    $TableHTML .= table_form_string_item('Stadt', 'stadt_large', $_POST['stadt_large'], '');
-    $TableHTML .= table_form_string_item('Postleitzahl', 'plz_large', $_POST['plz_large'], '');
-    $TableHTML .= table_form_email_item('EMail', 'mail_large', $_POST['mail_large'], '');
-    $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
-    $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
-    $FormHTML = section_builder(table_builder($TableHTML));
-    $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
-    $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
-
-    $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
+    if($Parser['erfolg'] == true){
+        $HTML .= section_builder(table_builder(table_row_builder(table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
+    } else {
+        $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
+        $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
+        $TableHTML .= table_form_string_item('Stra&szlig;e', 'strasse_large', $_POST['strasse_large'], '');
+        $TableHTML .= table_form_string_item('Hausnummer', 'hausnummer_large', $_POST['hausnummer_large'], '');
+        $TableHTML .= table_form_string_item('Stadt', 'stadt_large', $_POST['stadt_large'], '');
+        $TableHTML .= table_form_string_item('Postleitzahl', 'plz_large', $_POST['plz_large'], '');
+        $TableHTML .= table_form_email_item('EMail', 'mail_large', $_POST['mail_large'], '');
+        $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
+        $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
+        $FormHTML = section_builder(table_builder($TableHTML));
+        $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
+        $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
+        $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
+    }
 
     return $HTML;
 

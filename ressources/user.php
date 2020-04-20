@@ -95,7 +95,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         }
 
         $Antwort['erfolg'] = True;
-        $Antwort['meldung'] = "Dein Useraccount wurde erfolgreich angelegt! Du erh&auml;ltst noch eine eMail, die den Vorgang best&auml;tigt!<br>Bitte best&auml;tige die Anmeldung indem du auf den Link in der Mail klickst!:)";
+        $Antwort['meldung'] = "Dein Useraccount wurde erfolgreich angelegt!<br>Du erh&auml;ltst noch eine EMail, die den Vorgang best&auml;tigt!<br>Bitte best&auml;tige die Anmeldung indem du auf den Link in der Mail klickst!:)";
     }
 
 
