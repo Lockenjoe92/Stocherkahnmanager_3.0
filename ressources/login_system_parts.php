@@ -234,7 +234,7 @@ function register_formular($Parser){
 
     $HTML = "<h1>Registrieren</h1>";
 
-    $HTML .= section_builder($Parser['meldung']);
+    $HTML .= section_builder("<h3>".$Parser['meldung']."</h3>");
 
     $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
     $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
@@ -364,7 +364,7 @@ function register_parser(){
                 $_POST['mail_'.$arg.''], $_POST['password_'.$arg.''], null);
 
             #Lade User ID
-            if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = '?'"))) {
+            if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
                 echo "Prepare failed: (" . $link->errno . ") " . $link->error;
                 return $Antwort['erfolg'] = false;
             }
