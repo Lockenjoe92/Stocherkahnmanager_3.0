@@ -13,10 +13,8 @@ function connect_db(){
     $pswd = lade_xml_einstellung('db_pswd', 'db');
     $name = lade_xml_einstellung('db_dbname', 'db');
 
-    var_dump($host);
-
     $sql = new mysqli($host,$user,$pswd,$name);
-    $sql->set_charset('utf8');
+    #$sql->set_charset('utf8');
 
     /* check for an error code */
     if ( $sql->connect_errno ) {
