@@ -184,6 +184,7 @@ function session_manager($Necessary_User_Role = NULL){
             } else {
 
                 if($_SESSION['sess_id'] != $Vals['register_secret']){
+                    echo "Sess ID wrong!";
                     $Ergebnis = false;
                 } else {
                     if ($Necessary_User_Role != NULL) {
@@ -226,7 +227,7 @@ function session_manager($Necessary_User_Role = NULL){
         $_SESSION['session_overtime'] = $SessionOvertime;
 
         //Redirect
-        header("Location: ./login.php");
+        #header("Location: ./login.php");
         die();
 
     } else {
