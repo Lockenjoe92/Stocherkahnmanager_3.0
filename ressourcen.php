@@ -22,3 +22,4 @@ include_once "./phpmailer/PHPMailer.php";
 include_once "./phpmailer/Exception.php";
 include_once "./forgot_password_functions/forgot_password_functions.php";
 include_once "./datenschutzerklaerungen/datenschutzerklaerungen.php";
+include_once "./kalender_functions/kalender.php";
