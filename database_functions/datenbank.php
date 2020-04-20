@@ -19,7 +19,7 @@ function connect_db(){
     /* check for an error code */
     if ( $sql->connect_errno ) {
       /* oh no! there was an error code, what's the problem?! */
-      die('Fehler beim Zugriff auf die Datenbank. Bitte später erneut versuchen.');
+      die('Fehler bei dem Zugriff auf die Datenbank. Bitte später erneut versuchen.');
     }
 
     return $sql;
