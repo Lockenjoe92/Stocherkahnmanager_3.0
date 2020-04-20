@@ -247,7 +247,7 @@ function register_formular($Parser){
     $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
     $FormHTML = section_builder(table_builder($TableHTML));
     $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
-    $FormHTML .= section_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '').button_link_creator('Zur&uuml;ck', './index.php', 'arrow-left', ''));
+    $FormHTML .= section_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '').button_link_creator('Zur&uuml;ck', './index.php', 'arrow_left', ''));
 
     $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
 
