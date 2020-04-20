@@ -16,3 +16,5 @@ $Header = "Home - " . lade_xml_einstellung('site_name');
 # Output site
 echo site_header($Header);
 echo site_body($HTML);
+
+?>

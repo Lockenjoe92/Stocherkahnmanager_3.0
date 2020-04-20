@@ -7,16 +7,16 @@
  */
 
 # Include all ressources
-include_once "./ressourcen.php";
+include_once "./ressources/ressourcen.php";
 
 #Generate Content
-$Header = "Registrieren - " . lade_xml_einstellung('site_name');
+$Header = "Registrieren - " . lade_db_einstellung('site_name');
 $Parser = register_parser();
 $HTML = register_formular($Parser);
-
-#Container for all above
-$HTML = container_builder($HTML, '', '');
 
 # Output site
 echo site_header($Header);
 echo site_body($HTML);
+
+
+?>

@@ -11,3 +11,5 @@ function timestamp(){
     return date("Y-m-d G:i:s");
 
 }
+
+?>

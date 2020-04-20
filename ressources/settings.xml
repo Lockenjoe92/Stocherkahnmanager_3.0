@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<global_settings>
+
+    <!--- STARTSEITE -->
+    <site_name>Stocherkahn XY e.V.</site_name>
+    <site_footer_name>Stocherkahn Medizin e.V.</site_footer_name>
+    <display_big_footer>false</display_big_footer>
+    <big_footer_left_column_html>
+        <![CDATA[
+        <h5 class="white-text">Wichtige Links</h5>
+        <ul>
+        <li><a class="white-text" href="#!">Impressum</a></li>
+        <li><a class="white-text" href="#!">Datenschutz</a></li>
+        <li><a class="white-text" href="#!">Fachschaft Medizin</a></li>
+        </ul>]]>
+    </big_footer_left_column_html>
+
+    <big_footer_right_column_html>
+        <![CDATA[
+        <h5 class="white-text">Über uns...</h5>
+        <p class="grey-text text-lighten-4">Ne coole Truppe die Spaß am Kahnfahren hat:)</p>
+    ]]>
+    </big_footer_right_column_html>
+
+    <!--- GENERAL -->
+    <max_items_row_container>4</max_items_row_container>
+    <max_size_file_upload>500000</max_size_file_upload>
+
+    <!--- VERLEIH -->
+    <earliest_begin>8</earliest_begin>
+    <latest_begin>22</latest_begin>
+    <von-montag>8</von-montag>
+    <von-dienstag>8</von-dienstag>
+    <von-mittwoch>8</von-mittwoch>
+    <von-donnerstag>8</von-donnerstag>
+    <von-freitag>8</von-freitag>
+    <von-samstag>8</von-samstag>
+    <von-sonntag>8</von-sonntag>
+    <bis-montag>22</bis-montag>
+    <bis-dienstag>22</bis-dienstag>
+    <bis-mittwoch>22</bis-mittwoch>
+    <bis-donnerstag>22</bis-donnerstag>
+    <bis-freitag>22</bis-freitag>
+    <bis-samstag>22</bis-samstag>
+    <bis-sonntag>22</bis-sonntag>
+
+    <!--- COLORS -->
+    <site_menue_color>white</site_menue_color>
+    <site_footer_color>green</site_footer_color>
+    <site_buttons_color>green</site_buttons_color>
+    <site_error_buttons_color>red</site_error_buttons_color>
+    <farbe-button-kalender-buchbar>green</farbe-button-kalender-buchbar>
+    <farbe-button-kalender-nicht-buchbar>red</farbe-button-kalender-nicht-buchbar>
+    <farbe-button-kalender-reserviert>yellow</farbe-button-kalender-reserviert>
+
+</global_settings>

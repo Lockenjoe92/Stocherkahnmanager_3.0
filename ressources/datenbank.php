@@ -14,13 +14,15 @@ function connect_db(){
     $name = lade_xml_einstellung('db_dbname', 'db');
 
     $sql = new mysqli($host,$user,$pswd,$name);
-    #$sql->set_charset('utf8');
 
     /* check for an error code */
-    if ($sql -> connect_errno) {
-        echo "Failed to connect to MySQL: " . $sql->connect_error;
-        exit();
+    if ( mysqli_connect_errno() ) {
+        /* oh no! there was an error code, what's the problem?! */
+        echo 'There was an error with your connection: '.mysqli_connect_error();
     }
 
     return $sql;
+
 }
+
+?>
