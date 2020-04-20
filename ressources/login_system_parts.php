@@ -232,7 +232,9 @@ function load_session_message(){
 
 function register_formular($Parser){
 
-    $HTML = section_builder($Parser['meldung']);
+    $HTML = "<h1>Registrieren</h1>";
+
+    $HTML .= section_builder($Parser['meldung']);
 
     $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
     $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
