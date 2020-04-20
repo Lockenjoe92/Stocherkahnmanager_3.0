@@ -80,8 +80,9 @@ function login_parser(){
 
         } else {
 
+            protect_brute_force();
             $link = connect_db();
-            if (!($stmt = $link->prepare("SELECT id, secret FROM users WHERE mail = ?"))) {
+            if (!($stmt = $link->prepare("SELECT id, secret, register_secret FROM users WHERE mail = ?"))) {
                 echo "Prepare failed: (" . $link->errno . ") " . $link->error;
             }
 
@@ -97,7 +98,7 @@ function login_parser(){
             $num_user = mysqli_num_rows($res);
 
             if ($num_user != 1){
-                $Antwort['meldung'] = "Userkonto existiert nicht!";
+                $Antwort['meldung'] = "Userkonto oder Passwort falsch!";
             } else {
 
                 $Vals = $res->fetch_assoc();
@@ -111,6 +112,7 @@ function login_parser(){
                     session_start();
                     $_SESSION['user_id'] = $Vals['id'];
                     $_SESSION['timestamp'] = timestamp();
+                    $_SESSION['sess_id'] = md5($Vals['register_secret']);
 
                     //Redirect
                     $UserMeta = lade_user_meta($Vals['id']);
@@ -123,7 +125,7 @@ function login_parser(){
                     die();
 
                 } else {
-                    $Antwort['meldung'] = "Passwort ung&uuml;ltig!";
+                    $Antwort['meldung'] = "Userkonto oder Passwort falsch!";
                 }
 
             }
@@ -158,36 +160,53 @@ function session_manager($Necessary_User_Role = NULL){
 
         //Überprüfe vorhandensein von User-Login
         $link = connect_db();
-        $AnfrageLoginUeberpruefen = "SELECT * FROM users WHERE id = '$User_login'";
-        $AbfrageLoginUeberpruefen = mysqli_query($link, $AnfrageLoginUeberpruefen);
-        $AnzahlLoginUeberpruefen = mysqli_num_rows($AbfrageLoginUeberpruefen);
-
-        if($AnzahlLoginUeberpruefen == 0) {
-            #Userkonto existiert nicht
-            echo "No user account found!";
+        if (!($stmt = $link->prepare("SELECT * FROM users WHERE id = ?"))) {
             $Ergebnis = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("i", intval($User_login))) {
+            $Ergebnis = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Ergebnis = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
 
-            if ($Necessary_User_Role != NULL){
+            $res = $stmt->get_result();
+            $AnzahlLoginUeberpruefen = mysqli_num_rows($res);
+            $Vals = mysqli_fetch_assoc($res);
 
-                $UserMeta = lade_user_meta($User_login);
-                if ($UserMeta[$Necessary_User_Role] != 'true'){
-                    echo "User does not have neccessary rights.";
+            if ($AnzahlLoginUeberpruefen == 0) {
+                #Userkonto existiert nicht
+                echo "No user account found!";
+                $Ergebnis = false;
+            } else {
+
+                if($_SESSION['sess_id'] != $Vals['register_secret']){
                     $Ergebnis = false;
-                }
+                } else {
+                    if ($Necessary_User_Role != NULL) {
 
+                        $UserMeta = lade_user_meta($User_login);
+                        if ($UserMeta[$Necessary_User_Role] != 'true') {
+                            echo "User does not have neccessary rights.";
+                            $Ergebnis = false;
+                        }
+
+                    }
+                }
             }
 
-        }
+            //Importiere Einstellung
+            $MaxMinutes = 1;
+            $MinimumTimestamp = strtotime("- " .$MaxMinutes. " minutes", $Timestamp);
+            $OldTimestamp = strtotime($Timestamp);
 
-        //Importiere Einstellung
-        $MaxMinutes = 1;
-        $MinimumTimestamp = strtotime("- " .$MaxMinutes. " minutes", $Timestamp);
-        $OldTimestamp = strtotime($Timestamp);
-
-        if ($MinimumTimestamp > $OldTimestamp){
-            $SessionOvertime = true;
-            $Ergebnis = false;
+            if ($MinimumTimestamp > $OldTimestamp){
+                $SessionOvertime = true;
+                $Ergebnis = false;
+            }
         }
 
     } else {
@@ -396,4 +415,18 @@ function register_parser(){
         }
 
     } else{return null;}
+}
+
+function generateRandomString($length = 10) {
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
+}
+
+function protect_brute_force() {
+    sleep(1);
 }

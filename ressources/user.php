@@ -50,11 +50,12 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
     }
 
     #echo "adding user account";
-    if (!($stmt = $link->prepare("INSERT INTO users (mail,secret,register) VALUES (?,?,?)"))) {
+    $ID_hash = generateRandomString(32);
+    if (!($stmt = $link->prepare("INSERT INTO users (mail,secret,register_secret,register) VALUES (?,?,?,?)"))) {
         $Antwort['erfolg'] = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
-    if (!$stmt->bind_param("sss", $Mail, $PSWD_hashed, timestamp())) {
+    if (!$stmt->bind_param("ssss", $Mail, $PSWD_hashed, $ID_hash, timestamp())) {
         $Antwort['erfolg'] = false;
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
