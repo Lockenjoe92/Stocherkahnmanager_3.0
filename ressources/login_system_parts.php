@@ -232,18 +232,22 @@ function load_session_message(){
 
 function register_formular($Parser){
 
-    $HTML = $Parser['meldung'];
-    $HTML .= "<form action='register.php' method='post'>";
-    $HTML .= "Vorname: <input type='text' name='vorname_large' id='vorname_large' placeholder='".$_POST['vorname_large']."'>";
-    $HTML .= "Nachname: <input type='text' name='nachname_large' id='nachname_large' placeholder='".$_POST['nachname_large']."'>";
-    $HTML .= "Stra&szlig;e: <input type='text' name='strasse_large' id='strasse_large' placeholder='".$_POST['strasse_large']."'> Hausnummer: <input type='text' name='hausnummer_large' id='hausnummer_large' placeholder='".$_POST['hausnummer_large']."'>";
-    $HTML .= "Postleitzahl: <input type='text' name='plz_large' id='plz_large' placeholder='".$_POST['plz_large']."'> Stadt: <input type='text' name='stadt_large' id='stadt_large' placeholder='".$_POST['stadt_large']."'>";
-    $HTML .= "eMail: <input type='email' name='mail_large' id='mail_large' placeholder='".$_POST['mail_large']."'>";
-    $HTML .= "Passwort: <input type='password' name='password_large' id='password_large'>";
-    $HTML .= "Passwort wiederholen: <input type='password' name='password_verify_large' id='password_verify_large'>";
-    $HTML .= ds_unterschreiben_formular_parts();
-    $HTML .= "<input type='submit' name='action_large'>";
-    $HTML .= "</form>";
+    $HTML = section_builder($Parser['meldung']);
+
+    $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
+    $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
+    $TableHTML .= table_form_string_item('Stra&szlig;e', 'strasse_large', $_POST['strasse_large'], '');
+    $TableHTML .= table_form_string_item('Hausnummer', 'hausnummer_large', $_POST['hausnummer_large'], '');
+    $TableHTML .= table_form_string_item('Stadt', 'stadt_large', $_POST['stadt_large'], '');
+    $TableHTML .= table_form_string_item('Postleitzahl', 'plz_large', $_POST['plz_large'], '');
+    $TableHTML .= table_form_email_item('EMail', 'mail_large', $_POST['mail_large'], '');
+    $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
+    $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
+    $FormHTML = section_builder(table_builder($TableHTML));
+    $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
+    $FormHTML .= section_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '').button_link_creator('Zur&uuml;ck', './index.php', 'arrow-left', ''));
+
+    $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
 
     return $HTML;
 

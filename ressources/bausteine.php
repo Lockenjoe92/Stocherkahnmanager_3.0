@@ -263,6 +263,38 @@ function form_string_item($ItemName, $Placeholdertext='', $Disabled=false){
 
 }
 
+function form_email_item($ItemName, $Placeholdertext='', $Disabled=false){
+
+    if ($Disabled == false) {
+        $DisabledCommand = '';
+    } elseif ($Disabled == true){
+        $DisabledCommand = 'disabled';
+    }
+
+    if ($Placeholdertext==''){
+        return "<input ".$DisabledCommand." id='".$ItemName."' name='".$ItemName."' type='email' class='validate'>";
+    } else {
+        return "<input ".$DisabledCommand." value='".$Placeholdertext."' id='".$ItemName."' name='".$ItemName."' type='email' class='validate'>";
+    }
+
+}
+
+function form_password_item($ItemName, $Placeholdertext='', $Disabled=false){
+
+    if ($Disabled == false) {
+        $DisabledCommand = '';
+    } elseif ($Disabled == true){
+        $DisabledCommand = 'disabled';
+    }
+
+    if ($Placeholdertext==''){
+        return "<input ".$DisabledCommand." id='".$ItemName."' name='".$ItemName."' type='password' class='validate'>";
+    } else {
+        return "<input ".$DisabledCommand." value='".$Placeholdertext."' id='".$ItemName."' name='".$ItemName."' type='password' class='validate'>";
+    }
+
+}
+
 function form_range_item($ItemName, $Min, $Max, $StartValue, $Disabled=false){
 
     if ($Disabled == false){
@@ -362,6 +394,18 @@ function table_form_swich_item($ItemTitle, $ItemName, $OptionLeft='off', $Option
 function table_form_string_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
 
     return "<tr><th>".$ItemTitle."</th><td>".form_string_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
+
+}
+
+function table_form_email_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
+
+    return "<tr><th>".$ItemTitle."</th><td>".form_email_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
+
+}
+
+function table_form_password_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
+
+    return "<tr><th>".$ItemTitle."</th><td>".form_password_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
 
 }
 
