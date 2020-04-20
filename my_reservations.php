@@ -7,11 +7,12 @@
  */
 
 include_once "./ressources/ressourcen.php";
-$Header = "Impressum - " . lade_db_einstellung('site_name');
+session_manager();
+$Header = "Reservierungen - " . lade_db_einstellung('site_name');
 
 #Generate content
 # Page Title
-$PageTitle = '<h1>Impressum</h1>';
+$PageTitle = '<h1>Deine Reservierungen</h1>';
 $HTML .= section_builder($PageTitle);
 
 # Output site
