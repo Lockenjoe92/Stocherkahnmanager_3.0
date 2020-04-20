@@ -11,14 +11,7 @@ include_once "./ressourcen.php";
 
 # Generate Content
 $HTML = startseite_inhalt_home();
-
-#Section for above
-$HTML = section_builder($HTML, $ID = '', $SpecialMode = '');
-
-# Container for HTML
-$HTML= container_builder($HTML, $ID= '', $SpecialMode = '');
-
-$Header = lade_xml_einstellung('site_name');
+$Header = "Home - " . lade_xml_einstellung('site_name');
 
 # Output site
 echo site_header($Header);
