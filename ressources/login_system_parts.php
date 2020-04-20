@@ -234,7 +234,7 @@ function register_formular($Parser){
 
     $HTML = "<h1>Registrieren</h1>";
 
-    $HTML .= section_builder("<h3>".$Parser['meldung']."</h3>");
+    $HTML .= section_builder("<h5>".$Parser['meldung']."</h5>");
 
     $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
     $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
@@ -328,7 +328,7 @@ function register_parser(){
 
                 if($num_results > 0){
                     $DAUcounter ++;
-                    $DAUerror .= "Die von dir eingegebene eMail-Adresse ist bereits mit einem anderen Account verkn&uuml;pft! Versuche es mit einer anderen eMail oder verwende die <a href='./reset_password.php'>Passwort zur&uuml;cksetzen Funktion</a>.<br>";
+                    $DAUerror .= "Die von dir eingegebene eMail-Adresse ist bereits mit einem anderen Account verkn&uuml;pft!<br> Versuche es mit einer anderen eMail oder verwende die <a href='./reset_password.php'>Passwort zur&uuml;cksetzen Funktion</a>.<br>";
                 }
 
             }
