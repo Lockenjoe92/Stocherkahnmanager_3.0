@@ -13,15 +13,13 @@ function connect_db(){
     $pswd = lade_xml_einstellung('db_pswd', 'db');
     $name = lade_xml_einstellung('db_dbname', 'db');
 
-    var_dump($host);
-
     $sql = new mysqli($host,$user,$pswd,$name);
-    $sql->set_charset('utf8');
+    #$sql->set_charset('utf8');
 
     /* check for an error code */
     if ( $sql->connect_errno ) {
       /* oh no! there was an error code, what's the problem?! */
-      die('Fehler beim Zugriff auf die Datenbank. Bitte später erneut versuchen.');
+      die('Fehler bei dem Zugriff auf die Datenbank. Bitte später erneut versuchen.');
     }
 
     return $sql;
