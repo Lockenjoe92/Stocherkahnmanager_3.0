@@ -49,7 +49,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         echo "Error with hashing";
     }
 
-    echo "adding user account";
+    #echo "adding user account";
     if (!($stmt = $link->prepare("INSERT INTO users (mail,secret,register) VALUES (?,?,?)"))) {
         $Antwort['erfolg'] = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
@@ -63,7 +63,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
 
     } else {
-        echo "selecting user id";
+        #echo "selecting user id";
         if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
             $Antwort['erfolg'] = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
@@ -81,7 +81,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         $Ergebnis = mysqli_fetch_assoc($res);
 
         #Weitere Userinfos hinzufügen
-        echo "adding user meta";
+        #echo "adding user meta";
         add_user_meta($Ergebnis['id'], 'vorname', $Vorname);
         add_user_meta($Ergebnis['id'], 'nachname', $Nachname);
         add_user_meta($Ergebnis['id'], 'strasse', $Strasse);
