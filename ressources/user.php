@@ -49,12 +49,13 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         echo "Error with hashing";
     }
 
-    echo "adding user account";
-    if (!($stmt = $link->prepare("INSERT INTO users (mail,secret,register) VALUES (?,?,?)"))) {
+    #echo "adding user account";
+    $ID_hash = generateRandomString(32);
+    if (!($stmt = $link->prepare("INSERT INTO users (mail,secret,register_secret,register) VALUES (?,?,?,?)"))) {
         $Antwort['erfolg'] = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
-    if (!$stmt->bind_param("sss", $Mail, $PSWD_hashed, timestamp())) {
+    if (!$stmt->bind_param("ssss", $Mail, $PSWD_hashed, $ID_hash, timestamp())) {
         $Antwort['erfolg'] = false;
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
@@ -63,7 +64,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
 
     } else {
-        echo "selecting user id";
+        #echo "selecting user id";
         if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
             $Antwort['erfolg'] = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
@@ -81,7 +82,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         $Ergebnis = mysqli_fetch_assoc($res);
 
         #Weitere Userinfos hinzufügen
-        echo "adding user meta";
+        #echo "adding user meta";
         add_user_meta($Ergebnis['id'], 'vorname', $Vorname);
         add_user_meta($Ergebnis['id'], 'nachname', $Nachname);
         add_user_meta($Ergebnis['id'], 'strasse', $Strasse);
@@ -95,7 +96,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         }
 
         $Antwort['erfolg'] = True;
-        $Antwort['meldung'] = "Dein Useraccount wurde erfolgreich angelegt! Du erh&auml;ltst noch eine eMail, die den Vorgang best&auml;tigt!<br>Bitte best&auml;tige die Anmeldung indem du auf den Link in der Mail klickst!:)";
+        $Antwort['meldung'] = "Dein Useraccount wurde erfolgreich angelegt!<br>Du erh&auml;ltst noch eine EMail, die den Vorgang best&auml;tigt!<br>Bitte best&auml;tige die Anmeldung indem du auf den Link in der Mail klickst!:)";
     }
 
 

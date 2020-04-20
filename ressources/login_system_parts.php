@@ -80,8 +80,9 @@ function login_parser(){
 
         } else {
 
+            protect_brute_force();
             $link = connect_db();
-            if (!($stmt = $link->prepare("SELECT id, secret FROM users WHERE mail = ?"))) {
+            if (!($stmt = $link->prepare("SELECT id, secret, register_secret FROM users WHERE mail = ?"))) {
                 echo "Prepare failed: (" . $link->errno . ") " . $link->error;
             }
 
@@ -97,7 +98,7 @@ function login_parser(){
             $num_user = mysqli_num_rows($res);
 
             if ($num_user != 1){
-                $Antwort['meldung'] = "Userkonto existiert nicht!";
+                $Antwort['meldung'] = "Userkonto oder Passwort falsch!";
             } else {
 
                 $Vals = $res->fetch_assoc();
@@ -111,6 +112,7 @@ function login_parser(){
                     session_start();
                     $_SESSION['user_id'] = $Vals['id'];
                     $_SESSION['timestamp'] = timestamp();
+                    $_SESSION['sess_id'] = md5($Vals['register_secret']);
 
                     //Redirect
                     $UserMeta = lade_user_meta($Vals['id']);
@@ -123,7 +125,7 @@ function login_parser(){
                     die();
 
                 } else {
-                    $Antwort['meldung'] = "Passwort ung&uuml;ltig!";
+                    $Antwort['meldung'] = "Userkonto oder Passwort falsch!";
                 }
 
             }
@@ -158,36 +160,53 @@ function session_manager($Necessary_User_Role = NULL){
 
         //Überprüfe vorhandensein von User-Login
         $link = connect_db();
-        $AnfrageLoginUeberpruefen = "SELECT * FROM users WHERE id = '$User_login'";
-        $AbfrageLoginUeberpruefen = mysqli_query($link, $AnfrageLoginUeberpruefen);
-        $AnzahlLoginUeberpruefen = mysqli_num_rows($AbfrageLoginUeberpruefen);
-
-        if($AnzahlLoginUeberpruefen == 0) {
-            #Userkonto existiert nicht
-            echo "No user account found!";
+        if (!($stmt = $link->prepare("SELECT * FROM users WHERE id = ?"))) {
             $Ergebnis = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("i", intval($User_login))) {
+            $Ergebnis = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Ergebnis = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
 
-            if ($Necessary_User_Role != NULL){
+            $res = $stmt->get_result();
+            $AnzahlLoginUeberpruefen = mysqli_num_rows($res);
+            $Vals = mysqli_fetch_assoc($res);
 
-                $UserMeta = lade_user_meta($User_login);
-                if ($UserMeta[$Necessary_User_Role] != 'true'){
-                    echo "User does not have neccessary rights.";
+            if ($AnzahlLoginUeberpruefen == 0) {
+                #Userkonto existiert nicht
+                echo "No user account found!";
+                $Ergebnis = false;
+            } else {
+
+                if($_SESSION['sess_id'] != $Vals['register_secret']){
                     $Ergebnis = false;
-                }
+                } else {
+                    if ($Necessary_User_Role != NULL) {
 
+                        $UserMeta = lade_user_meta($User_login);
+                        if ($UserMeta[$Necessary_User_Role] != 'true') {
+                            echo "User does not have neccessary rights.";
+                            $Ergebnis = false;
+                        }
+
+                    }
+                }
             }
 
-        }
+            //Importiere Einstellung
+            $MaxMinutes = 1;
+            $MinimumTimestamp = strtotime("- " .$MaxMinutes. " minutes", $Timestamp);
+            $OldTimestamp = strtotime($Timestamp);
 
-        //Importiere Einstellung
-        $MaxMinutes = 1;
-        $MinimumTimestamp = strtotime("- " .$MaxMinutes. " minutes", $Timestamp);
-        $OldTimestamp = strtotime($Timestamp);
-
-        if ($MinimumTimestamp > $OldTimestamp){
-            $SessionOvertime = true;
-            $Ergebnis = false;
+            if ($MinimumTimestamp > $OldTimestamp){
+                $SessionOvertime = true;
+                $Ergebnis = false;
+            }
         }
 
     } else {
@@ -234,22 +253,25 @@ function register_formular($Parser){
 
     $HTML = "<h1>Registrieren</h1>";
 
-    $HTML .= section_builder("<h3>".$Parser['meldung']."</h3>");
+    $HTML .= section_builder("<h5>".$Parser['meldung']."</h5>");
 
-    $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
-    $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
-    $TableHTML .= table_form_string_item('Stra&szlig;e', 'strasse_large', $_POST['strasse_large'], '');
-    $TableHTML .= table_form_string_item('Hausnummer', 'hausnummer_large', $_POST['hausnummer_large'], '');
-    $TableHTML .= table_form_string_item('Stadt', 'stadt_large', $_POST['stadt_large'], '');
-    $TableHTML .= table_form_string_item('Postleitzahl', 'plz_large', $_POST['plz_large'], '');
-    $TableHTML .= table_form_email_item('EMail', 'mail_large', $_POST['mail_large'], '');
-    $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
-    $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
-    $FormHTML = section_builder(table_builder($TableHTML));
-    $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
-    $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
-
-    $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
+    if($Parser['erfolg'] == true){
+        $HTML .= section_builder(table_builder(table_row_builder(table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
+    } else {
+        $TableHTML = table_form_string_item('Vorname', 'vorname_large', $_POST['vorname_large'], '');
+        $TableHTML .= table_form_string_item('Nachname', 'nachname_large', $_POST['nachname_large'], '');
+        $TableHTML .= table_form_string_item('Stra&szlig;e', 'strasse_large', $_POST['strasse_large'], '');
+        $TableHTML .= table_form_string_item('Hausnummer', 'hausnummer_large', $_POST['hausnummer_large'], '');
+        $TableHTML .= table_form_string_item('Stadt', 'stadt_large', $_POST['stadt_large'], '');
+        $TableHTML .= table_form_string_item('Postleitzahl', 'plz_large', $_POST['plz_large'], '');
+        $TableHTML .= table_form_email_item('EMail', 'mail_large', $_POST['mail_large'], '');
+        $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
+        $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
+        $FormHTML = section_builder(table_builder($TableHTML));
+        $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
+        $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
+        $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
+    }
 
     return $HTML;
 
@@ -328,7 +350,7 @@ function register_parser(){
 
                 if($num_results > 0){
                     $DAUcounter ++;
-                    $DAUerror .= "Die von dir eingegebene eMail-Adresse ist bereits mit einem anderen Account verkn&uuml;pft! Versuche es mit einer anderen eMail oder verwende die <a href='./reset_password.php'>Passwort zur&uuml;cksetzen Funktion</a>.<br>";
+                    $DAUerror .= "Die von dir eingegebene eMail-Adresse ist bereits mit einem anderen Account verkn&uuml;pft!<br> Versuche es mit einer anderen eMail oder verwende die <a href='./reset_password.php'>Passwort zur&uuml;cksetzen Funktion</a>.<br>";
                 }
 
             }
@@ -393,4 +415,18 @@ function register_parser(){
         }
 
     } else{return null;}
+}
+
+function generateRandomString($length = 10) {
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
+}
+
+function protect_brute_force() {
+    sleep(1);
 }
