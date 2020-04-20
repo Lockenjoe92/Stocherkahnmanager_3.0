@@ -153,7 +153,7 @@ function row_container_generieren($BausteinID){
 
     #Debug
     if ($Anzahl == 0){
-        $Content = 'Kein Inhalt auffindbar!';
+        $Content = 'Aktuell kein Inhalt auffindbar!';
     } else {
 
         $RowContent = '<div class="row">';
