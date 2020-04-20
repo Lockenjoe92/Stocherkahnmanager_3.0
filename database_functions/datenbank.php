@@ -17,8 +17,8 @@ function connect_db(){
     #$sql->set_charset('utf8');
 
     /* check for an error code */
-    if ($mysqli -> connect_errno) {
-        echo "Failed to connect to MySQL: " . $mysqli->connect_error;
+    if ($sql -> connect_errno) {
+        echo "Failed to connect to MySQL: " . $sql->connect_error;
         exit();
     }
 
