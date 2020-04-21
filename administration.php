@@ -19,7 +19,7 @@ $HTML .= section_builder($PageTitle);
 $Links = row_builder(button_link_creator('Startseite editieren', './admin_edit_startpage.php','brush', ''));
 $Links .= row_builder(button_link_creator('Admineinstellungen', './admin_settings.php','edit', ''));
 $Links .= row_builder(button_link_creator('Dateimanager', './datenmanager.php','folder_open', ''));
-$Links .= row_builder(button_link_creator('Nutzergruppen', './admin_nutzergruppen.php','user', ''));
+$Links .= row_builder(button_link_creator('Nutzergruppen', './admin_nutzergruppen.php','group', ''));
 $HTML .= section_builder($Links);
 
 # Put it all into a container
@@ -28,5 +28,3 @@ $HTML = container_builder($HTML);
 # Output site
 echo site_header($Header);
 echo site_body($HTML);
-
-?>
