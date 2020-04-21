@@ -4,14 +4,19 @@ function add_nutzergruppe_form(){
 
     $parser = add_nutzergruppe_form_parser();
 
+    //Convert Switch visibility
+    if(isset($_POST['user_visibility'])){$SwitchPresetSichtbarkeit = 'on';}else{$SwitchPresetSichtbarkeit = 'off';}
+    if(isset($_POST['alle_res_gratis'])){$SwitchPresetGratis = 'on';}else{$SwitchPresetGratis = 'off';}
+    if(isset($_POST['darf_last_minute_res'])){$SwitchPresetLastMinute = 'on';}else{$SwitchPresetLastMinute = 'off';}
+
 
     $TableHTML = table_form_string_item('Name der Nutzergruppe', 'name_nutzergruppe', $_POST['name_nutzergruppe'], false);
     $TableHTML .= table_form_string_item('Erkl&auml;render Text zur Nutzergruppe', 'erklaerung_nutzergruppe', $_POST['erklaerung_nutzergruppe'], false);
     $TableHTML .= table_form_nutzergruppe_verification_mode_select('Verifizierung der Zugeh&ouml;rigkeit', 'verification_mode', $_POST['verification_mode'], $Disabled=false, $SpecialMode='');
-    $TableHTML .= table_form_swich_item('Sichtbar f&uuml;r User', 'user_visibility', 'Ja', 'Nein', 'true', false);
-    $TableHTML .= table_form_swich_item('Nutzergruppe f&auml;hrt stets gratis', 'alle_res_gratis', 'Ja', 'Nein', 'true', false);
+    $TableHTML .= table_form_swich_item('Sichtbar f&uuml;r User', 'user_visibility', 'Nein', 'Ja', $SwitchPresetSichtbarkeit, false);
+    $TableHTML .= table_form_swich_item('Nutzergruppe f&auml;hrt stets gratis', 'alle_res_gratis', 'Nein', 'Ja', $SwitchPresetGratis, false);
     $TableHTML .= table_form_select_item('Nutzergruppe hat Freifahrten pro Jahr', 'hat_freifahrten_pro_jahr', 0, 12, $_POST['hat_freifahrten_pro_jahr'], '', '', '');
-    $TableHTML .= table_form_swich_item('Nutzergruppe kann last Minute buchen', 'darf_last_minute_res', 'Ja', 'Nein', 'true', false);
+    $TableHTML .= table_form_swich_item('Nutzergruppe kann last Minute buchen', 'darf_last_minute_res', 'Nein', 'Ja', $SwitchPresetLastMinute, false);
     $TableHTML = table_builder($TableHTML);
 
     $HTML = $TableHTML;
