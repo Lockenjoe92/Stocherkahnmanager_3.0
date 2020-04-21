@@ -18,3 +18,4 @@ include_once "datenschutz.php";
 include_once "protocol.php";
 include_once "zeit.php";
 include_once "kalender.php";
+include_once "nutzergruppen.php";

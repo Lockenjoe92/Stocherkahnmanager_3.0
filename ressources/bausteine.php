@@ -421,6 +421,18 @@ function table_form_select_item($ItemTitle, $ItemName, $Min, $Max, $StartValue, 
 
 }
 
+function table_form_nutzergruppe_select($ItemTitle, $ItemName, $StartValue, $Mode='normaluser', $Disabled=false, $SpecialMode=''){
+
+    return "<tr><th>".$ItemTitle."</th><td>".form_nutzergruppe_select($ItemName, $StartValue, $Mode, $Disabled, $SpecialMode)."</td></tr>";
+
+}
+
+function table_form_nutzergruppe_verification_mode_select($ItemTitle, $ItemName, $StartValue, $Disabled=false, $SpecialMode=''){
+
+    return "<tr><th>".$ItemTitle."</th><td>".form_nutzergruppe_verification_mode_select($ItemName, $StartValue, $Disabled, $SpecialMode)."</td></tr>";
+
+}
+
 function table_form_html_area_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
 
     return "<tr><th>".$ItemTitle."</th><td>".form_html_area_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
