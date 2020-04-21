@@ -53,7 +53,4 @@
     <farbe-button-kalender-nicht-buchbar>red</farbe-button-kalender-nicht-buchbar>
     <farbe-button-kalender-reserviert>yellow</farbe-button-kalender-reserviert>
 
-    <!--- WIKI -->
-    <url-admin-wiki>https://github.com/Lockenjoe92/Stocherkahnmanager_3.0.wiki.git</url-admin-wiki>
-
 </global_settings>

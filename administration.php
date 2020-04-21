@@ -19,6 +19,7 @@ $HTML .= section_builder($PageTitle);
 $Links = row_builder(button_link_creator('Startseite editieren', './admin_edit_startpage.php','brush', ''));
 $Links .= row_builder(button_link_creator('Admineinstellungen', './admin_settings.php','edit', ''));
 $Links .= row_builder(button_link_creator('Dateimanager', './datenmanager.php','folder_open', ''));
+$Links .= row_builder(button_link_creator('Nutzergruppen', './admin_nutzergruppen.php','user', ''));
 $HTML .= section_builder($Links);
 
 # Put it all into a container
