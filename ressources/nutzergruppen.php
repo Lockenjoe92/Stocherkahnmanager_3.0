@@ -6,8 +6,12 @@ function add_nutzergruppe_form(){
 
     $HTML = "<h3>Nutzergruppe hinzufügen</h3>";
 
-    if(($parser != true) OR ($parser != null)){
-        $HTML .= error_button_creator($parser, 'error_outline', '');
+    if($parser != ''){
+        if($parser == 'ok'){
+            $HTML .= error_button_creator('Nutzergruppe erfolgreich angelegt!', 'done', '');
+        } else {
+            $HTML .= error_button_creator($parser, 'error_outline', '');
+        }
     }
 
     //Convert Switch visibility
