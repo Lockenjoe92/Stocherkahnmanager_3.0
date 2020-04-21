@@ -6,11 +6,11 @@ function add_nutzergruppe_form(){
 
     $HTML = "<h3>Nutzergruppe hinzufügen</h3>";
 
-    if($parser != ''){
-        if($parser == 'ok'){
+    if($parser != null){
+        if($parser['erfolg'] == true){
             $HTML .= error_button_creator('Nutzergruppe erfolgreich angelegt!', 'done', '');
-        } else {
-            $HTML .= error_button_creator($parser, 'error_outline', '');
+        } elseif($parser['erfolg'] == false) {
+            $HTML .= error_button_creator($parser['meldung'], 'error_outline', '');
         }
     }
 
@@ -18,6 +18,8 @@ function add_nutzergruppe_form(){
     if(isset($_POST['user_visibility'])){$SwitchPresetSichtbarkeit = 'on';}else{$SwitchPresetSichtbarkeit = 'off';}
     if(isset($_POST['alle_res_gratis'])){$SwitchPresetGratis = 'on';}else{$SwitchPresetGratis = 'off';}
     if(isset($_POST['darf_last_minute_res'])){$SwitchPresetLastMinute = 'on';}else{$SwitchPresetLastMinute = 'off';}
+    if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'on';}else{$SwitchPresetMulti = 'off';}
+
 
 
     $TableHTML = table_form_string_item('Name der Nutzergruppe', 'name_nutzergruppe', $_POST['name_nutzergruppe'], false);
@@ -27,6 +29,7 @@ function add_nutzergruppe_form(){
     $TableHTML .= table_form_swich_item('Nutzergruppe f&auml;hrt stets gratis', 'alle_res_gratis', 'Nein', 'Ja', $SwitchPresetGratis, false);
     $TableHTML .= table_form_select_item('Nutzergruppe hat Freifahrten pro Jahr', 'hat_freifahrten_pro_jahr', 0, 12, $_POST['hat_freifahrten_pro_jahr'], '', '', '');
     $TableHTML .= table_form_swich_item('Nutzergruppe kann last Minute buchen', 'darf_last_minute_res', 'Nein', 'Ja', $SwitchPresetLastMinute, false);
+    $TableHTML .= table_form_swich_item('Nutzergruppe macht neben anderen bei einem Nutzer Sinn', 'multiselect_possible', 'Nein', 'Ja', $SwitchPresetMulti, false);
     $FormHTML = section_builder(table_builder($TableHTML));
     $FormHTML .= section_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send'));
 
@@ -36,8 +39,82 @@ function add_nutzergruppe_form(){
 
 function add_nutzergruppe_form_parser(){
 
-    return null;
+    if(isset($_POST['action_add_nutzergruppe'])) {
 
+        ## DAU CHECKS ##
+        $DAUcounter = 0;
+        $DAUerror = "";
+
+        if (empty($_POST['name_nutzergruppe'])) {
+            $DAUcounter++;
+            $DAUerror .= "Gib der Nutzergruppe biite einen namen!<br>";
+        }
+
+        if (empty($_POST['erklaerung_nutzergruppe'])) {
+            $DAUcounter++;
+            $DAUerror .= "Gib bitte einen Erklärungstext an!<br>";
+        }
+
+        if (empty($_POST['verification_mode'])) {
+            $DAUcounter++;
+            $DAUerror .= "Bitte wähle einen Verifizierungsmodus aus!<br>";
+        }
+
+        if (empty($_POST['hat_freifahrten_pro_jahr'])) {
+            $DAUcounter++;
+            $DAUerror .= "Gebe die Zahl der möglichen Freifahrten an!<br>";
+        }
+
+        //Lade ID
+        $link = connect_db();
+        if (!($stmt = $link->prepare("SELECT id FROM nutzergruppen WHERE name = ? AND delete_user = 0"))) {
+            $Antwort['erfolg'] = false;
+            $DAUcounter++;
+        }
+
+        if (!$stmt->bind_param("s", $_POST['name_nutzergruppe'])) {
+            $Antwort['erfolg'] = false;
+            $DAUcounter++;
+        }
+        if (!$stmt->execute()) {
+            $Antwort['erfolg'] = false;
+            $DAUcounter++;
+        } else {
+
+            $res = $stmt->get_result();
+            $num = mysqli_num_rows($res);
+            if($num>0){
+                $DAUcounter++;
+                $DAUerror .= "Eine Nutzergruppe mit diesem Namen existiert bereits!<br>";
+            }
+        }
+
+        ## DAU AUSWERTEN ##
+        if ($DAUcounter > 0) {
+            $Antwort['erfolg'] = false;
+            $Antwort['meldung'] = $DAUerror;
+            return $Antwort;
+        } else {
+
+            //Parse switch items
+            if(isset($_POST['user_visibility'])){$SwitchPresetSichtbarkeit = 'true';}else{$SwitchPresetSichtbarkeit = 'false';}
+            if(isset($_POST['alle_res_gratis'])){$SwitchPresetGratis = 'true';}else{$SwitchPresetGratis = 'false';}
+            if(isset($_POST['darf_last_minute_res'])){$SwitchPresetLastMinute = 'true';}else{$SwitchPresetLastMinute = 'false';}
+            if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'on';}else{$SwitchPresetMulti = 'off';}
+
+            //To Be Implemented!!!!
+            $array_kosten_pro_stunde = array();
+
+            if(add_nutzergruppe($_POST['name_nutzergruppe'], $_POST['erklaerung_nutzergruppe'], $_POST['verification_mode'], $SwitchPresetSichtbarkeit, $SwitchPresetGratis, $_POST['hat_freifahrten_pro_jahr'], $SwitchPresetLastMinute, $SwitchPresetMulti, $array_kosten_pro_stunde)){
+                $Antwort['erfolg'] = true;
+                return $Antwort;
+            } else {
+                $Antwort['erfolg'] = false;
+                $Antwort['meldung'] = 'Fehler beim Anlegen der Nutzergruppe!';
+                return $Antwort;
+            }
+        }
+    }
 }
 
 function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_for_user, $Alle_res_gratis, $Anz_gratis_res, $last_minute_res, $multiselect_possible, $array_kosten_pro_stunde){
