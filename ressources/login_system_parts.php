@@ -227,7 +227,7 @@ function session_manager($Necessary_User_Role = NULL){
         $_SESSION['session_overtime'] = $SessionOvertime;
 
         //Redirect
-        #header("Location: ./login.php");
+        header("Location: ./login.php");
         die();
 
     } else {
