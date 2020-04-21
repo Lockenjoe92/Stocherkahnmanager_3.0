@@ -4,6 +4,12 @@ function add_nutzergruppe_form(){
 
     $parser = add_nutzergruppe_form_parser();
 
+    $HTML = "<h3>Nutzergruppe hinzufügen</h3>";
+
+    if(($parser != true) OR ($parser != null)){
+        $HTML .= error_button_creator($parser, 'error_outline', '');
+    }
+
     //Convert Switch visibility
     if(isset($_POST['user_visibility'])){$SwitchPresetSichtbarkeit = 'on';}else{$SwitchPresetSichtbarkeit = 'off';}
     if(isset($_POST['alle_res_gratis'])){$SwitchPresetGratis = 'on';}else{$SwitchPresetGratis = 'off';}
@@ -17,9 +23,10 @@ function add_nutzergruppe_form(){
     $TableHTML .= table_form_swich_item('Nutzergruppe f&auml;hrt stets gratis', 'alle_res_gratis', 'Nein', 'Ja', $SwitchPresetGratis, false);
     $TableHTML .= table_form_select_item('Nutzergruppe hat Freifahrten pro Jahr', 'hat_freifahrten_pro_jahr', 0, 12, $_POST['hat_freifahrten_pro_jahr'], '', '', '');
     $TableHTML .= table_form_swich_item('Nutzergruppe kann last Minute buchen', 'darf_last_minute_res', 'Nein', 'Ja', $SwitchPresetLastMinute, false);
-    $TableHTML = table_builder($TableHTML);
+    $FormHTML = section_builder(table_builder($TableHTML));
+    $FormHTML .= section_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send'));
 
-    $HTML = $TableHTML;
+    $HTML .= section_builder(form_builder($FormHTML, 'admin_nutzergruppen.php', 'post', 'add_nutzergruppe_form', ''));
     return $HTML;
 }
 
@@ -29,14 +36,14 @@ function add_nutzergruppe_form_parser(){
 
 }
 
-function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_for_user, $Alle_res_gratis, $Anz_gratis_res, $last_minute_res, $array_kosten_pro_stunde){
+function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_for_user, $Alle_res_gratis, $Anz_gratis_res, $last_minute_res, $multiselect_possible, $array_kosten_pro_stunde){
 
     $link = connect_db();
-    if (!($stmt = $link->prepare("INSERT INTO nutzergruppen (name,erklaertext,req_verify,visible_for_user,alle_res_gratis,hat_freifahrten_pro_jahr,darf_last_minute_res,delete_user,delete_timestamp) VALUES (?,?,?,?,?,?,?,0,'0000-00-00 00:00:00')"))) {
+    if (!($stmt = $link->prepare("INSERT INTO nutzergruppen (name,erklaertext,req_verify,visible_for_user,alle_res_gratis,hat_freifahrten_pro_jahr,darf_last_minute_res,multiselect_possible,delete_user,delete_timestamp) VALUES (?,?,?,?,?,?,?,0,'0000-00-00 00:00:00')"))) {
         $Antwort = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
-    if (!$stmt->bind_param("sssssis", $name, $erklaerung, $verification_rule, $visibility_for_user, $Alle_res_gratis, $Anz_gratis_res, $last_minute_res)) {
+    if (!$stmt->bind_param("sssssiss", $name, $erklaerung, $verification_rule, $visibility_for_user, $Alle_res_gratis, $Anz_gratis_res, $last_minute_res, $multiselect_possible)) {
         $Antwort = false;
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
