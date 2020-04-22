@@ -68,6 +68,8 @@ function add_nutzergruppe_form(){
 
     $parser = add_nutzergruppe_form_parser();
 
+    $HTML = "";
+
     if($parser != null){
         if($parser['erfolg'] == true){
             $HTML .= error_button_creator('Nutzergruppe erfolgreich angelegt!', 'done', '');
