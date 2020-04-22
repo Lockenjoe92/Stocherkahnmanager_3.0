@@ -12,6 +12,8 @@ $HTML = "<h1>Nutzergruppen verwalten</h1>";
 
 //Section add nutzergruppe
 $HTML .= active_nutzergruppen_form();
+
+$HTML .= "<h3>Weitere Funktionen</h3>";
 $HTML .= add_nutzergruppe_form();
 
 # Output site

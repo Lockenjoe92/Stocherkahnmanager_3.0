@@ -68,6 +68,8 @@ function add_nutzergruppe_form(){
 
     $parser = add_nutzergruppe_form_parser();
 
+    $HTML = "";
+
     if($parser != null){
         if($parser['erfolg'] == true){
             $HTML .= error_button_creator('Nutzergruppe erfolgreich angelegt!', 'done', '');
@@ -97,8 +99,8 @@ function add_nutzergruppe_form(){
     //Kostenstaffelung
     $TableKostenstaffelungRowsHTML = "";
     $MaxKostenEinerReservierung = lade_xml_einstellung('max-kosten-einer-reservierung');
-    $MaxStundenReservierungMoeglich = lade_xml_einstellung('max-dauer-einer-reservierung');;
-    $FormHTML .= "<h5>Kostenstaffelung eingeben</h5><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
+    $MaxStundenReservierungMoeglich = lade_xml_einstellung('max-dauer-einr-reservierung');;
+    $FormHTML .= "<h3>Kostenstaffelung eingeben</h3><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
 
     for($a=1;$a<=intval($MaxStundenReservierungMoeglich);$a++){
         if($a==1){
@@ -176,8 +178,30 @@ function add_nutzergruppe_form_parser(){
             if(isset($_POST['darf_last_minute_res'])){$SwitchPresetLastMinute = 'true';}else{$SwitchPresetLastMinute = 'false';}
             if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'on';}else{$SwitchPresetMulti = 'off';}
 
-            //To Be Implemented!!!!
-            $array_kosten_pro_stunde = array();
+            //Kostenstaffelung
+            if(!isset($_POST['alle_res_gratis'])){
+
+                $MaxStundenRes = lade_xml_einstellung('max-dauer-einer-reservierung');
+                $array_kosten_pro_stunde = array();
+
+                for($a=1;$a<=$MaxStundenRes;$a++){
+                    $Operator = 'kosten_'.$a.'_h';
+                    $KostenGewaehlteStunde = $_POST[$Operator];
+                    $KostenDetailArray = array($Operator => $KostenGewaehlteStunde);
+                    array_push($array_kosten_pro_stunde, $KostenDetailArray);
+                }
+            } else {
+
+                $MaxStundenRes = lade_xml_einstellung('max-dauer-einer-reservierung');
+                $array_kosten_pro_stunde = array();
+
+                for($a=1;$a<=$MaxStundenRes;$a++){
+                    $Operator = 'kosten_'.$a.'_h';
+                    $KostenGewaehlteStunde = 0;
+                    $KostenDetailArray = array($Operator => $KostenGewaehlteStunde);
+                    array_push($array_kosten_pro_stunde, $KostenDetailArray);
+                }
+            }
 
             if(add_nutzergruppe($_POST['name_nutzergruppe'], $_POST['erklaerung_nutzergruppe'], $_POST['verification_mode'], $SwitchPresetSichtbarkeit, $SwitchPresetGratis, $_POST['hat_freifahrten_pro_jahr'], $SwitchPresetLastMinute, $SwitchPresetMulti, $array_kosten_pro_stunde)){
                 $Antwort['erfolg'] = true;
