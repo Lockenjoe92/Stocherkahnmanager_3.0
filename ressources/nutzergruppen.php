@@ -74,7 +74,7 @@ function add_nutzergruppe_form(){
     $TableHTML .= table_form_swich_item('Nutzergruppe kann last Minute buchen', 'darf_last_minute_res', 'Nein', 'Ja', $SwitchPresetLastMinute, false);
     $TableHTML .= table_form_swich_item('Nutzergruppe macht neben anderen bei einem Nutzer Sinn', 'multiselect_possible', 'Nein', 'Ja', $SwitchPresetMulti, false);
     $FormHTML = section_builder(table_builder($TableHTML));
-    $FormHTML .= section_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send'));
+    $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send')).table_data_builder(button_link_creator('Zurück', './administration.php', 'arrow_back', '')))));
 
     $HTML .= section_builder(form_builder($FormHTML, 'admin_nutzergruppen.php', 'post', 'add_nutzergruppe_form', ''));
     return $HTML;
