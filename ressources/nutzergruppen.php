@@ -18,23 +18,24 @@ function active_nutzergruppen_form(){
             $CollapsibleItems = "";
             for($x=1;$x<=$num;$x++){
                 $NutzergruppeInfo = mysqli_fetch_assoc($res);
-                $NutzergruppeInfoInhalt = "<ul>";
-                $NutzergruppeInfoInhalt .= "<li><b>Erklärtext für User:</b> ".$NutzergruppeInfo['erklaertext']."</li>";
-                $NutzergruppeInfoInhalt .= "<li><b>Verifikationsregel:</b> ".$NutzergruppeInfo['req_verify']."</li>";
+
+                $NutzergruppeInfoTableRows = table_row_builder(table_header_builder('Erklärtext für User').table_data_builder($NutzergruppeInfo['erklaertext']));
+                $NutzergruppeInfoTableRows .= table_row_builder(table_header_builder('Verifikationsregel').table_data_builder($NutzergruppeInfo['req_verify']));
+
                 if($NutzergruppeInfo['visible_for_user'] == 'true'){
-                    $NutzergruppeInfoInhalt .= "<li>Für User sichtbar</li>";
+                    $NutzergruppeInfoTableRows .= table_row_builder(table_header_builder('Sichtbarkeit für User').table_data_builder('Ja'));
                 }
                 if($NutzergruppeInfo['alle_res_gratis'] == 'true'){
-                    $NutzergruppeInfoInhalt .= "<li>Alle Fahrten gratis!</li>";
+                    $NutzergruppeInfoTableRows .= table_row_builder(table_header_builder('Alle User fahren gratis').table_data_builder('Ja'));
                 }
                 if(intval($NutzergruppeInfo['hat_freifahrten_pro_jahr']) > 0){
-                    $NutzergruppeInfoInhalt .= "<li>Anzahl Freifahrten im Jahr: ".$NutzergruppeInfo['hat_freifahrten_pro_jahr']."</li>";
+                    $NutzergruppeInfoTableRows .= table_row_builder(table_header_builder('Anzahl Freifahrten im Jahr').table_data_builder($NutzergruppeInfo['hat_freifahrten_pro_jahr']));
                 }
                 if($NutzergruppeInfo['darf_last_minute_res'] == 'true'){
-                    $NutzergruppeInfoInhalt .= "<li>Nutzergruppe darf last Minute reservieren!</li>";
+                    $NutzergruppeInfoTableRows .= table_row_builder(table_header_builder('Nutzergruppe darf last Minute reservieren').table_data_builder('Ja'));
                 }
-                $NutzergruppeInfoInhalt .= "</ul>";
 
+                $NutzergruppeInfoInhalt = table_builder($NutzergruppeInfoTableRows;
                 $NutzergruppeInfoInhalt .= divider_builder();
 
                 //Tabelle mit aktiven Nutzern der Gruppe
@@ -42,6 +43,8 @@ function active_nutzergruppen_form(){
                 $UserStatsNutzergruppe['verified'] = 0;
                 $TableRows = table_row_builder(table_header_builder('Gesamtzahl User:').table_data_builder($UserStatsNutzergruppe['total']));
                 $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
+
+                $NutzergruppeInfoInhalt .= "<h5>Nutzerstatistik</h5>";
                 $NutzergruppeInfoInhalt .= table_builder($TableRows);
 
                 $NutzergruppeInfoInhalt .= divider_builder();
