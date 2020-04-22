@@ -113,7 +113,7 @@ function add_nutzergruppe_form_parser(){
 function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_for_user, $Alle_res_gratis, $Anz_gratis_res, $last_minute_res, $multiselect_possible, $array_kosten_pro_stunde){
 
     $link = connect_db();
-    if (!($stmt = $link->prepare("INSERT INTO nutzergruppen (name,erklaertext,req_verify,visible_for_user,alle_res_gratis,hat_freifahrten_pro_jahr,darf_last_minute_res,multiselect_possible,delete_user,delete_timestamp) VALUES (?,?,?,?,?,?,?,0,'0000-00-00 00:00:00')"))) {
+    if (!($stmt = $link->prepare("INSERT INTO nutzergruppen (name,erklaertext,req_verify,visible_for_user,alle_res_gratis,hat_freifahrten_pro_jahr,darf_last_minute_res,multiselect_possible,delete_user,delete_timestamp) VALUES (?,?,?,?,?,?,?,?,0,'0000-00-00 00:00:00')"))) {
         $Antwort = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
