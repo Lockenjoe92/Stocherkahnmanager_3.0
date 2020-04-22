@@ -68,8 +68,6 @@ function add_nutzergruppe_form(){
 
     $parser = add_nutzergruppe_form_parser();
 
-    $HTML = "<h3>Nutzergruppe hinzufügen</h3>";
-
     if($parser != null){
         if($parser['erfolg'] == true){
             $HTML .= error_button_creator('Nutzergruppe erfolgreich angelegt!', 'done', '');
@@ -93,10 +91,24 @@ function add_nutzergruppe_form(){
     $TableHTML .= table_form_swich_item('Nutzergruppe kann last Minute buchen', 'darf_last_minute_res', 'Nein', 'Ja', $SwitchPresetLastMinute, false);
     $TableHTML .= table_form_swich_item('Nutzergruppe macht neben anderen bei einem Nutzer Sinn', 'multiselect_possible', 'Nein', 'Ja', $SwitchPresetMulti, false);
     $FormHTML = section_builder(table_builder($TableHTML));
+
+    $FormHTML .= divider_builder();
+
+    //Kostenstaffelung
+    $TableKostenstaffelungRowsHTML = "";
+    $MaxKostenEinerReservierung = lade_xml_einstellung('max-kosten-einer-reservierung');
+    $MaxStundenReservierungMoeglich = lade_xml_einstellung('max-dauer-einer-reservierung');;
+    $FormHTML .= "<h5>Kostenstaffelung eingeben</h5><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
+
+    for($a=1;$a<=intval($MaxStundenReservierungMoeglich);$a++){
+        $TableKostenstaffelungRowsHTML .= table_form_select_item('Kosten für eine Stunde', 'kosten_'.$a.'_h', 0, $MaxKostenEinerReservierung, $_POST['kosten_'.$a.'_h'], '&euro;', '', '');
+    }
+    $FormHTML .= table_builder($TableKostenstaffelungRowsHTML);
+
     $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send')).table_data_builder(button_link_creator('Zurück', './administration.php', 'arrow_back', '')))));
     $FormHTML = form_builder($FormHTML, 'admin_nutzergruppen.php', 'post', 'add_nutzergruppe_form', '');
 
-    $HTML .= collapsible_builder(collapsible_item_builder('Nutzergruppe hinzufügen', $FormHTML, 'add_group'));
+    $HTML = collapsible_builder(collapsible_item_builder('Nutzergruppe hinzufügen', $FormHTML, 'add'));
     return $HTML;
 }
 
