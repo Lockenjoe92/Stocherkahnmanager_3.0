@@ -20,8 +20,6 @@ function add_nutzergruppe_form(){
     if(isset($_POST['darf_last_minute_res'])){$SwitchPresetLastMinute = 'on';}else{$SwitchPresetLastMinute = 'off';}
     if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'on';}else{$SwitchPresetMulti = 'off';}
 
-
-
     $TableHTML = table_form_string_item('Name der Nutzergruppe', 'name_nutzergruppe', $_POST['name_nutzergruppe'], false);
     $TableHTML .= table_form_string_item('Erkl&auml;render Text zur Nutzergruppe', 'erklaerung_nutzergruppe', $_POST['erklaerung_nutzergruppe'], false);
     $TableHTML .= table_form_nutzergruppe_verification_mode_select('Verifizierung der Zugeh&ouml;rigkeit', 'verification_mode', $_POST['verification_mode'], $Disabled=false, $SpecialMode='');
@@ -58,11 +56,6 @@ function add_nutzergruppe_form_parser(){
         if (empty($_POST['verification_mode'])) {
             $DAUcounter++;
             $DAUerror .= "Bitte wähle einen Verifizierungsmodus aus!<br>";
-        }
-
-        if (empty($_POST['hat_freifahrten_pro_jahr'])) {
-            $DAUcounter++;
-            $DAUerror .= "Gebe die Zahl der möglichen Freifahrten an!<br>";
         }
 
         //Lade ID
