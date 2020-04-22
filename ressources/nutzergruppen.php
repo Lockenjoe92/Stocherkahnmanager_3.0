@@ -1,5 +1,50 @@
 <?php
 
+function active_nutzergruppen_form(){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE delete_user = 0 ORDER BY name ASC"))) {
+        $Antwort['erfolg'] = false;
+    }
+    if (!$stmt->bind_param("s", $_POST['name_nutzergruppe'])) {
+        $Antwort['erfolg'] = false;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['erfolg'] = false;
+    } else {
+        $res = $stmt->get_result();
+        $num = mysqli_num_rows($res);
+        if($num>0){
+            $CollapsibleItems = "";
+            for($x=1;$x<=$num;$x++){
+                $NutzergruppeInfo = mysqli_fetch_assoc($res);
+                $NutzergruppeInfoInhalt = "<ul>";
+                $NutzergruppeInfoInhalt .= "<li>Erklärtext für User: ".$NutzergruppeInfo['erklaertext']."</li>";
+                $NutzergruppeInfoInhalt .= "<li>Verifikationsregel: ".$NutzergruppeInfo['req_verify']."</li>";
+                $NutzergruppeInfoInhalt .= "<li>Sichtbarkeit für User: ".$NutzergruppeInfo['visible_for_user']."</li>";
+                if($NutzergruppeInfo['alle_res_gratis'] == 'true'){
+                    $NutzergruppeInfoInhalt .= "<li>Alle Fahrten gratis!</li>";
+                }
+                if(intval($NutzergruppeInfo['hat_freifahrten_pro_jahr']) > 0){
+                    $NutzergruppeInfoInhalt .= "<li>Anzahl Freifahrten im Jahr: ".$NutzergruppeInfo['hat_freifahrten_pro_jahr']."</li>";
+                }
+                if($NutzergruppeInfo['darf_last_minute_res'] == 'true'){
+                    $NutzergruppeInfoInhalt .= "<li>Nutzergruppe darf last Minute reservieren!</li>";
+                }
+                $NutzergruppeInfoInhalt .= "</ul>";
+                $CollapsibleItems .= collapsible_item_builder($NutzergruppeInfo['name'], $NutzergruppeInfoInhalt, 'group');
+            }
+
+            $HTML = "<h3>Liste aktiver Nutzergruppen</h3>";
+            $HTML .= collapsible_builder($CollapsibleItems);
+        }else{
+            $HTML = "<h3>Bislang keine Nutzergruppen angelegt!</h3>";
+        }
+    }
+
+    return $HTML;
+}
+
 function add_nutzergruppe_form(){
 
     $parser = add_nutzergruppe_form_parser();

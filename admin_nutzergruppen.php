@@ -11,6 +11,7 @@ session_manager('ist_admin');
 $HTML = "<h1>Nutzergruppen verwalten</h1>";
 
 //Section add nutzergruppe
+$HTML .= active_nutzergruppen_form();
 $HTML .= add_nutzergruppe_form();
 
 # Output site
