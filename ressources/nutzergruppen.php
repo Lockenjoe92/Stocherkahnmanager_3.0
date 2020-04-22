@@ -98,7 +98,7 @@ function add_nutzergruppe_form(){
     $TableKostenstaffelungRowsHTML = "";
     $MaxKostenEinerReservierung = lade_xml_einstellung('max-kosten-einer-reservierung');
     $MaxStundenReservierungMoeglich = lade_xml_einstellung('max-dauer-einer-reservierung');;
-    $FormHTML .= "<h5>Kostenstaffelung eingeben</h5><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
+    $FormHTML .= "<h3>Kostenstaffelung eingeben</h3><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
 
     for($a=1;$a<=intval($MaxStundenReservierungMoeglich);$a++){
         if($a==1){
