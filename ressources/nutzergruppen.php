@@ -34,6 +34,21 @@ function active_nutzergruppen_form(){
                     $NutzergruppeInfoInhalt .= "<li>Nutzergruppe darf last Minute reservieren!</li>";
                 }
                 $NutzergruppeInfoInhalt .= "</ul>";
+
+                $NutzergruppeInfoInhalt .= divider_builder();
+
+                //Tabelle mit aktiven Nutzern der Gruppe
+                $UserStatsNutzergruppe['total'] = 1;
+                $UserStatsNutzergruppe['verified'] = 0;
+                $TableRows = table_row_builder(table_header_builder('Gesamtzahl User:').table_data_builder($UserStatsNutzergruppe['total']));
+                $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
+                $NutzergruppeInfoInhalt .= table_builder($TableRows);
+
+                $NutzergruppeInfoInhalt .= divider_builder();
+
+                //Tabelle mit Knöpfen
+                $NutzergruppeInfoInhalt .= table_builder(table_row_builder(table_data_builder(button_link_creator('Bearbeiten', './admin_nutzergruppen.php?mode=edit_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'edit', ''))));
+
                 $CollapsibleItems .= collapsible_item_builder($NutzergruppeInfo['name'], $NutzergruppeInfoInhalt, 'group');
             }
 
