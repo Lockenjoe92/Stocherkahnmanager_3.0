@@ -248,6 +248,7 @@ function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_fo
             $Ergebnis = mysqli_fetch_assoc($res);
 
             //Kostentabelle in nutzer_meta reinhacken
+            var_dump($array_kosten_pro_stunde);
             foreach ($array_kosten_pro_stunde as $Kosten_Stunde_Paar_key => $Kosten_Stunde_Paar_value){
                 add_nutzergruppe_meta($Ergebnis['id'], $Kosten_Stunde_Paar_key, $Kosten_Stunde_Paar_value);
             }
