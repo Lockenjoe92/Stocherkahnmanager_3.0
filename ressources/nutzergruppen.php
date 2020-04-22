@@ -101,8 +101,10 @@ function add_nutzergruppe_form(){
     $MaxKostenEinerReservierung = lade_xml_einstellung('max-kosten-einer-reservierung');
     $MaxStundenReservierungMoeglich = lade_xml_einstellung('max-dauer-einr-reservierung');;
     $FormHTML .= "<h3>Kostenstaffelung eingeben</h3><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
-
+    var_dump($MaxStundenReservierungMoeglich);
     for($a=1;$a<=intval($MaxStundenReservierungMoeglich);$a++){
+        var_dump($a);
+
         if($a==1){
             $TableKostenstaffelungRowsHTML .= table_form_select_item('Kosten für eine Stunde', 'kosten_'.$a.'_h', 0, $MaxKostenEinerReservierung, $_POST['kosten_'.$a.'_h'], '&euro;', '', '');
         } else {
@@ -202,6 +204,8 @@ function add_nutzergruppe_form_parser(){
                     array_push($array_kosten_pro_stunde, $KostenDetailArray);
                 }
             }
+
+            var_dump($array_kosten_pro_stunde);
 
             if(add_nutzergruppe($_POST['name_nutzergruppe'], $_POST['erklaerung_nutzergruppe'], $_POST['verification_mode'], $SwitchPresetSichtbarkeit, $SwitchPresetGratis, $_POST['hat_freifahrten_pro_jahr'], $SwitchPresetLastMinute, $SwitchPresetMulti, $array_kosten_pro_stunde)){
                 $Antwort['erfolg'] = true;
