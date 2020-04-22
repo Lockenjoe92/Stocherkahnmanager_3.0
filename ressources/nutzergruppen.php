@@ -19,9 +19,11 @@ function active_nutzergruppen_form(){
             for($x=1;$x<=$num;$x++){
                 $NutzergruppeInfo = mysqli_fetch_assoc($res);
                 $NutzergruppeInfoInhalt = "<ul>";
-                $NutzergruppeInfoInhalt .= "<li>Erklärtext für User: ".$NutzergruppeInfo['erklaertext']."</li>";
-                $NutzergruppeInfoInhalt .= "<li>Verifikationsregel: ".$NutzergruppeInfo['req_verify']."</li>";
-                $NutzergruppeInfoInhalt .= "<li>Sichtbarkeit für User: ".$NutzergruppeInfo['visible_for_user']."</li>";
+                $NutzergruppeInfoInhalt .= "<li><b>Erklärtext für User:</b> ".$NutzergruppeInfo['erklaertext']."</li>";
+                $NutzergruppeInfoInhalt .= "<li><b>Verifikationsregel:</b> ".$NutzergruppeInfo['req_verify']."</li>";
+                if($NutzergruppeInfo['visible_for_user'] == 'true'){
+                    $NutzergruppeInfoInhalt .= "<li>Für User sichtbar</li>";
+                }
                 if($NutzergruppeInfo['alle_res_gratis'] == 'true'){
                     $NutzergruppeInfoInhalt .= "<li>Alle Fahrten gratis!</li>";
                 }
