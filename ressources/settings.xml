@@ -43,6 +43,8 @@
     <bis-freitag>22</bis-freitag>
     <bis-samstag>22</bis-samstag>
     <bis-sonntag>22</bis-sonntag>
+    <max-kosten-einer-reservierung>200</max-kosten-einer-reservierung>
+    <max-dauer-einer-reservierung>6</max-dauer-einer-reservierung>
 
     <!--- COLORS -->
     <site_menue_color>white</site_menue_color>
