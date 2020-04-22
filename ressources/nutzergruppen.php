@@ -68,8 +68,6 @@ function add_nutzergruppe_form(){
 
     $parser = add_nutzergruppe_form_parser();
 
-    $HTML = "<h3>Nutzergruppe hinzufügen</h3>";
-
     if($parser != null){
         if($parser['erfolg'] == true){
             $HTML .= error_button_creator('Nutzergruppe erfolgreich angelegt!', 'done', '');
@@ -96,7 +94,7 @@ function add_nutzergruppe_form(){
     $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send')).table_data_builder(button_link_creator('Zurück', './administration.php', 'arrow_back', '')))));
     $FormHTML = form_builder($FormHTML, 'admin_nutzergruppen.php', 'post', 'add_nutzergruppe_form', '');
 
-    $HTML .= collapsible_builder(collapsible_item_builder('Nutzergruppe hinzufügen', $FormHTML, 'add_group'));
+    $HTML = collapsible_builder(collapsible_item_builder('Nutzergruppe hinzufügen', $FormHTML, 'add'));
     return $HTML;
 }
 
