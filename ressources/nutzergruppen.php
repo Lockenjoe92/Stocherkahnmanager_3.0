@@ -39,8 +39,7 @@ function active_nutzergruppen_form(){
                 $NutzergruppeInfoInhalt .= divider_builder();
 
                 //Tabelle mit aktiven Nutzern der Gruppe
-                $UserStatsNutzergruppe['total'] = 1;
-                $UserStatsNutzergruppe['verified'] = 0;
+                $UserStatsNutzergruppe = load_nutzergruppe_current_user_stats($NutzergruppeInfo['id']);
                 $TableRows = table_row_builder(table_header_builder('Gesamtzahl User:').table_data_builder($UserStatsNutzergruppe['total']));
                 $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
 
@@ -95,8 +94,9 @@ function add_nutzergruppe_form(){
     $TableHTML .= table_form_swich_item('Nutzergruppe macht neben anderen bei einem Nutzer Sinn', 'multiselect_possible', 'Nein', 'Ja', $SwitchPresetMulti, false);
     $FormHTML = section_builder(table_builder($TableHTML));
     $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send')).table_data_builder(button_link_creator('Zurück', './administration.php', 'arrow_back', '')))));
+    $FormHTML = form_builder($FormHTML, 'admin_nutzergruppen.php', 'post', 'add_nutzergruppe_form', '');
 
-    $HTML .= section_builder(form_builder($FormHTML, 'admin_nutzergruppen.php', 'post', 'add_nutzergruppe_form', ''));
+    $HTML .= collapsible_builder(collapsible_item_builder('Nutzergruppe hinzufügen', $FormHTML, 'add_group'));
     return $HTML;
 }
 
@@ -238,6 +238,49 @@ function add_nutzergruppe_meta($NutzergruppeID, $Schluessel, $Wert){
     }
 
     return $Antwort;
+}
+
+function load_nutzergruppe_current_user_stats($IDNutzergruppe){
+
+    $link = connect_db();
+    $Antwort = null;
+
+    if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ?"))) {
+        $Antwort = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+        $Antwort = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    } else {
+
+        //Lade erstmal alle User, die glauben in einer Nutzergruppe zu sein
+        $res = $stmt->get_result();
+        $Antwort['total'] = mysqli_num_rows($res);
+
+        //Jetzt noch feststellen, wie viele User eigentlich verifiziert sind
+        if (!($stmt = $link->prepare("SELECT id FROM nutzergruppe_verification WHERE nutzergruppe = ? AND erfolg = 'true' AND delete_user = 0"))) {
+            $Antwort = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+            $Antwort = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        } else {
+            $res = $stmt->get_result();
+            $Antwort['verified'] = mysqli_num_rows($res);
+        }
+
+        return $Antwort;
+    }
 }
 
 function lade_nutzergruppe_infos($ID){
