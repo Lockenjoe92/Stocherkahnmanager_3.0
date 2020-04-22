@@ -35,7 +35,7 @@ function active_nutzergruppen_form(){
                     $NutzergruppeInfoTableRows .= table_row_builder(table_header_builder('Nutzergruppe darf last Minute reservieren').table_data_builder('Ja'));
                 }
 
-                $NutzergruppeInfoInhalt = table_builder($NutzergruppeInfoTableRows;
+                $NutzergruppeInfoInhalt = table_builder($NutzergruppeInfoTableRows);
                 $NutzergruppeInfoInhalt .= divider_builder();
 
                 //Tabelle mit aktiven Nutzern der Gruppe
