@@ -101,7 +101,11 @@ function add_nutzergruppe_form(){
     $FormHTML .= "<h5>Kostenstaffelung eingeben</h5><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
 
     for($a=1;$a<=intval($MaxStundenReservierungMoeglich);$a++){
-        $TableKostenstaffelungRowsHTML .= table_form_select_item('Kosten für eine Stunde', 'kosten_'.$a.'_h', 0, $MaxKostenEinerReservierung, $_POST['kosten_'.$a.'_h'], '&euro;', '', '');
+        if($a==1){
+            $TableKostenstaffelungRowsHTML .= table_form_select_item('Kosten für eine Stunde', 'kosten_'.$a.'_h', 0, $MaxKostenEinerReservierung, $_POST['kosten_'.$a.'_h'], '&euro;', '', '');
+        } else {
+            $TableKostenstaffelungRowsHTML .= table_form_select_item('Kosten für '.$a.' Stunden', 'kosten_'.$a.'_h', 0, $MaxKostenEinerReservierung, $_POST['kosten_'.$a.'_h'], '&euro;', '', '');
+        }
     }
     $FormHTML .= table_builder($TableKostenstaffelungRowsHTML);
 
