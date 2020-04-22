@@ -19,9 +19,11 @@ function active_nutzergruppen_form(){
             for($x=1;$x<=$num;$x++){
                 $NutzergruppeInfo = mysqli_fetch_assoc($res);
                 $NutzergruppeInfoInhalt = "<ul>";
-                $NutzergruppeInfoInhalt .= "<li>Erklärtext für User: ".$NutzergruppeInfo['erklaertext']."</li>";
-                $NutzergruppeInfoInhalt .= "<li>Verifikationsregel: ".$NutzergruppeInfo['req_verify']."</li>";
-                $NutzergruppeInfoInhalt .= "<li>Sichtbarkeit für User: ".$NutzergruppeInfo['visible_for_user']."</li>";
+                $NutzergruppeInfoInhalt .= "<li><b>Erklärtext für User:</b> ".$NutzergruppeInfo['erklaertext']."</li>";
+                $NutzergruppeInfoInhalt .= "<li><b>Verifikationsregel:</b> ".$NutzergruppeInfo['req_verify']."</li>";
+                if($NutzergruppeInfo['visible_for_user'] == 'true'){
+                    $NutzergruppeInfoInhalt .= "<li>Für User sichtbar</li>";
+                }
                 if($NutzergruppeInfo['alle_res_gratis'] == 'true'){
                     $NutzergruppeInfoInhalt .= "<li>Alle Fahrten gratis!</li>";
                 }
@@ -32,6 +34,21 @@ function active_nutzergruppen_form(){
                     $NutzergruppeInfoInhalt .= "<li>Nutzergruppe darf last Minute reservieren!</li>";
                 }
                 $NutzergruppeInfoInhalt .= "</ul>";
+
+                $NutzergruppeInfoInhalt .= divider_builder();
+
+                //Tabelle mit aktiven Nutzern der Gruppe
+                $UserStatsNutzergruppe['total'] = 1;
+                $UserStatsNutzergruppe['verified'] = 0;
+                $TableRows = table_row_builder(table_header_builder('Gesamtzahl User:').table_data_builder($UserStatsNutzergruppe['total']));
+                $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
+                $NutzergruppeInfoInhalt .= table_builder($TableRows);
+
+                $NutzergruppeInfoInhalt .= divider_builder();
+
+                //Tabelle mit Knöpfen
+                $NutzergruppeInfoInhalt .= table_builder(table_row_builder(table_data_builder(button_link_creator('Bearbeiten', './admin_nutzergruppen.php?mode=edit_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'edit', ''))));
+
                 $CollapsibleItems .= collapsible_item_builder($NutzergruppeInfo['name'], $NutzergruppeInfoInhalt, 'group');
             }
 
