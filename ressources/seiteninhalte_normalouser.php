@@ -312,7 +312,7 @@ function buchungsfenster($Kalenderrolle, $Buttonmode)
 
     if (($Buttonmode === NULL) OR ($Buttonmode === FALSE)) {
 
-        $Antwort = "<h5 class='center-align'>Daten der Reservierung eingeben</h5>";
+        $Antwort = "<h3 class='center-align'>Daten der Reservierung eingeben</h3>";
 
         $TableHTML = table_form_datepicker_reservation_item('Datum', 'datum_buchung', $_POST['datum_buchung'], false, true);
         $TableHTML .= table_form_select_item('Abfahrt', 'beginn_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
@@ -343,7 +343,7 @@ function buchungsfenster($Kalenderrolle, $Buttonmode)
         if ($Kalenderrolle === "wart") {
             $Antwort .= table_builder(table_row_builder(table_data_builder(form_button_builder('input_action', 'Eintragen', 'action', 'send', '')) . table_data_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', ''))));
         } else {
-            $Antwort .= table_builder(table_row_builder(table_data_builder(form_button_builder('input_action', 'Eintragen', 'action', 'send', ''))));
+            $Antwort .= table_builder(table_row_builder(table_data_builder(form_button_builder('input_action', 'Eintragen', 'action', 'send', '')). table_data_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', ''))));
         }
 
         $Antwort = form_builder($Antwort, './reservierung_hinzufuegen.php', 'post', '', '');

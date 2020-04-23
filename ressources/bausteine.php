@@ -370,20 +370,17 @@ function form_dropdown_menu_user($ItemName, $PresetValue){
         $Antwort = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
-    if (!$stmt->bind_param("s", $name)) {
-        $Antwort = false;
-        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-    }
     if (!$stmt->execute()) {
         $Antwort = false;
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
     } else {
 
         $res = $stmt->get_result();
-        $Users = mysqli_fetch_assoc($res);
+        $num = mysqli_num_rows($res);
         $UsersArray = array();
 
-        foreach ($Users as $User){
+        for ($a=1;$a<=$num;$a++){
+            $User = mysqli_fetch_assoc($res);
             $UserMeta = lade_user_meta($User['id']);
             $Zwischenarray = array('nachname'=>$UserMeta['nachname'], 'vorname'=>$UserMeta['vorname'], 'id'=>$User['id']);
             array_push($UsersArray, $Zwischenarray);
@@ -392,6 +389,13 @@ function form_dropdown_menu_user($ItemName, $PresetValue){
         asort($UsersArray);
 
         $Select = "<select id='".$ItemName."' name='".$ItemName."'>";
+
+        if($PresetValue == ''){
+            $Select .= "<option value='' disabled selected>Bitte w&auml;hlen</option>";
+        } else {
+            $Select .= "<option value='' disabled>Bitte w&auml;hlen</option>";
+        }
+
         foreach($UsersArray as $User){
             if($User['id'] == $PresetValue){
                 $Select .= "<option value='".$User['id']."' selected>".$User['nachname'].", ".$User['vorname']."</option>";
