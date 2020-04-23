@@ -348,6 +348,63 @@ function form_select_item($ItemName, $Min=0, $Max=0, $StartValue='', $Einheit=''
     return $HTML;
 }
 
+function form_datepicker_reservation_item($ItemTitle, $ItemName, $value='', $Disabled=false, $Required=true, $SpecialMode = ''){
+
+    if ($Disabled){
+        $Disabled = 'disabled';
+    } else {
+        $Disabled = '';
+    }
+
+    return "<div class='input-field ".$SpecialMode."'><input class='datepicker_new_res' type='text' class='validate' name='".$ItemName."' id='".$ItemName."' ".$Disabled." value='" . $value  . "' " .
+        ($Required ? "required" : "") ."><label for='".$ItemName."'>".$ItemTitle."</label></div>";
+
+}
+
+function form_dropdown_menu_user($ItemName, $PresetValue){
+
+    $link = connect_db();
+
+    //Lade ID
+    if (!($stmt = $link->prepare("SELECT id FROM users"))) {
+        $Antwort = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("s", $name)) {
+        $Antwort = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    } else {
+
+        $res = $stmt->get_result();
+        $Users = mysqli_fetch_assoc($res);
+        $UsersArray = array();
+
+        foreach ($Users as $User){
+            $UserMeta = lade_user_meta($User['id']);
+            $Zwischenarray = array('nachname'=>$UserMeta['nachname'], 'vorname'=>$UserMeta['vorname'], 'id'=>$User['id']);
+            array_push($UsersArray, $Zwischenarray);
+        }
+
+        asort($UsersArray);
+
+        $Select = "<select id='".$ItemName."' name='".$ItemName."'>";
+        foreach($UsersArray as $User){
+            if($User['id'] == $PresetValue){
+                $Select .= "<option value='".$User['id']."' selected>".$User['nachname'].", ".$User['vorname']."</option>";
+            } else {
+                $Select .= "<option value='".$User['id']."'>".$User['nachname'].", ".$User['vorname']."</option>";
+            }
+        }
+        $Select .= "</select>";
+
+        return $Select;
+    }
+}
+
 function form_html_area_item($ItemName, $Placeholdertext='', $Disabled=false){
 
     if ($Disabled == false){
@@ -368,10 +425,20 @@ function form_html_area_item($ItemName, $Placeholdertext='', $Disabled=false){
 
 }
 
+function table_form_datepicker_reservation_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false, $Required=true, $SpecialMode = ''){
+
+    return "<tr><th>".$ItemTitle."</th><td>".form_datepicker_reservation_item($ItemTitle, $ItemName, $Placeholdertext, $Disabled, $Required, $SpecialMode)."</td></tr>";
+
+}
+
 function table_form_file_upload_builder($ItemTitle, $ItemName){
 
     return "<tr><th>".$ItemTitle."</th><td><input type='file' name='".$ItemName."' id='".$ItemName."'></td></tr>";
 
+}
+
+function table_form_dropdown_menu_user($ItemTitle, $ItemName, $PresetValue){
+    return "<tr><th>".$ItemTitle."</th><td>".form_dropdown_menu_user($ItemName, $PresetValue)."</td></tr>";
 }
 
 function table_form_file_upload_directory_chooser_builder($ItemTitle, $ItemName){

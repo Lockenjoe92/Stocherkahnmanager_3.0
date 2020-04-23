@@ -60,4 +60,24 @@
     <farbe-button-kalender-nicht-buchbar>red</farbe-button-kalender-nicht-buchbar>
     <farbe-button-kalender-reserviert>yellow</farbe-button-kalender-reserviert>
 
+    <!--- INFOs FOR USERS -->
+    <titelinfo-reservierung-hinzufuegen><![CDATA[
+        <p class='center-align'>Um deine Reservierung einzugeben, scrolle einfach ganz nach unten und trage dein gew&uuml;nschtes Zeitfenster ein:)<br>Vorher kannst du im Kalender noch einmal nachschauen ob das Zeitfenster noch frei ist.</p>
+    ]]></titelinfo-reservierung-hinzufuegen>
+    <inhalt-dokumente-und-nuetzliches><![CDATA[
+        <p><a href='./mietvertrag.php'><i class='tiny material-icons'>description</i> Mietvertrag</a></p>
+        <p><a href='./datenschutz.php'><i class='tiny material-icons'>description</i> Datenschutzerkl&auml;rung</a></p>
+        <p><a href='./anleitung.php'><i class='tiny material-icons'>info</i> Anleitung zum Festmachen des Kahns</a></p>
+    ]]></inhalt-dokumente-und-nuetzliches>
+    <html-faq-user-hauptansicht><![CDATA[ <div class='section'>
+    <h5>Schlechtes Wetter</h5>
+    <p>Pech mit dem Wetter bedeutet bei uns nicht, dass dein Geld futsch ist. Solltest du bevor deine Fahrt offiziell los geht bemerken, dass das mit dem Wetter nix wird, kannst du ganz einfach im Buchungssystem deine Reservierung stornieren. Hast du rechtzeitig storniert, bekommst dann einfach das Geld zur&uuml;ck:) <a href='kontakt.php'>Melde dich</a> dazu einfach bei uns um daf&uuml;r ein Termin auszumachen.</p>
+    <p>Nachdem deine Fahrt begonnen hat, gilt diese Regelung leider nicht mehr und dein Anspruch auf Erstattung verf&auml;llt.</p>
+    <p>Bitte denke trotzdem immer daran deinen Schl&uuml;ssel m&ouml;glichst bald zu unserem <a href='anleitung.php'>R&uuml;ckgabekasten</a> zu bringen, da wir ihn wieder f&uuml;r andere Reservierungen ben&ouml;tigen:)</p>
+    </div>
+    <div class='section'>
+    <h5>Grillen an Bord</h5>
+    <p>Wir stecken in unseren Kahn viel Arbeit und hatten leider in den letzten Jahren &ouml;fters schlechte Erfahrungen mit Gruppen die gegrillt und nicht aufgepasst haben. Daher erkennt das ge&uuml;bte Auge auch die eine oder andere Brandspur am Kahn. Daher k&ouml;nnen wir es euch leider nicht mehr erlauben auf dem Kahn zu grillen:/</p>
+    </div>]]></html-faq-user-hauptansicht>
+
 </global_settings>

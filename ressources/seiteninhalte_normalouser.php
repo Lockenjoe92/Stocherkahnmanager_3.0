@@ -1,4 +1,6 @@
 <?php
+
+//STARTSEITE NORMALOUSER
 function seiteninhalt_normalouser_generieren(){
     $HTML = eigene_reservierungen_user();
     #$HTML .= faellige_schluesselrueckgaben_user();
@@ -6,7 +8,6 @@ function seiteninhalt_normalouser_generieren(){
     #$HTML .= moegliche_rueckzahlungen_user();
     return $HTML;
 }
-
 function eigene_reservierungen_user(){
 
     $link = connect_db();
@@ -109,10 +110,10 @@ function eigene_reservierungen_user(){
     $HTML = section_builder($SectionHTML);
     $HTML .= divider_builder();
 
-    #$HelpfulLinksHTML = dokumente_listenelement_generieren();
-    #$HelpfulLinksHTML .= faq_user_hauptansicht_generieren();
+    $HelpfulLinksHTML = dokumente_listenelement_generieren();
+    $HelpfulLinksHTML .= faq_user_hauptansicht_generieren();
     #$HelpfulLinksHTML .= grillinfo_hauptansicht_generieren($UserID);
-    #$HTML .= section_builder(collapsible_builder($HelpfulLinksHTML));
+    $HTML .= section_builder(collapsible_builder($HelpfulLinksHTML));
 
     return $HTML;
 }
@@ -217,4 +218,236 @@ function faellige_zahlungen_user(){
 }
 function moegliche_rueckzahlungen_user(){
     return null;
+}
+function dokumente_listenelement_generieren(){
+
+    return collapsible_item_builder("Dokumente und N&uuml;tzliches", lade_xml_einstellung('inhalt-dokumente-und-nuetzliches'), 'library_books');
+
+}
+function faq_user_hauptansicht_generieren(){
+
+    return collapsible_item_builder("FAQ f&uuml;r User", lade_xml_einstellung('html-faq-user-hauptansicht'), 'live_help');
+
+}
+
+//RESERVIERUNG ANLEGEN
+function seiteninhalt_reservierung_hinzufuegen(){
+
+    //Titelinfo
+    $HTML = lade_xml_einstellung('titelinfo-reservierung-hinzufuegen');
+
+    //Benutzerrollen interpretieren
+    $Benutzerrollen = lade_user_meta(lade_user_id());
+    if ($Benutzerrollen['ist_wart'] == 'true') {
+        $Kalenderrolle = "wart";
+    } else {
+        $Kalenderrolle = "user";
+    }
+
+    //Parser
+    $Parser = reservierung_hinzufuegen_parser();
+
+    //Kalender
+    $HTML .= section_builder(kalender_gross($Kalenderrolle), '', 'hide-on-small-and-down');
+    $HTML .= section_builder(kalender_mobil($Kalenderrolle), '', 'hide-on-med-and-up');
+
+
+    //Buchungsfenster
+    $HTML .= section_builder(buchungsfenster($Kalenderrolle, $Parser), '', 'hide-on-small-and-down');
+    $HTML .= section_builder(buchungsfenster_mobil($Kalenderrolle, $Parser), '', 'hide-on-med-and-up');
+
+    return $HTML;
+}
+function buchungsfenster_mobil($Kalenderrolle, $Buttonmode)
+{
+
+    if (($Buttonmode === NULL) OR ($Buttonmode === FALSE)) {
+
+        $Antwort = "<h5 class='center-align'>Daten der Reservierung eingeben</h5>";
+
+        $TableHTML = table_form_datepicker_reservation_item('Datum', 'datum_buchung', $_POST['datum_buchung'], false, true);
+        $TableHTML .= table_form_select_item('Abfahrt', 'beginn_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
+        $TableHTML .= table_form_select_item('Ende', 'ende_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
+        $Antwort .= table_builder($TableHTML);
+
+        if ($Kalenderrolle === "wart") {
+
+            //Checkbox parser
+            if (isset($_POST['gratis_fahrt'])) {
+                $Checkbox = "checked";
+            } else {
+                $Checkbox = "";
+            }
+
+            $Antwort .= "<div class='divider'></div>";
+
+            $Antwort .= "<h5 class='center-align'>Anderen User eintragen</h5>";
+
+            $TableWartHTML = table_form_dropdown_menu_user('User', 'user_reservierung', $_POST['user_reservierung']);
+            $TableWartHTML .= table_form_swich_item('Fahrt gratis', 'gratis_fahrt', 'Nein', 'Ja', $Checkbox, false);
+            $TableWartHTML .= table_form_select_item('Verg&uuml;nstigter Tarif', 'verguenstigung', 0, lade_xml_einstellung('max-kosten-einer-reservierung'), $_POST['user_reservierung'], '&euro;', 'Vergünstigung', '');
+            $Antwort .= table_builder($TableWartHTML);
+        }
+
+        $Antwort .= "<div class='divider'></div>";
+
+        if ($Kalenderrolle === "wart") {
+            $Antwort .= table_builder(table_row_builder(table_data_builder(form_button_builder('input_action', 'Eintragen', 'action', 'send', '')) . table_data_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', ''))));
+        } else {
+            $Antwort .= table_builder(table_row_builder(table_data_builder(form_button_builder('input_action', 'Eintragen', 'action', 'send', ''))));
+        }
+
+        $Antwort = form_builder($Antwort, './reservierung_hinzufuegen.php', 'post', '', '');
+
+    } else if ($Buttonmode === TRUE) {
+
+        $Antwort = section_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', ''));
+
+    }
+
+    return $Antwort;
+}
+function buchungsfenster($Kalenderrolle, $Buttonmode)
+{
+
+    if (($Buttonmode === NULL) OR ($Buttonmode === FALSE)) {
+
+        $Antwort = "<h5 class='center-align'>Daten der Reservierung eingeben</h5>";
+
+        $TableHTML = table_form_datepicker_reservation_item('Datum', 'datum_buchung', $_POST['datum_buchung'], false, true);
+        $TableHTML .= table_form_select_item('Abfahrt', 'beginn_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
+        $TableHTML .= table_form_select_item('Ende', 'ende_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
+        $Antwort .= table_builder($TableHTML);
+
+        if ($Kalenderrolle === "wart") {
+
+            //Checkbox parser
+            if (isset($_POST['gratis_fahrt'])) {
+                $Checkbox = "checked";
+            } else {
+                $Checkbox = "";
+            }
+
+            $Antwort .= "<div class='divider'></div>";
+
+            $Antwort .= "<h5 class='center-align'>Anderen User eintragen</h5>";
+
+            $TableWartHTML = table_form_dropdown_menu_user('User', 'user_reservierung', $_POST['user_reservierung']);
+            $TableWartHTML .= table_form_swich_item('Fahrt gratis', 'gratis_fahrt', 'Nein', 'Ja', $Checkbox, false);
+            $TableWartHTML .= table_form_select_item('Verg&uuml;nstigter Tarif', 'verguenstigung', 0, lade_xml_einstellung('max-kosten-einer-reservierung'), $_POST['user_reservierung'], '&euro;', 'Vergünstigung', '');
+            $Antwort .= table_builder($TableWartHTML);
+        }
+
+        $Antwort .= "<div class='divider'></div>";
+
+        if ($Kalenderrolle === "wart") {
+            $Antwort .= table_builder(table_row_builder(table_data_builder(form_button_builder('input_action', 'Eintragen', 'action', 'send', '')) . table_data_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', ''))));
+        } else {
+            $Antwort .= table_builder(table_row_builder(table_data_builder(form_button_builder('input_action', 'Eintragen', 'action', 'send', ''))));
+        }
+
+        $Antwort = form_builder($Antwort, './reservierung_hinzufuegen.php', 'post', '', '');
+
+    } else if ($Buttonmode === TRUE) {
+
+        $Antwort = section_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', ''));
+
+    }
+
+    return $Antwort;
+
+}
+function reservierung_hinzufuegen_parser(){
+
+    $Antwort = NULL;
+
+    if (isset($_POST['input_action'])) {
+
+        $Anfang = "" . $_POST['datum_buchung'] . " " . $_POST['beginn_reservierung'] . ":00:00";
+        $Ende = "" . $_POST['datum_buchung'] . " " . $_POST['ende_reservierung'] . ":00:00";
+        $AktuelleUserID = lade_user_id();
+        $Benutzerrollen = lade_user_meta(lade_user_id());
+
+        if ($Benutzerrollen['ist_wart'] == TRUE) {
+
+            if (isset($_POST['user_reservierung'])) {
+                $UserRes = $_POST['user_reservierung'];
+            } else {
+                $UserRes = $AktuelleUserID;
+            }
+
+            if (isset($_POST['gratis_fahrt'])) {
+                $GratisFahrt = TRUE;
+            } else {
+                $GratisFahrt = FALSE;
+            }
+
+            if ($_POST['verguenstigung'] > 0) {
+                $Ermaessigung = $_POST['verguenstigung'];
+            } else {
+                $Ermaessigung = "";
+            }
+
+            $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, $GratisFahrt, $Ermaessigung);
+
+        } else {
+            $UserRes = $AktuelleUserID;
+            $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, NULL, NULL);
+        }
+
+        //Eintrag auswerten
+        if ($Ergebnis['success'] == TRUE) {
+            $Antwort = TRUE;
+            toast_ausgeben($Ergebnis['meldung']);
+        } else if ($Ergebnis['success'] == FALSE) {
+            $Antwort = FALSE;
+            toast_ausgeben($Ergebnis['meldung']);
+        }
+    }
+
+    if (isset($_POST['input_action_mobil'])) {
+
+        $Anfang = "" . $_POST['datum_buchung_mobil'] . " " . $_POST['beginn_reservierung_mobil'] . ":00:00";
+        $Ende = "" . $_POST['datum_buchung_mobil'] . " " . $_POST['ende_reservierung_mobil'] . ":00:00";
+        $AktuelleUserID = lade_user_id();
+        $Benutzerrollen = benutzerrollen_laden('');
+
+        if ($Benutzerrollen['wart'] == TRUE) {
+
+            if (isset($_POST['user_reservierung_mobil'])) {
+                $UserRes = $_POST['user_reservierung_mobil'];
+            } else {
+                $UserRes = $AktuelleUserID;
+            }
+
+            if (isset($_POST['gratis_fahrt_mobil'])) {
+                $GratisFahrt = TRUE;
+            } else {
+                $GratisFahrt = FALSE;
+            }
+
+            if ($_POST['verguenstigung_mobil'] > 0) {
+                $Ermaessigung = $_POST['verguenstigung_mobil'];
+            } else {
+                $Ermaessigung = "";
+            }
+
+            $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, $GratisFahrt, $Ermaessigung);
+
+        } else {
+            $UserRes = $AktuelleUserID;
+            $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, NULL, NULL);
+        }
+
+        //Eintrag auswerten
+        if ($Ergebnis['success'] == TRUE) {
+            $Antwort = TRUE;
+            toast_ausgeben($Ergebnis['meldung']);
+        } else if ($Ergebnis['success'] == FALSE) {
+            $Antwort = FALSE;
+            toast_ausgeben($Ergebnis['meldung']);
+        }
+    }
+
+    return $Antwort;
 }
