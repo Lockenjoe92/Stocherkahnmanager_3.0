@@ -45,11 +45,16 @@
     <bis-sonntag>22</bis-sonntag>
     <max-kosten-einer-reservierung>200</max-kosten-einer-reservierung>
     <max-dauer-einer-reservierung>6</max-dauer-einer-reservierung>
+    <dauer-uebergabe-minuten>15</dauer-uebergabe-minuten>
+    <uebernahmefunktion-globel-aktiv>true</uebernahmefunktion-globel-aktiv>
+
+    <!--PAYMENT-->
+    <paypal-aktiv>false</paypal-aktiv>
 
     <!--- COLORS -->
     <site_menue_color>white</site_menue_color>
     <site_footer_color>green</site_footer_color>
-    <site_buttons_color>green</site_buttons_color>
+    <site_buttons_color>blue</site_buttons_color>
     <site_error_buttons_color>red</site_error_buttons_color>
     <farbe-button-kalender-buchbar>green</farbe-button-kalender-buchbar>
     <farbe-button-kalender-nicht-buchbar>red</farbe-button-kalender-nicht-buchbar>

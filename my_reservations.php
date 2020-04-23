@@ -12,8 +12,13 @@ $Header = "Reservierungen - " . lade_db_einstellung('site_name');
 
 #Generate content
 # Page Title
-$PageTitle = '<h1>Deine Reservierungen</h1>';
+$PageTitle = '<h1>Willkommen im Buchungssystem!</h1>';
 $HTML .= section_builder($PageTitle);
+
+# Eigene Reservierungen Normalo-user
+$HTML .= seiteninhalt_normalouser_generieren();
+
+$HTML = container_builder($HTML);
 
 # Output site
 echo site_header($Header);

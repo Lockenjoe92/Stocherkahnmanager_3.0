@@ -19,3 +19,5 @@ include_once "protocol.php";
 include_once "zeit.php";
 include_once "kalender.php";
 include_once "nutzergruppen.php";
+include_once "seiteninhalte_normalouser.php";
+include_once "reservierungen.php";
