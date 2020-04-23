@@ -385,7 +385,7 @@ function reservierung_hinzufuegen_parser(){
             if ($_POST['verguenstigung'] > 0) {
                 $Ermaessigung = $_POST['verguenstigung'];
             } else {
-                $Ermaessigung = "";
+                $Ermaessigung = 0;
             }
 
             $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, $GratisFahrt, $Ermaessigung);
