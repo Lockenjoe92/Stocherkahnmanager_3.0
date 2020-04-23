@@ -8,13 +8,15 @@
 
 include_once "./ressources/ressourcen.php";
 session_manager('ist_admin');
+$parser = add_nutzergruppe_form_parser();
+
 $HTML = "<h1>Nutzergruppen verwalten</h1>";
 
 //Section add nutzergruppe
 $HTML .= active_nutzergruppen_form();
 
 $HTML .= "<h3>Weitere Funktionen</h3>";
-$HTML .= add_nutzergruppe_form();
+$HTML .= add_nutzergruppe_form($parser);
 
 # Output site
 echo site_header($Header);

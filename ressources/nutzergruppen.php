@@ -64,9 +64,7 @@ function active_nutzergruppen_form(){
     return $HTML;
 }
 
-function add_nutzergruppe_form(){
-
-    $parser = add_nutzergruppe_form_parser();
+function add_nutzergruppe_form($parser){
 
     $HTML = "";
 
@@ -99,12 +97,9 @@ function add_nutzergruppe_form(){
     //Kostenstaffelung
     $TableKostenstaffelungRowsHTML = "";
     $MaxKostenEinerReservierung = lade_xml_einstellung('max-kosten-einer-reservierung');
-    $MaxStundenReservierungMoeglich = lade_xml_einstellung('max-dauer-einr-reservierung');;
+    $MaxStundenReservierungMoeglich = lade_xml_einstellung('max-dauer-einer-reservierung');;
     $FormHTML .= "<h3>Kostenstaffelung eingeben</h3><p>Nicht notwendig, wenn Nutzergruppe stets gratis fährt!</p><p>Aktuell dürfen Reservierungen nur maximal ".$MaxStundenReservierungMoeglich." Stunden am Stück betragen. Dies kannst du im Bereich der Reservierungseinstellungen ändern!</p>";
-    var_dump($MaxStundenReservierungMoeglich);
     for($a=1;$a<=intval($MaxStundenReservierungMoeglich);$a++){
-        var_dump($a);
-
         if($a==1){
             $TableKostenstaffelungRowsHTML .= table_form_select_item('Kosten für eine Stunde', 'kosten_'.$a.'_h', 0, $MaxKostenEinerReservierung, $_POST['kosten_'.$a.'_h'], '&euro;', '', '');
         } else {
@@ -116,7 +111,7 @@ function add_nutzergruppe_form(){
     $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_add_nutzergruppe', 'Anlegen', 'action', 'send')).table_data_builder(button_link_creator('Zurück', './administration.php', 'arrow_back', '')))));
     $FormHTML = form_builder($FormHTML, 'admin_nutzergruppen.php', 'post', 'add_nutzergruppe_form', '');
 
-    $HTML = collapsible_builder(collapsible_item_builder('Nutzergruppe hinzufügen', $FormHTML, 'add'));
+    $HTML .= collapsible_builder(collapsible_item_builder('Nutzergruppe hinzufügen', $FormHTML, 'add'));
     return $HTML;
 }
 
@@ -198,14 +193,12 @@ function add_nutzergruppe_form_parser(){
                 $array_kosten_pro_stunde = array();
 
                 for($a=1;$a<=$MaxStundenRes;$a++){
-                    $Operator = 'kosten_'.$a.'_h';
+                    $Operator = $a;
                     $KostenGewaehlteStunde = 0;
                     $KostenDetailArray = array($Operator => $KostenGewaehlteStunde);
                     array_push($array_kosten_pro_stunde, $KostenDetailArray);
                 }
             }
-
-            var_dump($array_kosten_pro_stunde);
 
             if(add_nutzergruppe($_POST['name_nutzergruppe'], $_POST['erklaerung_nutzergruppe'], $_POST['verification_mode'], $SwitchPresetSichtbarkeit, $SwitchPresetGratis, $_POST['hat_freifahrten_pro_jahr'], $SwitchPresetLastMinute, $SwitchPresetMulti, $array_kosten_pro_stunde)){
                 $Antwort['erfolg'] = true;
@@ -240,7 +233,7 @@ function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_fo
             $Antwort = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
-        if (!$stmt->bind_param("sssssis", $name, $erklaerung, $verification_rule, $visibility_for_user, $Alle_res_gratis, $Anz_gratis_res, $last_minute_res)) {
+        if (!$stmt->bind_param("s", $name)) {
             $Antwort = false;
             echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
@@ -252,9 +245,12 @@ function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_fo
             $Ergebnis = mysqli_fetch_assoc($res);
 
             //Kostentabelle in nutzer_meta reinhacken
-            var_dump($array_kosten_pro_stunde);
-            foreach ($array_kosten_pro_stunde as $Kosten_Stunde_Paar_key => $Kosten_Stunde_Paar_value){
-                add_nutzergruppe_meta($Ergebnis['id'], $Kosten_Stunde_Paar_key, $Kosten_Stunde_Paar_value);
+            $Counter=1;
+            foreach ($array_kosten_pro_stunde as $Kosten_Stunde_Paar){
+                $Operator = 'kosten_'.$Counter.'_h';
+                $Kosten = $Kosten_Stunde_Paar[$Operator];
+                add_nutzergruppe_meta($Ergebnis['id'], $Operator,$Kosten);
+                $Counter++;
             }
 
             $Antwort = true;
@@ -267,7 +263,7 @@ function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_fo
 function add_nutzergruppe_meta($NutzergruppeID, $Schluessel, $Wert){
 
     $link = connect_db();
-    if (!($stmt = $link->prepare("INSERT INTO nutzergruppe_meta (nutzergruppe, schluessel, wert) VALUES ?,?,?)"))) {
+    if (!($stmt = $link->prepare("INSERT INTO nutzergruppe_meta (nutzergruppe, schluessel, wert) VALUES (?,?,?)"))) {
         $Antwort = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }

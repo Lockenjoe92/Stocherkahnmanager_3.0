@@ -75,6 +75,7 @@ function site_skripts(){
     $HTML .= '<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>';
     $HTML .= '<script src="/materialize/js/materialize.js"></script>';
     $HTML .= '<script src="/materialize/js/init.js"></script>';
+    $HTML .= '<script src="/materialize/js/main.js"></script>';
 
     return $HTML;
 }

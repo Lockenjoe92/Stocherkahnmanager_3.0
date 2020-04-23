@@ -47,9 +47,9 @@ function kalender_mobil($Rolle){
 
     //Lade Parameter
     $POSTdatum = $_POST['datum'];
-    $FarbeNichtBuchbar = lade_db_einstellung('farbe-button-kalender-nicht-buchbar');
-    $FarbeBuchbar = lade_db_einstellung('farbe-button-kalender-buchbar');
-    $FarbeReserviert = lade_db_einstellung('farbe-button-kalender-reserviert');
+    $FarbeNichtBuchbar = "materialize-".lade_db_einstellung('farbe-button-kalender-nicht-buchbar');
+    $FarbeBuchbar = "materialize-".lade_db_einstellung('farbe-button-kalender-buchbar');
+    $FarbeReserviert = "materialize-".lade_db_einstellung('farbe-button-kalender-reserviert');
     $Antwort = "";
 
 
@@ -136,7 +136,7 @@ function kalender_mobil($Rolle){
             if ($Verfuegbarkeit['verfuegbar'] == true){
 
                 //BUCHBAR
-                $Antwort .= "<a class='btn tooltipped " .$FarbeNichtBuchbar. "' data-position='bottom' data-delay='50' data-tooltip='Buchbar'><i class='material-icons left'>thumb_up</i>Frei</a>";
+                $Antwort .= "<a class='btn tooltipped " .$FarbeBuchbar. "' data-position='bottom' data-delay='50' data-tooltip='Buchbar'><i class='material-icons left'>thumb_up</i>Frei</a>";
 
             } else if ($Verfuegbarkeit['verfuegbar'] == false){
 
@@ -168,23 +168,8 @@ function kalender_mobil($Rolle){
     $Antwort .= "</table>";
 
     $Antwort .= "<div class='divider'></div>";
-    $Antwort .= "<div class='section'>";
-
-    $Antwort .= "<div class='row'>";
-    $Antwort .= "<h5 class='center-align'>Anderen Wochentag ausw&auml;hlen</h5>";
-    $Antwort .= "<form method='POST' action='#'>";
-
-    $Antwort .= "<div class='input-field col s6'>";
-    $Antwort .= "<input type='date' id='datumswaehler' class='datepicker' name='datum'>";
-    $Antwort .= "<label for='datumswaehler'>Datum w&auml;hlen</label>";
-    $Antwort .= "</div>";
-    $Antwort .= "<div class='input-field col s6'>";
-    $Antwort .= "<button class='btn waves-effect waves-light' name='change_cal_date' type='submit'>Los</button>";
-    $Antwort .= "</div>";
-    $Antwort .= "</form>";
-    $Antwort .= "</div>";
-
-    $Antwort .= "</div>";
+    $HTMLDatepicker = table_builder(table_row_builder(table_header_builder(form_button_builder('change_cal_date', 'Los', 'submit', 'send', '')).table_data_builder(form_datepicker_reservation_item('Anderen Tag wählen', 'datum', '', false, '', ''))));
+    $Antwort .= form_builder($HTMLDatepicker, '#', 'post', '', '');
 
     return $Antwort;
 }
@@ -330,9 +315,9 @@ function berechne_body_kalender_gross($DatumWochenbeginn, $Rolle){
     //Lade Zeitfenstereinstellungen
     $Beginn = lade_kalender_beginn();
     $Ende = lade_kalender_ende();
-    $FarbeNichtBuchbar = lade_db_einstellung('farbe-button-kalender-nicht-buchbar');
-    $FarbeBuchbar = lade_db_einstellung('farbe-button-kalender-buchbar');
-    $FarbeReserviert = lade_db_einstellung('farbe-button-kalender-reserviert');
+    $FarbeNichtBuchbar = "materialize-".lade_db_einstellung('farbe-button-kalender-nicht-buchbar');
+    $FarbeBuchbar = "materialize-".lade_db_einstellung('farbe-button-kalender-buchbar');
+    $FarbeReserviert = "materialize-".lade_db_einstellung('farbe-button-kalender-reserviert');
 
     $Antwort = "";
     $a = $Beginn;
@@ -383,7 +368,7 @@ function berechne_body_kalender_gross($DatumWochenbeginn, $Rolle){
                 if ($Verfuegbarkeit['verfuegbar'] == true){
 
                     //BUCHBAR
-                    $Antwort .= "<a class='btn tooltipped " .$FarbeNichtBuchbar. "' data-position='bottom' data-delay='50' data-tooltip='Buchbar'><i class='material-icons'>thumb_up</i></a>";
+                    $Antwort .= "<a class='btn tooltipped " .$FarbeBuchbar. "' data-position='bottom' data-delay='50' data-tooltip='Buchbar'><i class='material-icons'>thumb_up</i></a>";
 
                 } else if ($Verfuegbarkeit['verfuegbar'] == false){
 
