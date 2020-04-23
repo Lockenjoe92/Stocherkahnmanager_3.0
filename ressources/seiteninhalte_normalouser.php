@@ -398,10 +398,8 @@ function reservierung_hinzufuegen_parser(){
         //Eintrag auswerten
         if ($Ergebnis['success'] == TRUE) {
             $Antwort = TRUE;
-            toast_ausgeben($Ergebnis['meldung']);
         } else if ($Ergebnis['success'] == FALSE) {
             $Antwort = FALSE;
-            toast_ausgeben($Ergebnis['meldung']);
         }
     }
 
@@ -410,7 +408,7 @@ function reservierung_hinzufuegen_parser(){
         $Anfang = "" . $_POST['datum_buchung_mobil'] . " " . $_POST['beginn_reservierung_mobil'] . ":00:00";
         $Ende = "" . $_POST['datum_buchung_mobil'] . " " . $_POST['ende_reservierung_mobil'] . ":00:00";
         $AktuelleUserID = lade_user_id();
-        $Benutzerrollen = benutzerrollen_laden('');
+        $Benutzerrollen = lade_user_meta(lade_user_id());
 
         if ($Benutzerrollen['wart'] == TRUE) {
 
@@ -442,10 +440,8 @@ function reservierung_hinzufuegen_parser(){
         //Eintrag auswerten
         if ($Ergebnis['success'] == TRUE) {
             $Antwort = TRUE;
-            toast_ausgeben($Ergebnis['meldung']);
         } else if ($Ergebnis['success'] == FALSE) {
             $Antwort = FALSE;
-            toast_ausgeben($Ergebnis['meldung']);
         }
     }
 
