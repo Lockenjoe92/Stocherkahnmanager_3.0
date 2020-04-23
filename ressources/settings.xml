@@ -2,7 +2,7 @@
 <global_settings>
 
     <!--- STARTSEITE -->
-    <site_name>Stocherkahn XY e.V.</site_name>
+    <site_name>Stocherkahn Medizin e.V.</site_name>
     <site_footer_name>Stocherkahn Medizin e.V.</site_footer_name>
     <display_big_footer>false</display_big_footer>
     <big_footer_left_column_html>
@@ -21,6 +21,11 @@
         <p class="grey-text text-lighten-4">Ne coole Truppe die Spaß am Kahnfahren hat:)</p>
     ]]>
     </big_footer_right_column_html>
+
+    <!--MAILSTUFF-->
+    <absender_mail>buchungstool@stocherkahn.fachschaftmedizin.de</absender_mail>
+    <absender_name>Buchungstool Stocherkahn Medizin e.V.</absender_name>
+    <reply_mail>info@stocherkahn.fachschaftmedizin.de</reply_mail>
 
     <!--- GENERAL -->
     <max_items_row_container>4</max_items_row_container>
@@ -45,6 +50,7 @@
     <bis-sonntag>22</bis-sonntag>
     <max-kosten-einer-reservierung>200</max-kosten-einer-reservierung>
     <max-dauer-einer-reservierung>6</max-dauer-einer-reservierung>
+    <max-stunden-vor-abfahrt-buchbar>6</max-stunden-vor-abfahrt-buchbar>
     <dauer-uebergabe-minuten>15</dauer-uebergabe-minuten>
     <uebernahmefunktion-globel-aktiv>true</uebernahmefunktion-globel-aktiv>
 

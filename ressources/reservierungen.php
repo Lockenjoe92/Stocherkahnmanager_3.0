@@ -1,4 +1,297 @@
 <?php
+function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $ErmaessigterTarif){
+
+    //Houseeeping
+    $link = connect_db();
+    $Timestamp = timestamp();
+    zeitformat();
+    $Antwort = NULL;
+
+    //DAU-Block
+
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    //Stunden beide null - wrsl versehentlich drauf getippt
+
+    if ((date("G", strtotime($Von)) == "0") OR (date("G", strtotime($Bis)) == "0")){
+        $DAUcounter++;
+        $DAUerror .= "Bitte gib ein valides Zeitfenster ein!<br>";
+    } else {
+
+        //Reservierung in der Vergangenheit??
+
+        if (time() > strtotime($Von)){
+            $DAUcounter++;
+            $DAUerror .= "Deine Angaben liegen in der Vergangenheit! Reservierungen k&ouml;nnen nur in die Zukunft gebucht werden.<br>";
+        }
+
+        //Zeiten verdreht?
+
+        if (strtotime($Von) > strtotime($Bis)){
+            $DAUcounter++;
+            $DAUerror .= "Das Ende der Reservierung darf nicht vor dem Anfang liegen!<br>";
+        }
+
+        //Zeiten identisch?
+
+        if (strtotime($Von) == strtotime($Bis)){
+            $DAUcounter++;
+            $DAUerror .= "Die eingegebenen Zeiten sind identisch!<br>";
+        }
+
+        //Zeiten außerhalb der genehmigten Wochentagszeiten
+        $Wochentag = strftime("%u", strtotime($Von));
+
+        //Einstellungen laden
+        if ($Wochentag == 1){
+            $FruehesterBeginn = lade_xml_einstellung('von-montag');
+            $SpaetestesEnde = lade_xml_einstellung('bis-montag');
+        } else if ($Wochentag == 2){
+            $FruehesterBeginn = lade_xml_einstellung('von-dienstag');
+            $SpaetestesEnde = lade_xml_einstellung('bis-dienstag');
+        } else if ($Wochentag == 3){
+            $FruehesterBeginn = lade_xml_einstellung('von-mittwoch');
+            $SpaetestesEnde = lade_xml_einstellung('bis-mittwoch');
+        } else if ($Wochentag == 4){
+            $FruehesterBeginn = lade_xml_einstellung('von-donnerstag');
+            $SpaetestesEnde = lade_xml_einstellung('bis-donnerstag');
+        } else if ($Wochentag == 5){
+            $FruehesterBeginn = lade_xml_einstellung('von-freitag');
+            $SpaetestesEnde = lade_xml_einstellung('bis-freitag');
+        } else if ($Wochentag == 6){
+            $FruehesterBeginn = lade_xml_einstellung('von-samstag');
+            $SpaetestesEnde = lade_xml_einstellung('bis-samstag');
+        } else if ($Wochentag == 7){
+            $FruehesterBeginn = lade_xml_einstellung('von-sonntag');
+            $SpaetestesEnde = lade_xml_einstellung('bis-sonntag');
+        }
+
+        if (intval(date("G", strtotime($Von))) < intval($FruehesterBeginn)){
+            $DAUcounter++;
+            $DAUerror .= "Der eingegebene Anfang deiner Reservierung ist zu fr&uuml;h!<br>";
+        }
+
+        if (intval(date("G", strtotime($Bis))) > intval($SpaetestesEnde)){
+            $DAUcounter++;
+            $DAUerror .= "Das eingegebene Ende deiner Reservierung ist zu sp&auml;t!<br>";
+        }
+
+        if (intval(date("G", strtotime($Bis))) < intval($FruehesterBeginn)){
+            $DAUcounter++;
+            $DAUerror .= "Das eingegebene Ende deiner Reservierung ist zu fr&uuml;h!<br>";
+        }
+
+        if (intval(date("G", strtotime($Von))) > intval($SpaetestesEnde)){
+            $DAUcounter++;
+            $DAUerror .= "Der eingegebene Anfang deiner Reservierung ist zu sp&auml;t!<br>";
+        }
+
+        //Maximale Stundenzahl einer Reservierung überschritten
+
+        $MaxHoursRes = lade_xml_einstellung('max-dauer-einer-reservierung');
+        $date1 = new DateTime($Von);
+        $date2 = new DateTime($Bis);
+        $diff = $date2->diff($date1);
+        $hours = $diff->h;
+        $hours = $hours + ($diff->days*24);
+
+        if ($hours > $MaxHoursRes){
+            $ZuViel = $hours - $MaxHoursRes;
+            $DAUcounter++;
+            $DAUerror .= "Deine Reservierung ist ".$ZuViel." Stunden zu lang.<br>";
+        }
+
+        //Kurzfristigkeitscheck
+        $UserID = lade_user_id();
+        $Benutzerrolle = lade_user_meta($UserID);
+
+        //User hat keine eigenen Schlüssel zur Verfügung
+        if (($Benutzerrolle['hat_eig_schluessel'] != 'true')){
+            if (($Benutzerrolle['wg_hat_schluessel'] != 'true')){
+
+                //Wenn ein Wart es einträgt, egal - ansonsten gemäß Einstellungen Error
+                if ($Benutzerrolle['ist_wart'] != 'true'){
+
+                    $MaxStundenVorAbfahrtBuchen = lade_xml_einstellung('max-stunden-vor-abfahrt-buchbar');
+                    $command = "- ".$MaxStundenVorAbfahrtBuchen." hours";
+
+                    if (time() > strtotime($command, strtotime($Von))){
+                        $DAUcounter++;
+                        $DAUerror .= "Du kannst Reservierungen nur bis ".$MaxStundenVorAbfahrtBuchen." Stunden vor Abfahrt neu anlegen.<br>";
+                    }
+                }
+            }
+        }
+
+        //Reservierung nur für dieses Jahr möglich
+
+        $DiesesJahr = date("Y");
+        $EingegebenesJahr = date("Y", strtotime($Von));
+
+        if ($DiesesJahr != $EingegebenesJahr){
+            $DAUcounter++;
+            $DAUerror .= "Du kannst Reservierungen nur f&uuml;r das aktuelle Jahr buchen.<br>";
+        }
+
+        //Konflikt mit anderen Reservierungen / Sperren / Pausen?
+        if (!($stmt = $link->prepare("SELECT id FROM reservierungen WHERE (((? <= beginn) AND (? > beginn)) OR ((beginn <= ?) AND (? <= ende)) OR ((? < ende) AND (? >= ende))) AND storno_user = 0"))) {
+            $Antwort['erfolg'] = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("ssssss", $Von, $Bis, $Von, $Bis, $Von, $Bis)) {
+            $Antwort['erfolg'] = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort['erfolg'] = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        } else {
+            $res = $stmt->get_result();
+            if (mysqli_num_rows($res) > 0){
+                $DAUcounter++;
+                $DAUerror .= "In dem eingegebenen Zeitfenster liegt bereits eine andere Reservierung vor!<br>";
+            }
+        }
+
+        if (!($stmt = $link->prepare("SELECT id FROM sperrungen WHERE (((beginn <= ?) AND (ende >= ?)) OR ((? < beginn) AND (? > beginn)) OR ((? < ende) AND (? > ende))) AND storno_user = 0"))) {
+            $Antwort['erfolg'] = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("ssssss", $Von, $Bis, $Von, $Bis, $Von, $Bis)) {
+            $Antwort['erfolg'] = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort['erfolg'] = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        } else {
+            $res = $stmt->get_result();
+            if (mysqli_num_rows($res) > 0){
+                $DAUcounter++;
+                $DAUerror .= "In dem eingegebenen Zeitfenster liegt eine Sperrung des Kahns vor!<br>";
+            }
+        }
+
+        if (!($stmt = $link->prepare("SELECT id FROM pausen WHERE (((beginn <= ?) AND (ende >= ?)) OR ((? < beginn) AND (? > beginn)) OR ((? < ende) AND (? > ende))) AND storno_user = 0"))) {
+            $Antwort['erfolg'] = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("ssssss", $Von, $Bis, $Von, $Bis, $Von, $Bis)) {
+            $Antwort['erfolg'] = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort['erfolg'] = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        } else {
+            $res = $stmt->get_result();
+            if (mysqli_num_rows($res) > 0){
+                $DAUcounter++;
+                $DAUerror .= "In dem eingegebenen Zeitfenster liegt eine Betriebspause des Kahns vor!<br>";
+            }
+        }
+
+        //User gesperrt?
+
+        if (user_gesperrt($UserRes) == TRUE){
+            $DAUcounter++;
+            if ($Benutzerrolle['ist_wart'] == 'true'){
+                $DAUerror .= "Das Benutzerkonto des Users ist derzeit gesperrt. Du kannst Sperrungen im Bereich 'Wartfunktionen -> User verwalten.<br>";
+            } else {
+                $DAUerror .= "Dein Benutzerkonto ist derzeit f&uuml;r Reservierungen gesperrt.<br>";
+            }
+        }
+    }
+
+    //DAU auswerten
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else if ($DAUcounter == 0){
+
+        //Reservierung eintragen
+
+        if ($GratisFahrt == TRUE){
+            $GratisFahrt = 1;
+        } else {
+            $GratisFahrt = 0;
+        }
+
+        if ($ErmaessigterTarif < 0){
+            $ErmaessigterTarif = 0;
+        } else if ($ErmaessigterTarif == ""){
+            $ErmaessigterTarif = 0;
+        }
+
+        if (!($stmt = $link->prepare("INSERT INTO reservierungen (user, beginn, ende, storno_user, storno_zeit, gratis_fahrt, preis_geaendert, verlaengert) VALUES (?, ?, ?, 0, '0000-00-00 00:00:00', ?, ?, 0)"))) {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
+        }
+        if (!$stmt->bind_param("issii", $UserRes,$Von, $Bis, $GratisFahrt, $ErmaessigterTarif)) {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
+        }
+        if (!$stmt->execute()) {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
+        } else {
+
+            if (!($stmt = $link->prepare("SELECT id FROM reservierungen WHERE user = ? AND beginn = ? AND ende = ? AND storno_user = 0"))) {
+                $Antwort['success'] = FALSE;
+                $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
+            }
+            if (!$stmt->bind_param("iss", $UserRes,$Von, $Bis)) {
+                $Antwort['success'] = FALSE;
+                $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
+            }
+            if (!$stmt->execute()) {
+                $Antwort['success'] = FALSE;
+                $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
+            } else {
+                $res = $stmt->get_result();
+                $Reservierung = mysqli_fetch_assoc($res);
+
+                //Forderung generieren
+                $Kosten = kosten_reservierung($Reservierung['id']);
+                if($Kosten != 0){
+                    forderung_generieren($Kosten, 19, $UserRes, '', intval($Reservierung['id']), '', zahlungsgrenze_forderung_laden($Bis), $UserRes);
+                }
+
+                //Mail an User senden - Wärte erhalten keine:
+
+                if ((sizeof($Benutzerrolle) == 0) OR ((sizeof($Benutzerrolle) > 0) AND ($Benutzerrolle['student'] == TRUE))){
+
+                    $UserMeta = lade_user_meta($UserRes);
+
+                    $Bausteine = array();
+                    $Bausteine['vorname_user'] = $UserMeta['vorname'];
+                    $Bausteine['datum_reservierung'] = strftime("%A, den %d. %B %G", strtotime($Von));
+                    $Bausteine['uhrzeit_beginn'] = strftime("%R Uhr", strtotime($Von));
+                    $Bausteine['uhrzeit_ende'] = strftime("%R Uhr", strtotime($Bis));
+                    $Bausteine['reservierungsnummer'] = $Reservierung['id'];
+                    $Bausteine['kosten_reservierung'] = $Kosten;
+
+                    if (mail_senden('reservierung-angelegt', $UserMeta['mail'], $Bausteine)){
+                        $Antwort['success'] = TRUE;
+                        $Antwort['meldung'] = "Deine Reservierung wurde erfolgreich eingetragen und tr&auml;gt die #".$Reservierung['id']."<br>Du erh&auml;ltst in K&uuml;rze eine Best&auml;tigungsmail:)";
+                    } else {
+                        $Antwort['success'] = FALSE;
+                        $Antwort['meldung'] = "Deine Reservierung wurde erfolgreich eingetragen und tr&auml;gt die #".$Reservierung['id']."<br>Beim Senden der Best&auml;tigungsmail trat jedoch ein Fehler auf - bitte &uuml;berpr&uuml;fe deine Mailadresse in deinen Kontoeinstellungen!";
+                    }
+
+                } else {
+                    $Antwort['success'] = TRUE;
+                    $Antwort['meldung'] = "Deine Reservierung wurde erfolgreich eingetragen und tr&auml;gt die #".$Reservierung['id']."<br>";
+                }
+            }
+        }
+    }
+
+    return $Antwort;
+}
+
 function res_hat_uebergabe($IDres){
 
     $link = connect_db();
