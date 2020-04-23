@@ -246,6 +246,11 @@ function seiteninhalt_reservierung_hinzufuegen(){
 
     //Parser
     $Parser = reservierung_hinzufuegen_parser();
+    if($Parser === TRUE){
+        $HTML .= section_builder(error_button_creator('Fehler beim Anlegen', '', ''));
+    } elseif ($Parser === FALSE){
+        $HTML .= section_builder(error_button_creator('Anlegen erfolgreich', '', 'materialize-green darken-2'));
+    }
 
     //Kalender
     $HTML .= section_builder(kalender_gross($Kalenderrolle), '', 'hide-on-small-and-down');

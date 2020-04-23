@@ -527,7 +527,11 @@ function button_link_creator($ButtonMessage, $ButtonLink, $Icon, $SpecialMode){
 
 function error_button_creator($ButtonMessage, $Icon, $SpecialMode){
 
-    return "<a href='#' class='waves-effect waves-light btn ".lade_db_einstellung('site_error_buttons_color')." ".$SpecialMode."'><i class='material-icons left'>".$Icon."</i>".$ButtonMessage."</a>";
+    if($SpecialMode == ''){
+        $SpecialMode = lade_db_einstellung('site_error_buttons_color');
+    }
+
+    return "<a href='#' class='waves-effect waves-light btn ".$SpecialMode."'><i class='material-icons left'>".$Icon."</i>".$ButtonMessage."</a>";
 
 }
 
