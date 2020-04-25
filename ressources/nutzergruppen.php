@@ -173,7 +173,7 @@ function add_nutzergruppe_form_parser(){
             if(isset($_POST['user_visibility'])){$SwitchPresetSichtbarkeit = 'true';}else{$SwitchPresetSichtbarkeit = 'false';}
             if(isset($_POST['alle_res_gratis'])){$SwitchPresetGratis = 'true';}else{$SwitchPresetGratis = 'false';}
             if(isset($_POST['darf_last_minute_res'])){$SwitchPresetLastMinute = 'true';}else{$SwitchPresetLastMinute = 'false';}
-            if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'on';}else{$SwitchPresetMulti = 'off';}
+            if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'true';}else{$SwitchPresetMulti = 'false';}
 
             //Kostenstaffelung
             if(!isset($_POST['alle_res_gratis'])){
@@ -344,6 +344,42 @@ function lade_nutzergruppe_infos($ID){
     }
 
     return $Antwort;
+}
+
+function lade_nutzergruppe_meta($ID, $Key){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT * FROM nutzergruppe_meta WHERE id = ? AND schluessel = ?"))) {
+        $Antwort = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("is", $ID, $Key)) {
+        $Antwort = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    } else {
+        $res = $stmt->get_result();
+        $Antwort = mysqli_fetch_assoc($res);
+    }
+
+    return $Antwort;
+
+}
+
+function lade_alle_nutzgruppen(){
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM nutzergruppen WHERE delete_user = 0";
+    $Nutzergruppen = mysqli_query($link, $Anfrage);
+    $ReturnArray = array();
+    foreach ($Nutzergruppen as $Nutzergruppe){
+        $Nutzergruppe = mysqli_fetch_assoc($Nutzergruppe);
+        array_push($ReturnArray, $Nutzergruppe);
+    }
+    return $ReturnArray;
 }
 
 function form_nutzergruppe_select($ItemName, $StartValue, $Mode='normaluser', $Disabled=false, $SpecialMode=''){

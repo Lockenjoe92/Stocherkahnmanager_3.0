@@ -103,15 +103,15 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
         }
 
         //Kurzfristigkeitscheck
-        $UserID = lade_user_id();
-        $Benutzerrolle = lade_user_meta($UserID);
+        $Benutzerrolle = lade_user_meta($UserRes);
+        $eintraegerrolle = lade_user_meta(lade_user_id());
 
         //User hat keine eigenen Schlüssel zur Verfügung
         if (($Benutzerrolle['hat_eig_schluessel'] != 'true')){
             if (($Benutzerrolle['wg_hat_schluessel'] != 'true')){
 
                 //Wenn ein Wart es einträgt, egal - ansonsten gemäß Einstellungen Error
-                if ($Benutzerrolle['ist_wart'] != 'true'){
+                if ($eintraegerrolle['ist_wart'] != 'true'){
 
                     $MaxStundenVorAbfahrtBuchen = lade_xml_einstellung('max-stunden-vor-abfahrt-buchbar');
                     $command = "- ".$MaxStundenVorAbfahrtBuchen." hours";
@@ -205,7 +205,7 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
 
         if ($Benutzerrolle['ist_gesperrt'] == 'true'){
             $DAUcounter++;
-            if ($Benutzerrolle['ist_wart'] == 'true'){
+            if ($eintraegerrolle['ist_wart'] == 'true'){
                 $DAUerror .= "Das Benutzerkonto des Users ist derzeit gesperrt. Du kannst Sperrungen im Bereich 'Wartfunktionen -> User verwalten.<br>";
             } else {
                 $DAUerror .= "Dein Benutzerkonto ist derzeit f&uuml;r Reservierungen gesperrt.<br>";
@@ -230,7 +230,7 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
 
         if ($ErmaessigterTarif < 0){
             $ErmaessigterTarif = 0;
-        } else if ($ErmaessigterTarif == ""){
+        } else if ($ErmaessigterTarif == NULL){
             $ErmaessigterTarif = 0;
         }
 
@@ -771,4 +771,79 @@ function uebernahme_moeglich($ReservierungID){
             }
         }
     }
+}
+
+function kosten_reservierung($ReservierungID){
+
+    $Reservierung = lade_reservierung($ReservierungID);
+    $UserRes = lade_user_meta($Reservierung['user']);
+
+    //Kostenberechnung für normalos
+    $date1 = new DateTime($Reservierung['beginn']);
+    $date2 = new DateTime($Reservierung['ende']);
+    $diff = $date2->diff($date1);
+    $hours = $diff->h;
+    $hours = $hours + ($diff->days*24);
+
+    //LOGIK
+    if($Reservierung['gratis_fahrt']>0){
+        $Kosten = 0;
+    } else {
+        if($Reservierung['preis_geaendert']>0){
+            $Kosten = $Reservierung['preis_geaendert'];
+        } else {
+            $Nutzergruppen = lade_alle_nutzgruppen();
+            $GratisCounter = 0;
+            $FreifahrtenCounter = 0;
+            foreach ($Nutzergruppen as $Nutzergruppe){
+                if($UserRes[$Nutzergruppe['name']] == "true"){
+                    if($Nutzergruppe['alle_res_gratis'] == "true"){
+                        $GratisCounter++;
+                    } elseif ($Nutzergruppe['hat_freifahrten_pro_jahr'] > 0){
+                        $FreifahrtenCounter+=$Nutzergruppe['hat_freifahrten_pro_jahr'];
+                    } else {
+                        $IDrueckfallnutzgergruppe = $Nutzergruppe['id'];
+                    }
+                }
+            }
+
+            if ($GratisCounter>0){
+                $Kosten = 0;
+            } else {
+                if ($FreifahrtenCounter>0){
+                    $AnzahlResDiesesJahr = sizeof(lade_weitere_aktive_reservierungen_user($Reservierung['user']));
+                    if($AnzahlResDiesesJahr<$FreifahrtenCounter){
+                        $Kosten = 0;
+                    } else {
+                        $Operator = 'kosten_'.$hours.'_h';
+                        $Kosten = intval(lade_nutzergruppe_meta($IDrueckfallnutzgergruppe, $Operator));
+                    }
+                } else {
+                    $Operator = 'kosten_'.$hours.'_h';
+                    $Kosten = intval(lade_nutzergruppe_meta($IDrueckfallnutzgergruppe, $Operator));
+                }
+            }
+        }
+    }
+
+    return $Kosten;
+}
+
+function lade_weitere_aktive_reservierungen_user($IDres){
+
+    $link = connect_db();
+    $Timestamp = timestamp();
+    $Resursprung = lade_reservierung($IDres);
+    $Ergebnis = array();
+
+    $Anfrage = "SELECT * FROM reservierungen WHERE user = '".$Resursprung['user']."' AND storno_user = '0' AND id <> '$IDres' AND beginn > '$Timestamp' ORDER BY beginn ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    for ($a = 1; $a <= $Anzahl; $a++){
+        $Res = mysqli_fetch_assoc($Abfrage);
+        array_push($Ergebnis, $Res);
+    }
+
+    return $Ergebnis;
 }
