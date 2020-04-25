@@ -50,6 +50,7 @@
     <bis-sonntag>22</bis-sonntag>
     <max-kosten-einer-reservierung>200</max-kosten-einer-reservierung>
     <max-dauer-einer-reservierung>6</max-dauer-einer-reservierung>
+    <zeit-tage-nach-res-ende-zahlen>5</zeit-tage-nach-res-ende-zahlen>
     <max-stunden-vor-abfahrt-buchbar>6</max-stunden-vor-abfahrt-buchbar>
     <dauer-uebergabe-minuten>15</dauer-uebergabe-minuten>
     <uebernahmefunktion-globel-aktiv>true</uebernahmefunktion-globel-aktiv>
