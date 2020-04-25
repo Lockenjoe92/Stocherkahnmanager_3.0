@@ -99,8 +99,7 @@ function kalender_mobil($Rolle){
 
     $Antwort .= "<table class='center-align'>";
 
-    $a = $Beginn;
-    for ($a; $a < $Ende; $a++){
+    for ($a = $Beginn; $a < $Ende; $a++){
 
         $StundenfensterAnfang = $a;
         $StundenfensterEnde = $a + 1;

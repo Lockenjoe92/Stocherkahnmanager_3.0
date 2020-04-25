@@ -3,7 +3,6 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
 
     //Houseeeping
     $link = connect_db();
-    $Timestamp = timestamp();
     zeitformat();
     $Antwort = NULL;
 
@@ -79,6 +78,7 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
 
         if (intval(date("G", strtotime($Bis))) < intval($FruehesterBeginn)){
             $DAUcounter++;
+            echo $Bis;
             $DAUerror .= "Das eingegebene Ende deiner Reservierung ist zu fr&uuml;h!<br>";
         }
 
@@ -214,7 +214,6 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
     }
 
     //DAU auswerten
-
     if ($DAUcounter > 0){
         $Antwort['success'] = FALSE;
         $Antwort['meldung'] = $DAUerror;

@@ -247,10 +247,10 @@ function seiteninhalt_reservierung_hinzufuegen(){
 
     //Parser
     $Parser = reservierung_hinzufuegen_parser();
-    if($Parser === TRUE){
-        $HTML .= section_builder(error_button_creator('Fehler beim Anlegen', '', ''));
-    } elseif ($Parser === FALSE){
-        $HTML .= section_builder(error_button_creator('Anlegen erfolgreich', '', 'materialize-green darken-2'));
+    if($Parser['success'] === FALSE){
+        $HTML .= section_builder("<p class='center-align'>".error_button_creator($Parser['meldung'], '', 'materialize-'.lade_db_einstellung('site_error_buttons_color').'')."</p>");
+    } elseif ($Parser['success'] === TRUE){
+        $HTML .= section_builder("<p class='center-align'>".error_button_creator('Anlegen erfolgreich', '', 'materialize-green darken-1')."</p>");
     }
 
     //Kalender
@@ -259,8 +259,8 @@ function seiteninhalt_reservierung_hinzufuegen(){
 
 
     //Buchungsfenster
-    $HTML .= section_builder(buchungsfenster($Kalenderrolle, $Parser), '', 'hide-on-small-and-down');
-    $HTML .= section_builder(buchungsfenster_mobil($Kalenderrolle, $Parser), '', 'hide-on-med-and-up');
+    $HTML .= section_builder(buchungsfenster($Kalenderrolle, $Parser['success']), '', 'hide-on-small-and-down');
+    $HTML .= section_builder(buchungsfenster_mobil($Kalenderrolle, $Parser['success']), '', 'hide-on-med-and-up');
 
     return $HTML;
 }
@@ -322,7 +322,7 @@ function buchungsfenster($Kalenderrolle, $Buttonmode)
 
         $TableHTML = table_form_datepicker_reservation_item('Datum', 'datum_buchung', $_POST['datum_buchung'], false, true);
         $TableHTML .= table_form_select_item('Abfahrt', 'beginn_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
-        $TableHTML .= table_form_select_item('Ende', 'ende_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
+        $TableHTML .= table_form_select_item('Ende', 'ende_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['ende_reservierung'], 'Uhr', '', '');
         $Antwort .= table_builder($TableHTML);
 
         if ($Kalenderrolle === "wart") {
@@ -365,13 +365,12 @@ function buchungsfenster($Kalenderrolle, $Buttonmode)
 }
 function reservierung_hinzufuegen_parser(){
 
-    $Antwort = NULL;
+    $Ergebnis = NULL;
 
     if (isset($_POST['input_action'])) {
 
         $Anfang = "" . $_POST['datum_buchung'] . " " . $_POST['beginn_reservierung'] . ":00:00";
         $Ende = "" . $_POST['datum_buchung'] . " " . $_POST['ende_reservierung'] . ":00:00";
-        var_dump($_POST);
         $AktuelleUserID = lade_user_id();
         $Benutzerrollen = lade_user_meta(lade_user_id());
 
@@ -400,13 +399,6 @@ function reservierung_hinzufuegen_parser(){
         } else {
             $UserRes = $AktuelleUserID;
             $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, NULL, NULL);
-        }
-
-        //Eintrag auswerten
-        if ($Ergebnis['success'] == TRUE) {
-            $Antwort = TRUE;
-        } else if ($Ergebnis['success'] == FALSE) {
-            $Antwort = FALSE;
         }
     }
 
@@ -443,14 +435,7 @@ function reservierung_hinzufuegen_parser(){
             $UserRes = $AktuelleUserID;
             $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, NULL, NULL);
         }
-
-        //Eintrag auswerten
-        if ($Ergebnis['success'] == TRUE) {
-            $Antwort = TRUE;
-        } else if ($Ergebnis['success'] == FALSE) {
-            $Antwort = FALSE;
-        }
     }
 
-    return $Antwort;
+    return $Ergebnis;
 }

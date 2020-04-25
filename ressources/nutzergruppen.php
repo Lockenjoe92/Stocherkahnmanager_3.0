@@ -349,20 +349,21 @@ function lade_nutzergruppe_infos($ID){
 function lade_nutzergruppe_meta($ID, $Key){
 
     $link = connect_db();
-    if (!($stmt = $link->prepare("SELECT * FROM nutzergruppe_meta WHERE id = ? AND schluessel = ?"))) {
+    if (!($stmt = $link->prepare("SELECT wert FROM nutzergruppe_meta WHERE nutzergruppe = ? AND schluessel = ?"))) {
         $Antwort = false;
-        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        var_dump("Prepare failed: (" . $link->errno . ") " . $link->error);
     }
     if (!$stmt->bind_param("is", $ID, $Key)) {
         $Antwort = false;
-        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        var_dump("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
     }
     if (!$stmt->execute()) {
         $Antwort = false;
-        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        var_dump("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
     } else {
         $res = $stmt->get_result();
         $Antwort = mysqli_fetch_assoc($res);
+        $Antwort = $Antwort['wert'];
     }
 
     return $Antwort;
@@ -373,10 +374,11 @@ function lade_alle_nutzgruppen(){
 
     $link = connect_db();
     $Anfrage = "SELECT * FROM nutzergruppen WHERE delete_user = 0";
-    $Nutzergruppen = mysqli_query($link, $Anfrage);
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
     $ReturnArray = array();
-    foreach ($Nutzergruppen as $Nutzergruppe){
-        $Nutzergruppe = mysqli_fetch_assoc($Nutzergruppe);
+    for ($a=1;$a<=$Anzahl;$a++){
+        $Nutzergruppe = mysqli_fetch_assoc($Abfrage);
         array_push($ReturnArray, $Nutzergruppe);
     }
     return $ReturnArray;
