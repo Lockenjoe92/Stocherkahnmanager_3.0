@@ -54,7 +54,6 @@ function eigene_reservierungen_user(){
                 $UhrzeitBeginn = strftime("%H:00", strtotime($Reservierung['beginn']));
                 $UhrzeitEnde = strftime("%H:00", strtotime($Reservierung['ende']));
 
-
                 if ($Reservierung['storno_user'] == 0) {
 
                     //Reservierung ist in zukunft und nicht storniert
@@ -63,14 +62,15 @@ function eigene_reservierungen_user(){
                         $SpanUebergabeNotwendig = "<span class=\"new badge yellow darken-2\" data-badge-caption=\"Du musst noch eine Schl&uuml;bergabe ausmachen!\"></span>";
                     }
 
-                    $CollpsibleHeader = "" . $SpanUebergabeNotwendig . " Reservierung #" . $Reservierung['id'] . " - " . $DatumHeader . "";
+                    $CollpsibleHeader = "Reservierung #" . $Reservierung['id'] . " - " . $DatumHeader . "" . $SpanUebergabeNotwendig . "";
 
-                    $TableRows = table_row_builder(table_header_builder('schedule') . table_data_builder("Abfahrt: " . $UhrzeitBeginn . " Uhr<br>R&uuml;ckgabe: " . $UhrzeitEnde . " Uhr"));
-                    $TableRows .= table_row_builder(table_header_builder('payment') . table_data_builder(zahlungswesen($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder('fast_forward') . table_data_builder(uebergabewesen($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder('vpn_key') . table_data_builder(schluesselwesen($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder('skip_next') . table_data_builder(anschlussfahrt($Reservierung['id'])));
+                    $TableRows = table_row_builder(table_header_builder('Fahrzeiten') . table_data_builder("Abfahrt: " . $UhrzeitBeginn . " Uhr<br>R&uuml;ckgabe: " . $UhrzeitEnde . " Uhr"));
+                    $TableRows .= table_row_builder(table_header_builder('Bezahlung') . table_data_builder(zahlungswesen($Reservierung['id'])));
+                    $TableRows .= table_row_builder(table_header_builder('Schlüsselübergabe') . table_data_builder(uebergabewesen($Reservierung['id'])));
+                    $TableRows .= table_row_builder(table_header_builder('Schlüssel') . table_data_builder(schluesselwesen($Reservierung['id'])));
+                    $TableRows .= table_row_builder(table_header_builder('Anschlussfahrt') . table_data_builder(anschlussfahrt($Reservierung['id'])));
                     $TableRows .= table_row_builder(table_header_builder(button_link_creator('Bearbeiten', 'reservierung_bearbeiten.php?id=' . $Reservierung['id'] . '', 'edit', 'materialize-' . lade_xml_einstellung('site_buttons_color') . '')) . table_data_builder(button_link_creator('Löschen', 'reservierung_loeschen.php?id=' . $Reservierung['id'] . '', 'delete', 'materialize-' . lade_xml_einstellung('site_error_buttons_color') . '')));
+
                     $CollapsibleContent = table_builder($TableRows);
                     $CollapsibleItems .= collapsible_item_builder($CollpsibleHeader, $CollapsibleContent, 'label_outline');
 
@@ -78,7 +78,8 @@ function eigene_reservierungen_user(){
 
                     //Reservierung ist in Zukunft und storniert
                     $CounterMussNochWasAngezeigtWerden = 0;
-                    $OffeneAusgleiche = lade_offene_ausgleiche_res($Reservierung['id']);
+                    ##########$OffeneAusgleiche = lade_offene_ausgleiche_res($Reservierung['id']);
+                    $OffeneAusgleiche = array();
 
                     if (sizeof($OffeneAusgleiche) > 0) {
                         $CounterMussNochWasAngezeigtWerden++;
@@ -370,6 +371,7 @@ function reservierung_hinzufuegen_parser(){
 
         $Anfang = "" . $_POST['datum_buchung'] . " " . $_POST['beginn_reservierung'] . ":00:00";
         $Ende = "" . $_POST['datum_buchung'] . " " . $_POST['ende_reservierung'] . ":00:00";
+        var_dump($_POST);
         $AktuelleUserID = lade_user_id();
         $Benutzerrollen = lade_user_meta(lade_user_id());
 

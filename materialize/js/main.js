@@ -17,7 +17,7 @@ $(document).ready(function(){
 	    weekdaysShort: [ 'So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa' ],
 	    weekdaysAbbrev: [ 'S', 'M', 'D', 'M', 'D', 'F', 'S' ],
 	  },
-	  format: 'dd.mm.yyyy',
+	  format: 'yyyy-mm-dd',
 	  firstDay: 1
   });
 
@@ -38,7 +38,7 @@ $(document).ready(function(){
             weekdaysShort: [ 'So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa' ],
             weekdaysAbbrev: [ 'S', 'M', 'D', 'M', 'D', 'F', 'S' ],
         },
-        format: 'dd.mm.yyyy',
+        format: 'yyyy-mm-dd',
         firstDay: 1
     });
   

@@ -137,14 +137,17 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
         //Konflikt mit anderen Reservierungen / Sperren / Pausen?
         if (!($stmt = $link->prepare("SELECT id FROM reservierungen WHERE (((? <= beginn) AND (? > beginn)) OR ((beginn <= ?) AND (? <= ende)) OR ((? < ende) AND (? >= ende))) AND storno_user = 0"))) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
         if (!$stmt->bind_param("ssssss", $Von, $Bis, $Von, $Bis, $Von, $Bis)) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
         if (!$stmt->execute()) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
             $res = $stmt->get_result();
@@ -156,14 +159,17 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
 
         if (!($stmt = $link->prepare("SELECT id FROM sperrungen WHERE (((beginn <= ?) AND (ende >= ?)) OR ((? < beginn) AND (? > beginn)) OR ((? < ende) AND (? > ende))) AND storno_user = 0"))) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
         if (!$stmt->bind_param("ssssss", $Von, $Bis, $Von, $Bis, $Von, $Bis)) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
         if (!$stmt->execute()) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
             $res = $stmt->get_result();
@@ -175,14 +181,17 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
 
         if (!($stmt = $link->prepare("SELECT id FROM pausen WHERE (((beginn <= ?) AND (ende >= ?)) OR ((? < beginn) AND (? > beginn)) OR ((? < ende) AND (? > ende))) AND storno_user = 0"))) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
         if (!$stmt->bind_param("ssssss", $Von, $Bis, $Von, $Bis, $Von, $Bis)) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
         if (!$stmt->execute()) {
             $Antwort['erfolg'] = false;
+            echo  __LINE__;
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
             $res = $stmt->get_result();
@@ -194,7 +203,7 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
 
         //User gesperrt?
 
-        if (user_gesperrt($UserRes) == TRUE){
+        if ($Benutzerrolle['ist_gesperrt'] == 'true'){
             $DAUcounter++;
             if ($Benutzerrolle['ist_wart'] == 'true'){
                 $DAUerror .= "Das Benutzerkonto des Users ist derzeit gesperrt. Du kannst Sperrungen im Bereich 'Wartfunktionen -> User verwalten.<br>";
@@ -225,29 +234,35 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
             $ErmaessigterTarif = 0;
         }
 
-        if (!($stmt = $link->prepare("INSERT INTO reservierungen (user, beginn, ende, storno_user, storno_zeit, gratis_fahrt, preis_geaendert, verlaengert) VALUES (?, ?, ?, 0, '0000-00-00 00:00:00', ?, ?, 0)"))) {
+        if (!($stmt = $link->prepare("INSERT INTO reservierungen (user, beginn, ende, storno_user, storno_zeit, gratis_fahrt, preis_geaendert, verlaengert, angelegt_von, angelegt_am) VALUES (?, ?, ?, 0, '0000-00-00 00:00:00', ?, ?, 0, ?, ?)"))) {
             $Antwort['success'] = FALSE;
+            echo  __LINE__;
             $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
         }
-        if (!$stmt->bind_param("issii", $UserRes,$Von, $Bis, $GratisFahrt, $ErmaessigterTarif)) {
+        if (!$stmt->bind_param("issiiis", $UserRes,$Von, $Bis, $GratisFahrt, $ErmaessigterTarif, lade_user_id(), timestamp())) {
             $Antwort['success'] = FALSE;
+            echo  __LINE__;
             $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
         }
         if (!$stmt->execute()) {
             $Antwort['success'] = FALSE;
+            echo  __LINE__;
             $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
         } else {
 
             if (!($stmt = $link->prepare("SELECT id FROM reservierungen WHERE user = ? AND beginn = ? AND ende = ? AND storno_user = 0"))) {
                 $Antwort['success'] = FALSE;
+                echo  __LINE__;
                 $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
             }
             if (!$stmt->bind_param("iss", $UserRes,$Von, $Bis)) {
                 $Antwort['success'] = FALSE;
+                echo  __LINE__;
                 $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
             }
             if (!$stmt->execute()) {
                 $Antwort['success'] = FALSE;
+                echo  __LINE__;
                 $Antwort['meldung'] = "Fehler beim Datenbankzugriff. Bitte Admin kontaktieren!";
             } else {
                 $res = $stmt->get_result();
@@ -434,7 +449,7 @@ function uebergabewesen($ID){
     $AbfrageResLaden = mysqli_query($link, $AnfrageResLaden);
     $Reservierung = mysqli_fetch_assoc($AbfrageResLaden);
 
-    $Schluesselrollen = schluesselrollen_user_laden($Reservierung['user']);
+    $Schluesselrollen = lade_user_meta($Reservierung['user']);
 
     if (($Schluesselrollen['hat_eig_schluessel'] == 1) OR ($Schluesselrollen['wg_hat_schluessel'] == 1)){
 
@@ -562,7 +577,7 @@ function schluesselwesen($ID){
     } else if ($Anzahl == 0){
 
         //Hat er einen eigenen Schlüssel?
-        $Schluesselrollen = schluesselrollen_user_laden($Reservierung['user']);
+        $Schluesselrollen = lade_user_meta($Reservierung['user']);
 
         if (($Schluesselrollen['hat_eig_schluessel'] == "1")){
             $Antwort = "Du hast einen eigenen Schl&uuml;ssel.";
@@ -621,4 +636,139 @@ function lade_uebergabe_res($IDres){
     }
 
     return $Ergebnis;
+}
+
+function anschlussfahrt($ID){
+
+    $link = connect_db();
+
+    //Lade Res##
+    $Anfrage = "SELECT ende FROM reservierungen WHERE id = '$ID'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+
+    $Res = mysqli_fetch_assoc($Abfrage);
+
+    //Suche anshclussfahrt
+    $AnfrageAnschluss = "SELECT id FROM reservierungen WHERE beginn = '".$Res['ende']."' AND storno_user = '0'";
+    $AbfrageAnschluss = mysqli_query($link, $AnfrageAnschluss);
+    $AnzahlAnschluss = mysqli_num_rows($AbfrageAnschluss);
+
+    if ($AnzahlAnschluss > 0){
+
+        //Übernahme?
+        $AnfrageUebernahme = "SELECT id FROM uebernahmen WHERE reservierung_davor = '$ID' AND storno_user = '0'";
+        $AbfrageUebernahme = mysqli_query($link, $AnfrageUebernahme);
+        $AnzahlUebernahme = mysqli_num_rows($AbfrageUebernahme);
+
+        if ($AnzahlUebernahme > 0){
+            $Uebernahme = mysqli_fetch_assoc($AbfrageUebernahme);
+            return "<p>Nach dir ist eine andere Gruppe dran. Bitte sei p&uuml;nktlich wieder zur&uuml;ck:)</p><p><b>ACHTUNG: Die Gruppe wird den Kahnschl&uuml;ssel von dir &uuml;bernehmen!</b></br>Wenn du nicht sicher bist, ob du bis ganz ans Ende deiner Reservierung fahren wirst, oder andere Gr&uuml;nde haben solltest, die Schl&uuml;ssel&uuml;bernahme nicht machen zu wollen/k&ouml;nnen, kannst du diese <a href='uebernahme_absagen.php?uebernahme=".$Uebernahme['id']."'>HIER</a> absagen.</p>";
+        } else {
+            return "Nach dir ist eine andere Gruppe dran. Bitte sei p&uuml;nktlich wieder zur&uuml;ck:)";
+        }
+    } else {
+        return "Derzeit befindet sich nach deiner Reservierung keine weitere im Programm. <br> Bitte versuch trotzdem den Kahn p&uuml;nktlich zur&uuml;ckzugeben;)";
+    }
+}
+
+function lade_offene_forderung_res($ResID){
+
+    $link = connect_db();
+
+    $Array = array();
+
+    $AnfrageLadeForderungen = "SELECT * FROM finanz_forderungen WHERE referenz_res = '$ResID' AND storno_user = '0'";
+    $AbfrageLadeForderungen = mysqli_query($link, $AnfrageLadeForderungen);
+    $AnzahlLadeForderungen = mysqli_num_rows($AbfrageLadeForderungen);
+
+    for ($a = 1; $a <= $AnzahlLadeForderungen; $a++){
+
+        $Forderung = mysqli_fetch_assoc($AbfrageLadeForderungen);
+
+        $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_einnahmen WHERE forderung_id = '".$Forderung['id']."' AND storno_user = '0'";
+        $AbfrageSucheNachZahlungen = mysqli_query($link, $AnfrageSucheNachZahlungen);
+        $AnzahlSucheNachZahlungen = mysqli_num_rows($AbfrageSucheNachZahlungen);
+
+        $Einnahmenzaehler = 0;
+        for ($b = 1; $b <= $AnzahlSucheNachZahlungen; $b++){
+            $Zahlung = mysqli_fetch_assoc($AbfrageSucheNachZahlungen);
+            $Einnahmenzaehler = $Einnahmenzaehler + $Zahlung['betrag'];
+        }
+
+        if ($Forderung['betrag'] > $Einnahmenzaehler){
+            //Forderung nicht vollständig getilgt!
+            $Array = $Forderung;
+        }
+    }
+
+    return $Array;
+}
+
+function lade_offene_ausgleiche_res($ResID){
+
+    $link = connect_db();
+
+    $Array = array();
+
+    $AnfrageLadeForderungen = "SELECT * FROM finanz_ausgleiche WHERE referenz_res = '$ResID' AND storno_user = '0'";
+    $AbfrageLadeForderungen = mysqli_query($link, $AnfrageLadeForderungen);
+    $AnzahlLadeForderungen = mysqli_num_rows($AbfrageLadeForderungen);
+
+    for ($a = 1; $a <= $AnzahlLadeForderungen; $a++){
+
+        $Ausgleich = mysqli_fetch_assoc($AbfrageLadeForderungen);
+
+        $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_ausgaben WHERE ausgleich_id = '".$Ausgleich['id']."' AND storno_user = '0'";
+        $AbfrageSucheNachZahlungen = mysqli_query($link, $AnfrageSucheNachZahlungen);
+        $AnzahlSucheNachZahlungen = mysqli_num_rows($AbfrageSucheNachZahlungen);
+
+        $Einnahmenzaehler = 0;
+        for ($b = 1; $b <= $AnzahlSucheNachZahlungen; $b++){
+            $Zahlung = mysqli_fetch_assoc($AbfrageSucheNachZahlungen);
+            $Einnahmenzaehler = $Einnahmenzaehler + $Zahlung['betrag'];
+        }
+
+        if ($Ausgleich['betrag'] > $Einnahmenzaehler){
+            //Forderung nicht vollständig getilgt!
+            array_push($Array, $Ausgleich);
+        }
+    }
+
+    return $Array;
+}
+
+function uebernahme_moeglich($ReservierungID){
+
+    $link = connect_db();
+
+    $AnfrageLaden = "SELECT * FROM reservierungen WHERE id = '$ReservierungID'";
+    $AbfrageLaden = mysqli_query($link, $AnfrageLaden);
+    $Reservierung = mysqli_fetch_assoc($AbfrageLaden);
+
+    $Benutzereinstellungen = lade_user_meta($Reservierung['user']);
+
+    if($Benutzereinstellungen['darf_uebernahme'] == 'true'){
+
+        $Anfrage = "SELECT id FROM reservierungen WHERE ende = '".$Reservierung['beginn']."' AND storno_user = '0'";
+        $Abfrage = mysqli_query($link, $Anfrage);
+        $Anzahl = mysqli_num_rows($Abfrage);
+
+        if ($Anzahl > 0){
+
+            $Vorgehende = mysqli_fetch_assoc($Abfrage);
+
+            //Überprüfen ob die vorhergehende res ne Übergabe hat
+            $AnfrageDrei = "SELECT id FROM uebergaben WHERE res = '".$Vorgehende['id']."' AND storno_user = '0'";
+            $AbfrageDrei = mysqli_query($link, $AnfrageDrei);
+            $AnzahlDrei = mysqli_num_rows($AbfrageDrei);
+
+            if ($AnzahlDrei > 0){
+                //Übernahme möglich
+                return true;
+            } else {
+                //Keine übernahme möglich
+                return false;
+            }
+        }
+    }
 }
