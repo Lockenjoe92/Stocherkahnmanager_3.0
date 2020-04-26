@@ -77,3 +77,46 @@ function zahlungsgrenze_forderung_laden($EndeReservierung){
 
     return $Grenze;
 }
+function lade_kontostand($Empfangskonto){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM finanz_konten WHERE id = '$Empfangskonto'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+
+    return intval($Ergebnis['wert_aktuell']);
+}
+
+function lade_forderung_res($ResID){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM finanz_forderungen WHERE referenz_res = '$ResID' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Forderung = mysqli_fetch_assoc($Abfrage);
+
+    return $Forderung;
+}
+
+function lade_konto_user($User){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM finanz_konten WHERE name = '$User' AND verstecker = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Konto = mysqli_fetch_assoc($Abfrage);
+
+    return $Konto;
+}
+
+function lade_einnahme($IDeinnahme){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM finanz_einnahmen WHERE id = '$IDeinnahme'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Einnahme = mysqli_fetch_assoc($Abfrage);
+
+    return $Einnahme;
+}

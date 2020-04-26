@@ -708,38 +708,40 @@ function uebergabe_listenelement_generieren($IDuebergabe, $Action){
     $ZeitraumMobil = "<b>".strftime("%a, %d. %b %H:%M Uhr", strtotime($Uebergabe['beginn']))."</b>";
 
     //Ausgabe
-    echo "<li>";
-    echo "<div class='collapsible-header hide-on-med-and-down'><i class='large material-icons'>today</i>Schl&uuml;ssel&uuml;bergabe: ".$Zeitraum."</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<ul class='collection'>";
-    echo "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Terminangebot['ort']."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> <a href='benutzermanagement_wart.php?user=".$Reservierung['user']."'>".$UserRes['vorname']." ".$UserRes['nachname']."</a>";
+    $HTML = "<li>";
+    $HTML .= "<div class='collapsible-header hide-on-med-and-down'><i class='large material-icons'>today</i>Schl&uuml;ssel&uuml;bergabe: ".$Zeitraum."</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<ul class='collection'>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Terminangebot['ort']."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> <a href='benutzermanagement_wart.php?user=".$Reservierung['user']."'>".$UserRes['vorname']." ".$UserRes['nachname']."</a>";
     if($Uebergabe['kommentar'] != ""){
-        echo "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Uebergabe['kommentar']."";
+        $HTML .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Uebergabe['kommentar']."";
     }
     if($Action == TRUE){
-        echo "<li class='collection-item'> <a href='uebergabe_durchfuehren.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>play_circle_filled</i> durchf&uuml;hren</a> <a href='uebergabe_loeschen_wart.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>delete</i> absagen</a>";
+        $HTML .= "<li class='collection-item'> <a href='uebergabe_durchfuehren.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>play_circle_filled</i> durchf&uuml;hren</a> <a href='uebergabe_loeschen_wart.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>delete</i> absagen</a>";
     }
-    echo "</ul>";
-    echo "</div>";
-    echo "</li>";
-    echo "<li>";
-    echo "<div class='collapsible-header hide-on-large-only'><i class='large material-icons'>today</i>&Uuml;bergabe: ".$ZeitraumMobil."</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<ul class='collection'>";
-    echo "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Terminangebot['ort']."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> <a href='benutzermanagement_wart.php?user=".$Reservierung['user']."'>".$UserRes['vorname']." ".$UserRes['nachname']."</a>";
+    $HTML .= "</ul>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+    $HTML .= "<li>";
+    $HTML .= "<div class='collapsible-header hide-on-large-only'><i class='large material-icons'>today</i>&Uuml;bergabe: ".$ZeitraumMobil."</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<ul class='collection'>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Terminangebot['ort']."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> <a href='benutzermanagement_wart.php?user=".$Reservierung['user']."'>".$UserRes['vorname']." ".$UserRes['nachname']."</a>";
     if($Uebergabe['kommentar'] != ""){
-        echo "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Uebergabe['kommentar']."";
+        $HTML .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Uebergabe['kommentar']."";
     }
     if($Action == TRUE){
-        echo "<li class='collection-item'> <a href='uebergabe_durchfuehren.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>play_circle_filled</i> durchf&uuml;hren</a>";
-        echo "<li class='collection-item'><a href='uebergabe_loeschen_wart.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>delete</i> absagen</a>";
+        $HTML .= "<li class='collection-item'> <a href='uebergabe_durchfuehren.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>play_circle_filled</i> durchf&uuml;hren</a>";
+        $HTML .= "<li class='collection-item'><a href='uebergabe_loeschen_wart.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>delete</i> absagen</a>";
     }
 
-    echo "</ul>";
-    echo "</div>";
-    echo "</li>";
+    $HTML .= "</ul>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+
+    return $HTML;
 }
 
 function termin_listenelement_generieren($IDtermin){
@@ -757,75 +759,20 @@ function termin_listenelement_generieren($IDtermin){
     $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Termin['zeitpunkt']))."</b>";
 
     //Ausgabe
-    echo "<li>";
-    echo "<div class='collapsible-header'><i class='large material-icons'>label_outline</i>Termin: </div>";
-    echo "<div class='collapsible-body'>";
-    echo "<ul class='collection'>";
-    echo "<li class='collection-item'><i class='tiny material-icons'>class</i>";
-    echo "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> ";
-    echo "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Wart['vorname']." ".$Wart['nachname']."";
-    echo "<li class='collection-item'> <a href='termin_bearbeiten.php'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
-    echo "</ul>";
-    echo "</div>";
-    echo "</li>";
-}
+    $HTML = "<li>";
+    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>label_outline</i>Termin: </div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<ul class='collection'>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>class</i>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> ";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Wart['vorname']." ".$Wart['nachname']."";
+    $HTML .= "<li class='collection-item'> <a href='termin_bearbeiten.php'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
+    $HTML .= "</ul>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
 
-function spontanuebergabe_listenelement_generieren(){
-
-    spontanuebergabe_listenelement_parser();
-
-    //Ausgabe
-    echo "<li>";
-    echo "<div class='collapsible-header'><i class='large material-icons'>star</i>Spontan&uuml;bergabe</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<div class='container'>";
-    echo "<form method='post'>";
-
-    echo "<div class='section'>";
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>today</i>";
-    echo dropdown_aktive_res_spontanuebergabe('reservierung');
-    echo "</div>";
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>vpn_key</i>";
-    echo dropdown_verfuegbare_schluessel_wart('schluessel', lade_user_id());
-    echo "</div>";
-
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>grade</i>";
-    echo "<input type='checkbox' name='gratis_fahrt' id='gratis_fahrt'>";
-    echo "<label for='gratis_fahrt'>Als Gratisfahrt eintragen.</label>";
-    echo "</div>";
-
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>thumb_up</i>";
-    echo "<input type='text' name='verguenstigung' id='verguenstigung' data-size='3'>";
-    echo "<label for='verguenstigung'>Verg&uuml;nstigter Tarif</label>";
-    echo "</div>";
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>toll</i>";
-    echo "<input type='text' name='einnahme' id='einnahme' data-size='3'>";
-    echo "<label for='einnahme'>Einnahmen</label>";
-    echo "</div>";
-
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>description</i>";
-    echo "<input type='checkbox' name='vertrag' id='vertrag'>";
-    echo "<label for='vertrag'>User hat Vertrag unterzeichnet.</label>";
-    echo "</div>";
-
-    echo "</div><div class='section'>";
-
-    echo "<div class='input-field'>";
-    echo "<button type='submit' name='action_spontanuebergabe_durchfuehren' class='btn waves-effect waves-light'>Durchf&uuml;hren</button>";
-    echo "</div>";
-    echo "</div>";
-
-    echo "</form>";
-    echo "</div>";
-    echo "</div>";
-    echo "</li>";
+    return $HTML;
 }
 
 function terminangebot_hinzufuegen_listenelement_generieren(){
@@ -1295,74 +1242,61 @@ function uebergabe_planen_listenelement_generieren(){
     uebergabe_planen_listenelement_parser();
 
     //Ausgabe
-    echo "<li>";
-    echo "<div class='collapsible-header'><i class='large material-icons'>open_in_browser</i>&Uuml;bergabe vorplanen</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<div class='container'>";
-    echo "<form method='post'>";
+    $HTML = "<li>";
+    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>open_in_browser</i>&Uuml;bergabe vorplanen</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<div class='container'>";
+    $HTML .= "<form method='post'>";
 
     //Reservierung und deren modifizierung
-    echo "<h5>Reservierung w&auml;hlen</h5>";
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>today</i>";
-    echo dropdown_aktive_res_spontanuebergabe('reservierung_uebergabe_vorplanen');
-    echo "</div>";
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>grade</i>";
-    echo "<input type='checkbox' name='gratis_fahrt_uebergabe_vorplanen' id='gratis_fahrt_uebergabe_vorplanen'>";
-    echo "<label for='gratis_fahrt_uebergabe_vorplanen'>Als Gratisfahrt eintragen.</label>";
-    echo "</div>";
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>thumb_up</i>";
-    echo "<input type='text' name='verguenstigung_uebergabe_vorplanen' id='verguenstigung_uebergabe_vorplanen' data-size='3'>";
-    echo "<label for='verguenstigung_uebergabe_vorplanen'>Verg&uuml;nstigter Tarif</label>";
-    echo "</div>";
+    $HTML .= "<h5>Reservierung w&auml;hlen</h5>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>today</i>";
+    $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung_uebergabe_vorplanen');
+    $HTML .= "</div>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>grade</i>";
+    $HTML .= "<input type='checkbox' name='gratis_fahrt_uebergabe_vorplanen' id='gratis_fahrt_uebergabe_vorplanen'>";
+    $HTML .= "<label for='gratis_fahrt_uebergabe_vorplanen'>Als Gratisfahrt eintragen.</label>";
+    $HTML .= "</div>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>thumb_up</i>";
+    $HTML .= "<input type='text' name='verguenstigung_uebergabe_vorplanen' id='verguenstigung_uebergabe_vorplanen' data-size='3'>";
+    $HTML .= "<label for='verguenstigung_uebergabe_vorplanen'>Verg&uuml;nstigter Tarif</label>";
+    $HTML .= "</div>";
 
     //Übergabeort
-    echo "<h5>&Uuml;bergabeort w&auml;hlen</h5>";
-    echo "<div class=\"input-field\">";
-    echo "<i class=\"material-icons prefix\">room</i>";
-    echo dropdown_vorlagen_ortsangaben('ortsangabe_uebergabe_vorplanen', lade_user_id(), $_POST['ortsangabe_uebergabe_vorplanen']);
-    echo "<label for=\"ortsangabe_uebergabe_vorplanen\">Vorlage w&auml;hlen</label>";
-    echo "</div>";
-    echo "<div class=\"input-field\">";
-    echo "<i class=\"material-icons prefix\">room</i>";
-    echo "<input type='text' id='ortsangabe_schriftlich_uebergabe_vorplanen' name='ortsangabe_schriftlich_uebergabe_vorplanen' value='".$_POST['ortsangabe_schriftlich_uebergabe_vorplanen']."'>";
-    echo "<label for=\"ortsangabe_schriftlich_uebergabe_vorplanen\">Ortsangabe manuell eingeben</label>";
-    echo "</div>";
-    echo "<div class=\"input-field\">";
-    echo "<i class=\"material-icons prefix\">comment</i>";
-    echo "<textarea name='kommentar_uebergabe_vorplanen' id='kommentar_uebergabe_vorplanen' class='materialize-textarea'>".$_POST['kommentar_uebergabe_vorplanen']."</textarea>";
-    echo "<label for=\"kommentar_uebergabe_vorplanen\">Optional: weiterer Kommentar</label>";
-    echo "</div>";
+    $HTML .= "<h5>&Uuml;bergabeort w&auml;hlen</h5>";
+    $HTML .= "<div class=\"input-field\">";
+    $HTML .= "<i class=\"material-icons prefix\">room</i>";
+    $HTML .= dropdown_vorlagen_ortsangaben('ortsangabe_uebergabe_vorplanen', lade_user_id(), $_POST['ortsangabe_uebergabe_vorplanen']);
+    $HTML .= "<label for=\"ortsangabe_uebergabe_vorplanen\">Vorlage w&auml;hlen</label>";
+    $HTML .= "</div>";
+    $HTML .= "<div class=\"input-field\">";
+    $HTML .= "<i class=\"material-icons prefix\">room</i>";
+    $HTML .= "<input type='text' id='ortsangabe_schriftlich_uebergabe_vorplanen' name='ortsangabe_schriftlich_uebergabe_vorplanen' value='".$_POST['ortsangabe_schriftlich_uebergabe_vorplanen']."'>";
+    $HTML .= "<label for=\"ortsangabe_schriftlich_uebergabe_vorplanen\">Ortsangabe manuell eingeben</label>";
+    $HTML .= "</div>";
+    $HTML .= "<div class=\"input-field\">";
+    $HTML .= "<i class=\"material-icons prefix\">comment</i>";
+    $HTML .= "<textarea name='kommentar_uebergabe_vorplanen' id='kommentar_uebergabe_vorplanen' class='materialize-textarea'>".$_POST['kommentar_uebergabe_vorplanen']."</textarea>";
+    $HTML .= "<label for=\"kommentar_uebergabe_vorplanen\">Optional: weiterer Kommentar</label>";
+    $HTML .= "</div>";
 
 
     //Übergabezeitpunkt
-    echo "<h5>&Uuml;bergabezeit w&auml;hlen</h5>";
-    echo "<div class=\"input-field\">";
-    echo "<i class=\"material-icons prefix\">today</i>";
-    echo dropdown_datum('datum_terminangebot_anlegen', $_POST['datum_uebergabe_vorplanen'], 30, TRUE);
-    echo "<label for=\"datum_terminangebot_anlegen\">Datum</label>";
-    echo "</div>";
-    echo "<div class=\"input-field\">";
-    echo "<i class=\"material-icons prefix\">schedule</i>";
-    echo dropdown_stunden('stunde_beginn_terminangebot_anlegen', $_POST['stunde_beginn_uebergabe_vorplanen']);
-    echo "<label for=\"stunde_beginn_terminangebot_anlegen\">Uhrzeit Beginn</label>";
-    echo "</div>";
-    echo "<div class=\"input-field\">";
-    echo "<i class=\"material-icons prefix\">schedule</i>";
-    echo dropdown_zentel_minuten('minute_beginn_terminangebot_anlegen', $_POST['minute_beginn_uebergabe_vorplanen'], 00);
-    echo "<label for=\"minute_beginn_terminangebot_anlegen\">Minuten</label>";
-    echo "</div>";
+    $HTML .= "<h5>&Uuml;bergabezeit w&auml;hlen</h5>";
+    $HTML .= table_builder(table_form_datepicker_reservation_item('Zeitpunkt der Übergabe', 'uebergabe_zeitpunkt', $_POST['uebergabe_zeitpunkt'], false, true, ''));
 
-    echo "<div class='input-field'>";
-    echo "<button type='submit' name='action_uebergabe_vorplanen_durchfuehren' class='btn waves-effect waves-light'>Anlegen</button>";
-    echo "</div>";
-    echo "</form>";
-    echo "</div>";
-    echo "</div>";
-    echo "</li>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<button type='submit' name='action_uebergabe_vorplanen_durchfuehren' class='btn waves-effect waves-light'>Anlegen</button>";
+    $HTML .= "</div>";
+    $HTML .= "</form>";
+    $HTML .= "</div>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
 
+    return $HTML;
 }
 
 function uebergabe_planen_listenelement_parser(){
@@ -1713,5 +1647,107 @@ function terminangebot_listenelement_buchbar_generieren($IDangebot){
 
     return $HTML;
 }
+
+function uebernahme_planen_listenelement_generieren(){
+
+    //Ausgabe
+    $HTML = "<li>";
+    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>sync</i>&Uuml;bernahme vorplanen</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<div class='container'>";
+    $HTML .= "<form method='post'>";
+
+    //Reservierung und deren modifizierung
+    $HTML .= "<h5>Reservierung w&auml;hlen</h5>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>today</i>";
+    $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung_uebernahme_vorplanen');
+    $HTML .= "</div>";
+
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<button type='submit' name='action_uebernahme_vorplanen_durchfuehren' class='btn waves-effect waves-light'>Vorplanen</button>";
+    $HTML .= "</div>";
+    $HTML .= "</form>";
+    $HTML .= "</div>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+
+    return $HTML;
+}
+
+function uebernahme_planen_listenelement_parser(){
+
+    if (isset($_POST['action_uebernahme_vorplanen_durchfuehren'])){
+
+        if (intval($_POST['reservierung_uebernahme_vorplanen']) > 0){
+            $header = "Location: ./uebernahme_vorplanen.php?res=".$_POST['reservierung_uebernahme_vorplanen']."";
+            header($header);
+            die();
+
+        } else {
+            $Antwort = 'Du hast keine Reservierung ausgew&auml;hlt!';
+            return $Antwort;
+        }
+    }
+}
+
+function spontanuebergabe_listenelement_generieren(){
+
+    spontanuebergabe_listenelement_parser();
+
+    //Ausgabe
+    $HTML = "<li>";
+    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>star</i>Spontan&uuml;bergabe</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<div class='container'>";
+    $HTML .= "<form method='post'>";
+
+    $HTML .= "<div class='section'>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>today</i>";
+    $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung');
+    $HTML .= "</div>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>vpn_key</i>";
+    $HTML .= dropdown_verfuegbare_schluessel_wart('schluessel', lade_user_id());
+    $HTML .= "</div>";
+
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>grade</i>";
+    $HTML .= "<input type='checkbox' name='gratis_fahrt' id='gratis_fahrt'>";
+    $HTML .= "<label for='gratis_fahrt'>Als Gratisfahrt eintragen.</label>";
+    $HTML .= "</div>";
+
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>thumb_up</i>";
+    $HTML .= "<input type='text' name='verguenstigung' id='verguenstigung' data-size='3'>";
+    $HTML .= "<label for='verguenstigung'>Verg&uuml;nstigter Tarif</label>";
+    $HTML .= "</div>";
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>toll</i>";
+    $HTML .= "<input type='text' name='einnahme' id='einnahme' data-size='3'>";
+    $HTML .= "<label for='einnahme'>Einnahmen</label>";
+    $HTML .= "</div>";
+
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>description</i>";
+    $HTML .= "<input type='checkbox' name='vertrag' id='vertrag'>";
+    $HTML .= "<label for='vertrag'>User hat Vertrag unterzeichnet.</label>";
+    $HTML .= "</div>";
+
+    $HTML .= "</div><div class='section'>";
+
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<button type='submit' name='action_spontanuebergabe_durchfuehren' class='btn waves-effect waves-light'>Durchf&uuml;hren</button>";
+    $HTML .= "</div>";
+    $HTML .= "</div>";
+
+    $HTML .= "</form>";
+    $HTML .= "</div>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+    return $HTML;
+}
+
 
 ?>

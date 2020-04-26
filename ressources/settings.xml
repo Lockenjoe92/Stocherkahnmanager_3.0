@@ -56,6 +56,9 @@
     <max-tage-vor-abfahrt-uebergabe>5</max-tage-vor-abfahrt-uebergabe>
     <max-minuten-vor-abfahrt-uebergabe>5</max-minuten-vor-abfahrt-uebergabe>
     <zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>4</zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>
+    <tage-spontanuebergabe-reservierungen-zukunft-dropdown>14</tage-spontanuebergabe-reservierungen-zukunft-dropdown>
+    <tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>3</tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>
+    <erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>2</erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>

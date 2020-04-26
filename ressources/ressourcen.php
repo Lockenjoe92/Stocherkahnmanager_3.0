@@ -25,3 +25,4 @@ include_once "mailvorlagen.php";
 include_once "mail_senden.php";
 include_once "finanzkram.php";
 include_once "uebergaben.php";
+include_once "schluessel.php";

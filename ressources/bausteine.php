@@ -576,6 +576,107 @@ function table_form_dropdown_terminzeitfenster_generieren($TitelElement, $NameEl
 
 }
 
+function table_form_dropdown_aktive_res_spontanuebergabe($TitelElement, $NameElement){
+
+
+    return "<tr><th>".$TitelElement."</th><td>".dropdown_aktive_res_spontanuebergabe($NameElement)."</td></tr>";
+
+}
+
+function dropdown_vorlagen_ortsangaben($NameElement, $IDuser, $OrtSelected){
+
+    $link = connect_db();
+    $Anfrage = "SELECT angabe FROM vorlagen_ortsangaben WHERE wart = '$IDuser' AND delete_user = '0' ORDER BY angabe ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    $Ausgabe = "<select name='" .$NameElement. "' size='4' id='".$NameElement."'>";
+
+    if ($Anzahl == 0){
+        $Ausgabe .= "<option value='' selected>keine Ortsvorlagen angelegt</option>";
+    } else if ($Anzahl > 0) {
+
+        if ($OrtSelected == ""){
+            $Ausgabe .= "<option value='' selected>Ortsvorlage w&auml;hlen</option>";
+        }
+
+        for ($a = 1; $a <= $Anzahl; $a++){
+
+            $Vorlage = mysqli_fetch_assoc($Abfrage);
+
+            if ($OrtSelected == $Vorlage['angabe']){
+                $Ausgabe .= "<option value='" .$Vorlage['angabe']. "' selected>" .$Vorlage['angabe']. "</option>";
+            } else {
+                $Ausgabe .= "<option value='" .$Vorlage['angabe']. "'>" .$Vorlage['angabe']. "</option>";
+            }
+        }
+    }
+
+    $Ausgabe .= "</select>";
+
+    return $Ausgabe;
+
+}
+
+function dropdown_aktive_res_spontanuebergabe($NameElement){
+
+    $link = connect_db();
+    $ZeitKommando = "+ ".lade_xml_einstellung('tage-spontanuebergabe-reservierungen-zukunft-dropdown')." days";
+    $ZeitKommandoZwei = "- ".lade_xml_einstellung('tage-spontanuebergabe-reservierungen-vergangenheit-dropdown')." days";
+    $Grenzzeit = date("Y-m-d G:i:s", strtotime($ZeitKommando));
+    $GrenzzeitZwei = date("Y-m-d G:i:s", strtotime($ZeitKommandoZwei));
+
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    $AnfrageLadeMoeglicheResSpontanuebergabe = "SELECT * FROM reservierungen WHERE beginn > '$GrenzzeitZwei' AND beginn < '$Grenzzeit' AND storno_user = '0' ORDER BY beginn ASC";
+    $AbfrageLadeMoeglicheResSpontanuebergabe = mysqli_query($link, $AnfrageLadeMoeglicheResSpontanuebergabe);
+    $AnzahlLadeMoeglicheResSpontanuebergabe = mysqli_num_rows($AbfrageLadeMoeglicheResSpontanuebergabe);
+
+    if ($AnzahlLadeMoeglicheResSpontanuebergabe == 0){
+
+        $Ausgabe .= "<option value='' selected>keine offene Reservierung</option>";
+
+    } else if ($AnzahlLadeMoeglicheResSpontanuebergabe > 0){
+
+        $Counter = 0;
+        for ($a = 1; $a <= $AnzahlLadeMoeglicheResSpontanuebergabe; $a++){
+
+            $Reservierung = mysqli_fetch_assoc($AbfrageLadeMoeglicheResSpontanuebergabe);
+            $Schluesselrolle = lade_user_meta($Reservierung['user']);
+
+            if (($Schluesselrolle['hat_eig_schluessel'] == "true") OR ($Schluesselrolle['wg_hat_schluessel'] == "true")){
+
+                //User braucht keinen Schlüssel
+
+            } else {
+                //Diese user brauchen einen Schlüssel
+                //Nachsehen ob eine Schlüsselausgabe schon erfolgt ist
+                $AnfrageSchluelsselausgabe = "SELECT id FROM schluesselausgabe WHERE reservierung = '".$Reservierung['id']."' AND storno_user = '0'";
+                $AbfrageSchluelsselausgabe = mysqli_query($link, $AnfrageSchluelsselausgabe);
+                $AnzahlSchluelsselausgabe = mysqli_num_rows($AbfrageSchluelsselausgabe);
+
+                if ($AnzahlSchluelsselausgabe == 0){
+                    $Counter++;
+                    if ($Counter == 1){
+                        $Ausgabe .= "<option value='' selected>Reservierung w&auml;hlen</option>";
+                    }
+
+                    $Ausgabe .= "<option value='".$Reservierung['id']."'>Res. #".$Reservierung['id']." - ".$Schluesselrolle['vorname']." ".$Schluesselrolle['nachname']." - ".kosten_reservierung($Reservierung['id'])."&euro;</option>";
+                }
+            }
+        }
+
+        if ($Counter == 0){
+            $Ausgabe .= "<option value='' selected>keine offene Reservierung</option>";
+        }
+    }
+
+    $Ausgabe .= "</select>";
+
+    return $Ausgabe;
+
+}
+
 function dropdown_terminzeitfenster_generieren($NameElement, $IDtermin, $ZeitfensterSelected){
 
     $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
