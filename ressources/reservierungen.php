@@ -846,3 +846,24 @@ function lade_weitere_aktive_reservierungen_user($IDres){
 
     return $Ergebnis;
 }
+
+function card_resinfos_generieren($IDres){
+    $Reservierung = lade_reservierung($IDres);
+    zeitformat();
+
+    $Antwort = "<div class='card-panel " .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
+    $Antwort .= "<h5>Infos zu deiner Reservierung</h5>";
+    $Antwort .= "<div class='section'>";
+
+    $Antwort .= "<ul>";
+    $Antwort .= "<li>Reservierungsnummer: ".$Reservierung['id']."</li>";
+    $Antwort .= "<li>Datum: ".strftime("%A, %d. %B %G", strtotime($Reservierung['beginn']))."</li>";
+    $Antwort .= "<li>Abfahrt: ".strftime("%H:00 Uhr", strtotime($Reservierung['beginn']))."</li>";
+    $Antwort .= "<li>R&uuml;ckgabe: ".strftime("%H:00 Uhr", strtotime($Reservierung['ende']))."</li>";
+    $Antwort .= "</ul>";
+
+    $Antwort .= "</div>";
+    $Antwort .= "</div>";
+
+    return $Antwort;
+}

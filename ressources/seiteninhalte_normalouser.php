@@ -69,7 +69,7 @@ function eigene_reservierungen_user(){
                     $TableRows .= table_row_builder(table_header_builder('Schlüsselübergabe') . table_data_builder(uebergabewesen($Reservierung['id'])));
                     $TableRows .= table_row_builder(table_header_builder('Schlüssel') . table_data_builder(schluesselwesen($Reservierung['id'])));
                     $TableRows .= table_row_builder(table_header_builder('Anschlussfahrt') . table_data_builder(anschlussfahrt($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder(button_link_creator('Bearbeiten', 'reservierung_bearbeiten.php?id=' . $Reservierung['id'] . '', 'edit', 'materialize-' . lade_xml_einstellung('site_buttons_color') . '')) . table_data_builder(button_link_creator('Löschen', 'reservierung_loeschen.php?id=' . $Reservierung['id'] . '', 'delete', 'materialize-' . lade_xml_einstellung('site_error_buttons_color') . '')));
+                    $TableRows .= table_row_builder(table_header_builder('') . table_data_builder(button_link_creator('Bearbeiten', 'reservierung_bearbeiten.php?id=' . $Reservierung['id'] . '', 'edit', 'materialize-' . lade_xml_einstellung('site_buttons_color') . '')." ".button_link_creator('Löschen', 'reservierung_loeschen.php?id=' . $Reservierung['id'] . '', 'delete', 'materialize-' . lade_xml_einstellung('site_error_buttons_color') . '')));
 
                     $CollapsibleContent = table_builder($TableRows);
                     $CollapsibleItems .= collapsible_item_builder($CollpsibleHeader, $CollapsibleContent, 'label_outline');

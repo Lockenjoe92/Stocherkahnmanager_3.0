@@ -50,13 +50,16 @@
     <bis-sonntag>22</bis-sonntag>
     <max-kosten-einer-reservierung>200</max-kosten-einer-reservierung>
     <max-dauer-einer-reservierung>6</max-dauer-einer-reservierung>
-    <zeit-tage-nach-res-ende-zahlen>5</zeit-tage-nach-res-ende-zahlen>
     <max-stunden-vor-abfahrt-buchbar>6</max-stunden-vor-abfahrt-buchbar>
     <dauer-uebergabe-minuten>15</dauer-uebergabe-minuten>
     <uebernahmefunktion-globel-aktiv>true</uebernahmefunktion-globel-aktiv>
+    <max-tage-vor-abfahrt-uebergabe>5</max-tage-vor-abfahrt-uebergabe>
+    <max-minuten-vor-abfahrt-uebergabe>5</max-minuten-vor-abfahrt-uebergabe>
+    <zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>4</zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>
+    <zeit-tage-nach-res-ende-zahlen>5</zeit-tage-nach-res-ende-zahlen>
 
     <!--- COLORS -->
     <site_menue_color>white</site_menue_color>
@@ -66,6 +69,7 @@
     <farbe-button-kalender-buchbar>green</farbe-button-kalender-buchbar>
     <farbe-button-kalender-nicht-buchbar>red</farbe-button-kalender-nicht-buchbar>
     <farbe-button-kalender-reserviert>yellow</farbe-button-kalender-reserviert>
+    <card_panel_hintergrund>white</card_panel_hintergrund>
 
     <!--- INFOs FOR USERS -->
     <titelinfo-reservierung-hinzufuegen><![CDATA[

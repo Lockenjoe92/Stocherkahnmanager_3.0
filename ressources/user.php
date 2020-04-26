@@ -12,7 +12,6 @@ function lade_user_id(){
     $UserSessionID = intval($_SESSION['user_id']);
     return $UserSessionID;
 }
-
 function lade_user_meta($UserID){
 
     $link = connect_db();
@@ -39,7 +38,6 @@ function lade_user_meta($UserID){
 
     return $Result;
 }
-
 function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, $Mail, $PSWD, $Rollen){
 
     $link = connect_db();
@@ -102,7 +100,6 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
 
     return $Antwort;
 }
-
 function add_user_meta($UserID, $Key, $Value){
 
     $link = connect_db();
@@ -123,7 +120,6 @@ function add_user_meta($UserID, $Key, $Value){
     }
 
 }
-
 function update_user_meta($UserID, $Key, $Value){
 
     $link = connect_db();
@@ -148,7 +144,6 @@ function update_user_meta($UserID, $Key, $Value){
         }
     }
 }
-
 function check_password($PSWD) {
 
     // Define URL for haveibeenpwned.com API as constant
@@ -214,6 +209,50 @@ function check_password($PSWD) {
         return 'Dieses Passwort wurde in geleakten Daten gefunden, bitte ein anderes verwenden.';
     else
         return 'OK';
+}
+function wart_verfuegbare_schluessel($IDuser){
+
+    $link = connect_db();
+    $ZugeteilteSchluessel = user_zugeteilte_schluessel($IDuser);
+
+    $TageGrenze = intval(lade_xml_einstellung('zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage'));
+    $ZeitBefehl = "+ ".$TageGrenze." days";
+    $Grenzzeit = date("Y-m-d G:i:s", strtotime($ZeitBefehl));
+
+    $Anfrage = "SELECT id FROM uebergaben WHERE wart = '$IDuser' AND durchfuehrung = '0000-00-00 00:00:00' AND beginn < '".$Grenzzeit."' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl= mysqli_num_rows($Abfrage);
+
+    $Differenz = $ZugeteilteSchluessel - $Anzahl;
+
+    return $Differenz;
+}
+function user_zugeteilte_schluessel($IDuser){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT id FROM schluessel WHERE akt_user = '$IDuser' AND delete_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    return $Anzahl;
+}
+function generiere_kontaktinformation_fuer_usermail_wart($IDwart){
+
+    $User = lade_user_meta($IDwart);
+    $Antwort = "";
+    $Antwort .= "".$User['vorname']." ".$User['nachname']."";
+
+    //Gemäß Wartwunsch
+    if ($User['mail-userinfo'] == "true"){
+        $Antwort .= " - Mail: ".$User['mail']."";
+    }
+
+    if ($User['tel-userinfo'] == "true"){
+        $Antwort .= " - Telefon (f&uuml;r dringende F&auml;lle): ".$User['telefon']."";
+    }
+
+    return $Antwort;
 }
 
 ?>

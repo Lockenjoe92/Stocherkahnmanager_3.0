@@ -569,4 +569,125 @@ function lade_baustein($BausteinID){
     return $Array;
 }
 
+function table_form_dropdown_terminzeitfenster_generieren($TitelElement, $NameElement, $IDtermin, $ZeitfensterSelected){
+
+
+    return "<tr><th>".$TitelElement."</th><td>".dropdown_terminzeitfenster_generieren($NameElement, $IDtermin, $ZeitfensterSelected)."</td></tr>";
+
+}
+
+function dropdown_terminzeitfenster_generieren($NameElement, $IDtermin, $ZeitfensterSelected){
+
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    if ($ZeitfensterSelected == ""){
+        $Ausgabe .= "<option value='' selected>Zeitfenster w&auml;hlen</option>";
+    }
+
+    $link = connect_db();
+    zeitformat();
+
+    $Anfrage = "SELECT * FROM terminangebote WHERE id = '$IDtermin'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Angebot = mysqli_fetch_assoc($Abfrage);
+
+    //Minuten zwischen Anfang und Ende berechnen
+    $Anfang = new DateTime($Angebot['von']);
+    $Differenz = $Anfang->diff(new DateTime($Angebot['bis']));
+
+    $Minuten = $Differenz->days * 24 * 60;
+    $Minuten += $Differenz->h * 60;
+    $Minuten += $Differenz->i;
+
+    $UebergabedauerEinstellung = lade_xml_einstellung('dauer-uebergabe-minuten');
+    if(($UebergabedauerEinstellung == "") OR (intval($UebergabedauerEinstellung) < 5)){
+        $Einstellung = 10;
+    } else {
+        $Einstellung = lade_xml_einstellung('dauer-uebergabe-minuten');
+    }
+    $Zyklen = round($Minuten/intval($Einstellung));
+
+    for($a = 0; $a < $Zyklen; $a++){
+
+        $MinutenschalterAnfang = $a * intval($Einstellung);
+        $MinutenschlatenEnde = ($a * intval($Einstellung)) + intval($Einstellung);
+        $BefehlTimestampAnfangFenster = "+ ".$MinutenschalterAnfang." minutes";
+        $BefehlTimestampEndeFenster = "+ ".$MinutenschlatenEnde." minutes";
+        $ZeitBeginn = strtotime($BefehlTimestampAnfangFenster, strtotime($Angebot['von']));
+        $ZeitEnde = strtotime($BefehlTimestampEndeFenster, strtotime($Angebot['von']));
+
+        if ($ZeitEnde > time()){
+
+            if ((date("Y-m-d G:i:s", $ZeitBeginn)) === $ZeitfensterSelected){
+                $Ausgabe .= "<option value='" .date("Y-m-d G:i:s", $ZeitBeginn). "' selected>" .date("G:i", $ZeitBeginn). " bis ".date("G:i", $ZeitEnde)." Uhr</option>";
+            } else {
+                $Ausgabe .= "<option value='" .date("Y-m-d G:i:s", $ZeitBeginn). "'>" .date("G:i", $ZeitBeginn). " bis ".date("G:i", $ZeitEnde)." Uhr</option>";
+            }
+
+        }
+    }
+
+    $Ausgabe .= "</select>";
+
+    return $Ausgabe;
+}
+
+function dropdown_verfuegbare_schluessel_wart($NameElement, $Wart){
+
+    $link = connect_db();
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    $AnfrageLadeSchluesselWart = "SELECT * FROM schluessel WHERE akt_user = '$Wart' AND delete_user = '0' ORDER BY id ASC";
+    $AbfrageLadeSchluesselWart = mysqli_query($link, $AnfrageLadeSchluesselWart);
+    $AnzahlLadeSchluesselWart = mysqli_num_rows($AbfrageLadeSchluesselWart);
+
+    if ($AnzahlLadeSchluesselWart == 0){
+
+        $Ausgabe .= "<option value='' selected>kein Schl&uuml;ssel mehr</option>";
+
+    } else if ($AnzahlLadeSchluesselWart > 0){
+        $Ausgabe .= "<option value='' selected>Schl&uuml;ssel w&auml;hlen</option>";
+
+        for ($a = 1; $a <= $AnzahlLadeSchluesselWart; $a++){
+
+            $Schluessel = mysqli_fetch_assoc($AbfrageLadeSchluesselWart);
+            $Ausgabe .= "<option value='".$Schluessel['id']."'>Schl&uuml;ssel ".$Schluessel['id']." - ".$Schluessel['farbe']."</option>";
+
+        }
+    }
+
+    $Ausgabe .= "</select>";
+
+    return $Ausgabe;
+}
+
+function dropdown_aktive_schluessel($NameElement){
+
+    $link = connect_db();
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    $AnfrageLadeSchluessel = "SELECT * FROM schluessel WHERE delete_user = '0' ORDER BY id ASC";
+    $AbfrageLadeSchluessel = mysqli_query($link, $AnfrageLadeSchluessel);
+    $AnzahlLadeSchluessel = mysqli_num_rows($AbfrageLadeSchluessel);
+
+    if ($AnzahlLadeSchluessel == 0){
+
+        $Ausgabe .= "<option value='' selected>Keine angelegt!</option>";
+
+    } else if ($AnzahlLadeSchluessel > 0){
+        $Ausgabe .= "<option value='' selected>Schl&uuml;ssel w&auml;hlen</option>";
+
+        for ($a = 1; $a <= $AnzahlLadeSchluessel; $a++){
+
+            $Schluessel = mysqli_fetch_assoc($AbfrageLadeSchluessel);
+            $Ausgabe .= "<option value='".$Schluessel['id']."'>Schl&uuml;ssel ".$Schluessel['id']." - ".$Schluessel['farbe']."</option>";
+
+        }
+    }
+
+    $Ausgabe .= "</select>";
+
+    return $Ausgabe;
+}
+
 ?>
