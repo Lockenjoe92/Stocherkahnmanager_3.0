@@ -791,4 +791,75 @@ function dropdown_aktive_schluessel($NameElement){
     return $Ausgabe;
 }
 
+function zurueck_karte_generieren($Erfolg, $WeitereInfo, $zurueckURI){
+
+    if ($Erfolg == FALSE){
+        $Meldung = "Fehler beim speichern des Vorgangs!";
+    } else if ($Erfolg == TRUE){
+        $Meldung = "Vorgang erfolgreich durchgef&uuml;hrt!";
+    }
+
+    $HTML = "<div class='card-panel " .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
+    $HTML .= "<p><b>".$Meldung."</b></p>";
+    $HTML .= "<p>".$WeitereInfo."</p>";
+    $HTML .= "<p><a class='btn waves-effect waves-light' href='".$zurueckURI."'>Zur&uuml;ck</a></p>";
+    $HTML .= "</div>";
+
+    return $HTML;
+}
+
+function dropdown_beginn_reservierung_verschieben($NameElement, $MoegicheStundenFrueherBeginn, $MoegicheStundenSpaeterBeginn){
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Optionen nach vorne
+    if ($MoegicheStundenFrueherBeginn == false){
+    } else {
+        for ($a = 1; $a <= $MoegicheStundenFrueherBeginn; $a++){
+            $StundeAktuell = $MoegicheStundenFrueherBeginn - ($a - 1);
+            $Ausgabe .= "<option value='- ".$StundeAktuell."'>-".$StundeAktuell." h</option>";
+        }
+    }
+
+    //Startwert
+    $Ausgabe .= "<option value='' selected>Beginn verschieben</option>";
+
+    //Optionen nach hinten
+    if ($MoegicheStundenSpaeterBeginn == false){
+    } else {
+        for ($b = 1; $b <= $MoegicheStundenSpaeterBeginn; $b++){
+            $Ausgabe .= "<option value='+ ".$b."'>+".$b." h</option>";
+        }
+    }
+
+    $Ausgabe .= "</select>";
+    return $Ausgabe;
+}
+
+function dropdown_ende_reservierung_verschieben($NameElement, $MoegicheStundenFrueherEnde, $MoegicheStundenSpaeterEnde){
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Optionen nach vorne
+    if ($MoegicheStundenFrueherEnde == false){
+    } else {
+        for ($a = 1; $a <= $MoegicheStundenFrueherEnde; $a++){
+            $StundeAktuell = $MoegicheStundenFrueherEnde - ($a - 1);
+            $Ausgabe .= "<option value='- ".$StundeAktuell."'>-".$StundeAktuell." h</option>";
+        }
+    }
+
+    //Startwert
+    $Ausgabe .= "<option value='' selected>Ende verschieben</option>";
+
+    //Optionen nach hinten
+    if ($MoegicheStundenSpaeterEnde == false){
+    } else {
+        for ($b = 1; $b <= $MoegicheStundenSpaeterEnde; $b++){
+            $Ausgabe .= "<option value='+ ".$b."'>+".$b." h</option>";
+        }
+    }
+
+    $Ausgabe .= "</select>";
+    return $Ausgabe;
+}
+
 ?>

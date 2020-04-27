@@ -1749,5 +1749,44 @@ function spontanuebergabe_listenelement_generieren(){
     return $HTML;
 }
 
+function uebernahme_stornieren($UebernahmeID, $Begruendung){
+
+    $link = connect_db();
+    zeitformat();
+
+    $Uebernahme = lade_uebernahme($UebernahmeID);
+    $ResUebernahme = lade_reservierung($Uebernahme['reservierung']);
+    $UserResUebernahme = lade_user_meta($ResUebernahme['user']);
+    $ResUebernahmeDavor = lade_reservierung($Uebernahme['reservierung_davor']);
+    $UserResUebernahmeDavor = lade_user_meta($ResUebernahmeDavor['user']);
+
+    $AnfrageStorno = "UPDATE uebernahmen SET storno_user = '".lade_user_id()."', storno_time = '".timestamp()."' WHERE id = '$UebernahmeID'";
+    if (mysqli_query($link, $AnfrageStorno)){
+        if ($Begruendung != ""){
+            //Nur wenns was zu erzählen gibt
+            $BausteineUebernahmeMails = array();
+            $BausteineUebernahmeMails['vorname_user'] = $UserResUebernahme['vorname'];
+            $BausteineUebernahmeMails['datum_resevierung'] = strftime("%A, %d. %B %G", strtotime($ResUebernahme['beginn']));
+            $BausteineUebernahmeMails['begruendung'] = htmlentities($Begruendung);
+            mail_senden('uebernahme-storniert-user', $UserResUebernahme['mail'], $BausteineUebernahmeMails);
+            mail_senden('uebernahme-storniert-user-davor', $UserResUebernahmeDavor['mail'], $BausteineUebernahmeMails);
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function lade_uebernahme($UebernahmeID){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM uebernahmen WHERE id = '$UebernahmeID'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+
+    return $Ergebnis;
+}
+
 
 ?>

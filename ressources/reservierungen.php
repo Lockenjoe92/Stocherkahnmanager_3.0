@@ -303,6 +303,165 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
         }
     }
 
+    var_dump($Antwort['meldung']);
+    return $Antwort;
+}
+
+function reservierung_bearbeiten($ReservierungID, $AnfangVerschieben, $EndeVerschieben){
+
+    $link = connect_db();
+    $Reservierung = lade_reservierung($ReservierungID);
+    var_dump($ReservierungID);
+    var_dump($Reservierung);
+    $DAUcounter = 0;
+    $DAUerror = "";
+    $Antwort = array();
+
+    if ($AnfangVerschieben != ""){
+        $KommandoBeginn = "".$AnfangVerschieben." hours";
+        $NeuerTimestampBeginn = date("Y-m-d G:i:s", strtotime($KommandoBeginn, strtotime($Reservierung['beginn'])));
+    } else if ($AnfangVerschieben == ""){
+        $NeuerTimestampBeginn = $Reservierung['beginn'];
+    }
+
+    if ($EndeVerschieben != ""){
+        $KommandoEnde = "".$EndeVerschieben." hours";
+        $NeuerTimestampEnde = date("Y-m-d G:i:s", strtotime($KommandoEnde, strtotime($Reservierung['ende'])));
+    } else if ($EndeVerschieben == ""){
+        $NeuerTimestampEnde = $Reservierung['ende'];
+    }
+
+    //DAU checks
+    if ($Reservierung['storno_user'] != "0"){
+        $DAUcounter++;
+        $DAUerror .= "Diese Reservierung wurde inzwischen storniert!<br>";
+    }
+
+    //Zeiten außerhalb der genehmigten Wochentagszeiten
+    $Wochentag = strftime("%u", strtotime($NeuerTimestampBeginn));
+
+    //Einstellungen laden
+    if ($Wochentag == 1){
+        $FruehesterBeginn = lade_xml_einstellung('von-montag');
+        $SpaetestesEnde = lade_xml_einstellung('bis-montag');
+    } else if ($Wochentag == 2){
+        $FruehesterBeginn = lade_xml_einstellung('von-dienstag');
+        $SpaetestesEnde = lade_xml_einstellung('bis-dienstag');
+    } else if ($Wochentag == 3){
+        $FruehesterBeginn = lade_xml_einstellung('von-mittwoch');
+        $SpaetestesEnde = lade_xml_einstellung('bis-mittwoch');
+    } else if ($Wochentag == 4){
+        $FruehesterBeginn = lade_xml_einstellung('von-donnerstag');
+        $SpaetestesEnde = lade_xml_einstellung('bis-donnerstag');
+    } else if ($Wochentag == 5){
+        $FruehesterBeginn = lade_xml_einstellung('von-freitag');
+        $SpaetestesEnde = lade_xml_einstellung('bis-freitag');
+    } else if ($Wochentag == 6){
+        $FruehesterBeginn = lade_xml_einstellung('von-samstag');
+        $SpaetestesEnde = lade_xml_einstellung('bis-samstag');
+    } else if ($Wochentag == 7){
+        $FruehesterBeginn = lade_xml_einstellung('von-sonntag');
+        $SpaetestesEnde = lade_xml_einstellung('bis-sonntag');
+    }
+
+    if (intval(date("G", strtotime($NeuerTimestampBeginn))) < intval($FruehesterBeginn)){
+        $DAUcounter++;
+        $DAUerror .= "Der eingegebene Anfang deiner Reservierung ist zu fr&uuml;h!<br>";
+    }
+
+    if (intval(date("G", strtotime($NeuerTimestampEnde))) > intval($SpaetestesEnde)){
+        $DAUcounter++;
+        $DAUerror .= "Das eingegebene Ende deiner Reservierung ist zu sp&auml;t!<br>";
+    }
+
+    if (intval(date("G", strtotime($NeuerTimestampEnde))) < intval($FruehesterBeginn)){
+        $DAUcounter++;
+        $DAUerror .= "Das eingegebene Ende deiner Reservierung ist zu fr&uuml;h!<br>";
+    }
+
+    if (intval(date("G", strtotime($NeuerTimestampBeginn))) > intval($SpaetestesEnde)){
+        $DAUcounter++;
+        $DAUerror .= "Der eingegebene Anfang deiner Reservierung ist zu sp&auml;t!<br>";
+    }
+
+    $AnfrageInzwischenAndereReservierungVorne = "SELECT id FROM reservierungen WHERE storno_user = '0' AND beginn < '$NeuerTimestampBeginn' AND ende > '$NeuerTimestampBeginn' AND id <> '$ReservierungID'";
+    $AbfrageInzwischenAndereReservierungVorne = mysqli_query($link, $AnfrageInzwischenAndereReservierungVorne);
+    $AnzahlInzwischenAndereReservierungVorne = mysqli_num_rows($AbfrageInzwischenAndereReservierungVorne);
+
+    if ($AnzahlInzwischenAndereReservierungVorne > 0){
+        $DAUcounter++;
+        $DAUerror .= "Inzwischen kannst du den Beginn deiner Reservierung nicht mehr so weit vorverlegen!<br>";
+    }
+
+    $AnfrageInzwischenAndereReservierungHinten = "SELECT id FROM reservierungen WHERE storno_user = '0' AND beginn < '$NeuerTimestampEnde' AND ende >= '$NeuerTimestampEnde' AND id <> '$ReservierungID'";
+    $AbfrageInzwischenAndereReservierungHinten = mysqli_query($link, $AnfrageInzwischenAndereReservierungHinten);
+    $AnzahlInzwischenAndereReservierungHinten = mysqli_num_rows($AbfrageInzwischenAndereReservierungHinten);
+
+    if ($AnzahlInzwischenAndereReservierungHinten > 0){
+        $DAUcounter++;
+        $DAUerror .= "Inzwischen kannst deine Reservierung nicht mehr so weit verl&auml;ngern!<br>";
+    }
+
+    if (($NeuerTimestampBeginn == "") AND ($NeuerTimestampEnde == "")){
+        $DAUcounter++;
+        $DAUerror .= "Du hast keine &Auml;nderungen eingegeben!<br>";
+    }
+
+    if (strtotime($NeuerTimestampBeginn) > strtotime($NeuerTimestampEnde)){
+        $DAUcounter++;
+        $DAUerror .= "Die neu eingebenen Werte sind fehlerhaft: Das Ende der Reservierung l&auml;ge nun vor dem Beginn.<br>";
+    }
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = false;
+        $Antwort['meldung'] = $DAUerror;
+
+    } else if ($DAUcounter == 0){
+
+        $Anfrage = "UPDATE reservierungen SET beginn = '$NeuerTimestampBeginn', ende = '$NeuerTimestampEnde' WHERE id = '$ReservierungID'";
+        if (mysqli_query($link, $Anfrage)){
+
+            $UserRes = lade_user_meta($Reservierung['user']);
+
+            //Übernahmen die von Res abhängen stornieren wenn Res Ende verkürzt
+            $StrippedStringEndeVerschieben = str_replace(' ', '', $EndeVerschieben);
+            if (intval($StrippedStringEndeVerschieben) < 0){
+
+                $AnfrageGibtsNeUebernahme = "SELECT id FROM uebernahmen WHERE reservierung_davor = '$ReservierungID' AND storno_user = '0'";
+                $AbfrageGibtsNeUebernahme = mysqli_query($link, $AnfrageGibtsNeUebernahme);
+                $AnzahlGibtsNeUebernahme = mysqli_num_rows($AbfrageGibtsNeUebernahme);
+                if ($AnzahlGibtsNeUebernahme > 0){
+                    $Uebernahme = mysqli_fetch_assoc($AbfrageGibtsNeUebernahme);
+                    uebernahme_stornieren($Uebernahme['id'], "Die Reservierung vor deiner wurde vorverlegt und kann dir daher ihren Schl&uuml;ssel nicht mehr weitergeben.");
+                }
+            }
+
+            //Übernahmen dieser Res absagen, falls Anfang nach hinten verschoben
+            $StrippedStringAnfangVerschieben = str_replace(' ', '', $AnfangVerschieben);
+            if (intval($StrippedStringAnfangVerschieben) > 0){
+
+                $AnfrageGibtsNeUebernahmeDieseRes = "SELECT id FROM uebernahmen WHERE reservierung = '$ReservierungID' AND storno_user = '0'";
+                $AbfrageGibtsNeUebernahmeDieseRes = mysqli_query($link, $AnfrageGibtsNeUebernahmeDieseRes);
+                $AnzahlGibtsNeUebernahmeDieseRes = mysqli_num_rows($AbfrageGibtsNeUebernahmeDieseRes);
+                if ($AnzahlGibtsNeUebernahmeDieseRes > 0){
+                    $UebernahmeDieseRes = mysqli_fetch_assoc($AbfrageGibtsNeUebernahmeDieseRes);
+                    uebernahme_stornieren($UebernahmeDieseRes['id'], "Die Reservierung nach deiner wurde verlegt und kann daher deinen Schl&uuml;ssel nicht mehr &uuml;bernehmen.");
+                }
+            }
+
+            /////////////KOSTEN UPDATEN////////////
+            ///
+            ///
+            ///
+
+            $Antwort['success'] = true;
+            $Antwort['meldung'] = "Reservierung erfolgreich bearbeitet!";
+        } else {
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = "Datenbankfehler";
+        }
+    }
+
     return $Antwort;
 }
 
