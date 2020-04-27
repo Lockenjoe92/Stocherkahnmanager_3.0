@@ -504,6 +504,25 @@ function table_form_nutzergruppe_verification_mode_select($ItemTitle, $ItemName,
 
 }
 
+function table_form_timepicker_item($ItemTitle, $ItemName, $StartValue, $Disabled=false, $Required=false, $SpecialMode=''){
+
+    return "<tr><th>".$ItemTitle."</th><td>".form_timepicker_item($ItemTitle, $ItemName, $StartValue, $Disabled, $Required, $SpecialMode)."</td></tr>";
+
+}
+
+function form_timepicker_item($ItemTitle, $ItemName, $value='', $Disabled=false, $Required=true, $SpecialMode = ''){
+
+    if ($Disabled){
+        $Disabled = 'disabled';
+    } else {
+        $Disabled = '';
+    }
+
+    return "<div class='input-field ".$SpecialMode."'><input class='timepicker' type='text' class='validate' name='".$ItemName."' id='".$ItemName."' ".$Disabled." value='" . $value  . "' " .
+        ($Required ? "required" : "") ."><label for='".$ItemName."'>".$ItemTitle."</label></div>";
+
+}
+
 function table_form_html_area_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
 
     return "<tr><th>".$ItemTitle."</th><td>".form_html_area_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
