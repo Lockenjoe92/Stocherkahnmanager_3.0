@@ -311,8 +311,6 @@ function reservierung_bearbeiten($ReservierungID, $AnfangVerschieben, $EndeVersc
 
     $link = connect_db();
     $Reservierung = lade_reservierung($ReservierungID);
-    var_dump($ReservierungID);
-    var_dump($Reservierung);
     $DAUcounter = 0;
     $DAUerror = "";
     $Antwort = array();
@@ -460,6 +458,137 @@ function reservierung_bearbeiten($ReservierungID, $AnfangVerschieben, $EndeVersc
             $Antwort['success'] = false;
             $Antwort['meldung'] = "Datenbankfehler";
         }
+    }
+
+    return $Antwort;
+}
+
+function reservierung_stornieren($ReservierungID, $IDstornierer, $Begruendung){
+
+    $link = connect_db();
+    zeitformat();
+    $Timestamp = timestamp();
+    $Antwort = array();
+    $Reservierung = lade_reservierung($ReservierungID);
+    $Benutzer = lade_user_meta($IDstornierer);
+
+    //DAU??
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    if ($Benutzer['ist_wart'] == TRUE){
+
+        if ($Reservierung['storno_user'] == "1"){
+            $DAUcounter++;
+            $DAUerror .= "Die Reservierung wurde bereits storniert!<br>";
+        }
+
+    } else {
+
+        if (time() > strtotime($Reservierung['beginn'])){
+            $DAUcounter++;
+            $DAUerror .= "Du kannst deine Reservierung nach Fahrtbeginn nicht mehr stornieren!<br>";
+        }
+
+        if ($Reservierung['storno_user'] == "1"){
+            $DAUcounter++;
+            $DAUerror .= "Die Reservierung wurde bereits storniert!<br>";
+        }
+    }
+
+    //DAUauswertung
+    if ($DAUcounter == 0){
+
+        //AnfrageStornierung
+        $AnfrageStornierung = "UPDATE reservierungen SET storno_user = '$IDstornierer', storno_zeit = '$Timestamp' WHERE id ='$ReservierungID'";
+        if (mysqli_query($link, $AnfrageStornierung)){
+
+            if (time() < strtotime($Reservierung['ende'])){
+
+                //Betroffene Übernahmen die von Res abhängig sind stornieren
+                $AnfrageBetroffeneUebernahmen = "SELECT id FROM uebernahmen WHERE reservierung_davor = '$ReservierungID' AND storno_user = '0'";
+                $AbfrageBetroffeneUebernahmen = mysqli_query($link, $AnfrageBetroffeneUebernahmen);
+                $AnzahlBetroffeneUebernahmen = mysqli_num_rows($AbfrageBetroffeneUebernahmen);
+
+                if ($AnzahlBetroffeneUebernahmen != 0){
+                    for ($a = 1; $a <= $AnzahlBetroffeneUebernahmen; $a++){
+                        $Uebernahme = mysqli_fetch_assoc($AbfrageBetroffeneUebernahmen);
+
+                        if (isset($Begruendung)){
+                            $BegruendungMail = $Begruendung;
+                        } else {
+                            $BegruendungMail = "Die Gruppe vor dir hat leider ihre Fahrt storniert.";
+                        }
+                        uebernahme_stornieren($Uebernahme['id'], $BegruendungMail);
+                    }
+                }
+
+                //Betroffene Übernahmen dieser Reservierung stornieren
+                $AnfrageBetroffeneUebernahmenDieserRes = "SELECT id FROM uebernahmen WHERE reservierung = '$ReservierungID' AND storno_user = '0'";
+                $AbfrageBetroffeneUebernahmenDieserRes = mysqli_query($link, $AnfrageBetroffeneUebernahmenDieserRes);
+                $AnzahlBetroffeneUebernahmenDieserRes = mysqli_num_rows($AbfrageBetroffeneUebernahmenDieserRes);
+
+                if ($AnzahlBetroffeneUebernahmenDieserRes != 0){
+                    for ($b = 1; $b <= $AnzahlBetroffeneUebernahmenDieserRes; $b++){
+                        $UebernahmeDieserRes = mysqli_fetch_assoc($AbfrageBetroffeneUebernahmenDieserRes);
+
+                        if (isset($Begruendung)){
+                            $BegruendungMail = $Begruendung;
+                        } else {
+                            $BegruendungMail = "Die Gruppe nach dir hat ihre Fahrt storniert - du kannst somit deine Reservierung auch gerne noch verl&auml;ngern.";
+                        }
+                        uebernahme_stornieren($UebernahmeDieserRes['id'], $BegruendungMail);
+                    }
+                }
+
+                //Betroffene Übergaben stornieren
+                $AnfrageBetroffeneUebergaben = "SELECT id FROM uebergaben WHERE durchfuehrung = '0000-00-00 00:00:00' AND res = '$ReservierungID' AND storno_user = '0'";
+                $AbfrageBetroffeneUebergaben = mysqli_query($link, $AnfrageBetroffeneUebergaben);
+                $AnzahlBetroffeneUebergaben = mysqli_num_rows($AbfrageBetroffeneUebergaben);
+
+                if ($AnzahlBetroffeneUebergaben != 0){
+                    for ($a = 1; $a <= $AnzahlBetroffeneUebergaben; $a++){
+                        $Uebergabe = mysqli_fetch_assoc($AbfrageBetroffeneUebergaben);
+
+                        if (isset($Begruendung)){
+                            $BegruendungMail = $Begruendung;
+                        } else {
+                            $BegruendungMail = "Die Gruppe vor dir hat leider ihre Fahrt storniert.";
+                        }
+                        uebergabe_stornieren($Uebergabe['id'], $BegruendungMail);
+                    }
+                }
+
+                //Mail an den User schicken
+                if ($IDstornierer != $Reservierung['user']){
+
+                    $User = lade_user_meta($Reservierung['user']);
+                    $Bausteine['vorname_user'] = $User['vorname'];
+                    $Bausteine['datum'] = strftime("%A, %d. %B %G", strtotime($Reservierung['beginn']));
+                    $Bausteine['begruendung'] = $Begruendung;
+
+                    mail_senden('storno-reservierung', $User['mail'], $Bausteine);
+                }
+
+            }
+
+            //Finanzkram:
+            $ForderungenRes = lade_offene_forderung_res($Reservierung['id']);
+            forderung_stornieren($ForderungenRes['id']);
+
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "Reservierung erfolgreich storniert!<br>";
+
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Fehler beim Datenbankzugriff!<br>";
+        }
+
+    } else if ($DAUcounter > 0){
+
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+
     }
 
     return $Antwort;

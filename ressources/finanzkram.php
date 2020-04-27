@@ -77,6 +77,26 @@ function zahlungsgrenze_forderung_laden($EndeReservierung){
 
     return $Grenze;
 }
+function forderung_stornieren($ForderungID){
+
+    $link = connect_db();
+
+    $AnfrageForederungStornieren = "UPDATE finanz_forderungen SET storno_user = '".lade_user_id()."', storno_time = '".timestamp()."' WHERE id = '".$ForderungID."'";
+    if(mysqli_query($link, $AnfrageForederungStornieren)){
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function forderung_bearbeiten($NeuerBetrag, $ForderungID){
+
+    $link = connect_db();
+
+    $Anfrage = "UPDATE finanz_forderungen SET betrag = '$NeuerBetrag' WHERE id = '$ForderungID'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+
+}
 function lade_kontostand($Empfangskonto){
 
     $link = connect_db();
