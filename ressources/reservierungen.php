@@ -448,9 +448,11 @@ function reservierung_bearbeiten($ReservierungID, $AnfangVerschieben, $EndeVersc
             }
 
             /////////////KOSTEN UPDATEN////////////
-            ///
-            ///
-            ///
+            $Kosten = kosten_reservierung($Reservierung['id']);
+            $Forderung = lade_forderung_res($Reservierung['id']);
+            if($Forderung['id'] > 0){
+                forderung_bearbeiten($Kosten, $Forderung['id']);
+            }
 
             $Antwort['success'] = true;
             $Antwort['meldung'] = "Reservierung erfolgreich bearbeitet!";
