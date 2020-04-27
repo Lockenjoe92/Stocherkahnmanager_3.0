@@ -23,9 +23,9 @@ if(($AngebotHinzufuegenParser['success'] == false) OR ($AngebotHinzufuegenParser
 }
 
 # Content
-$HTML .= spalte_uebergabeangebote();
 $HTML .= spalte_uebergaben();
 $HTML .= spalte_termine();
+$HTML .= spalte_uebergabeangebote();
 
 # Put it all into a container
 $HTML = container_builder($HTML);
