@@ -212,7 +212,14 @@ function navbar_links_big(){
             $HTML .= '<li><a href="./kasse.php">Kasse</a></li>';
         }
         if($UserMeta['ist_wart'] == 'true'){
-            $HTML .= '<li><a href="./wartwesen.php">Wartwesen</a></li>';
+            $HTML .= "<ul id='dropdown2' class='dropdown-content'>";
+            $HTML .= "<li><a href='termine.php'>&Uumlbergaben</a></li>";
+            $HTML .= "<li><a href=\"ausfaelle.php\">Ausf&aumllle</a></li>";
+            $HTML .= "<li><a href=\"reservierungsmanagement.php\">Reservierungen</a></li>";
+            $HTML .= "<li><a href=\"schluesselmanagement.php\">Schl&uumlssel</a></li>";
+            $HTML .= "<li><a href=\"benutzermanagement_wart.php\">User</a></li>";
+            $HTML .= "</ul>";
+            $HTML .= '<li><a class="dropdown-trigger" href="#!" data-target="dropdown2">Wartwesen<i class="material-icons right">arrow_drop_down</i></a></li>';
         }
 
         $HTML .= '<li><a class="dropdown-trigger" href="#!" data-target="dropdown1">Buchungstool<i class="material-icons right">arrow_drop_down</i></a></li>';
@@ -254,9 +261,17 @@ function navbar_links_mobile(){
             $HTML .= '<li><a href="./kasse.php">Kasse</a></li>';
         }
         if($UserMeta['ist_wart'] == 'true'){
-            $HTML .= '<li><a href="./wartwesen.php">Wartwesen</a></li>';
+            $HTML .= "<li><div class=\"divider\"></div></li>";
+            $HTML .= "<li><a class=\"subheader\">Wartfunktionen</a></li>";
+            $HTML .= '<li><a href="../wartwesen.php">Wartwesen</a></li>';
+            $HTML .= "<li><a href='../termine.php'>&Uumlbergaben</a></li>";
+            $HTML .= "<li><a href=\"../ausfaelle.php\">Ausf&aumllle</a></li>";
+            $HTML .= "<li><a href=\"../reservierungsmanagement.php\">Reservierungen</a></li>";
+            $HTML .= "<li><a href=\"../schluesselmanagement.php\">Schl&uumlssel</a></li>";
+            $HTML .= "<li><a href=\"../benutzermanagement_wart.php\">User</a></li>";
         }
 
+        $HTML .= "<li><div class=\"divider\"></div></li>";
         $HTML .= '<li><a href="./my_reservations.php">Reservierungen</a></li>';
         $HTML .= '<li><a href="./usereinstellungen.php">Einstellungen</a></li>';
         $HTML .= '<li><a href="./logout.php">Logout</a></li>';
