@@ -78,16 +78,32 @@ function reservierung_loeschen_seiteninhalt($Mode, $ResID, $Parser){
 
                     } else {
 
-                        if ($Parser['success'] === TRUE){
-                            $HTML .= "<div class='section'>";
-                            $HTML .= "<p>Die Reservierung wurde erfolgreich gel&ouml;scht!</p>";
-                            $HTML .= "<p><a href='wartwesen.php' class='btn waves-effect waves-light'>Zur&uuml;ck</a></p>";
-                            $HTML .= "</div>";
-                        } else if ($Parser['success'] === FALSE){
-                            $HTML .= "<div class='section'>";
-                            $HTML .= "<p><b>Fehler: </b><br>".$Parser['meldung']."</p>";
-                            $HTML .= "<p><a href='wartwesen.php' class='btn waves-effect waves-light'>Zur&uuml;ck</a></p>";
-                            $HTML .= "</div>";
+                        if ($Parser['success'] == TRUE){
+
+                            if ($Mode == "wart"){
+                                $ResMeta = lade_reservierung($ResID);
+                                if($ResMeta['user'] == lade_user_id()){
+                                    $HTML = zurueck_karte_generieren(TRUE, 'Reservierung erfolgreich gel&ouml;scht!', 'my_reservations.php');
+                                } else {
+                                    $HTML = zurueck_karte_generieren(TRUE, 'Reservierung erfolgreich gel&ouml;scht!', 'reservierungsmanagement.php');
+                                }
+                            } else if ($Mode == "eigen"){
+                                $HTML = zurueck_karte_generieren(TRUE, 'Reservierung erfolgreich gel&ouml;scht!', 'my_reservations.php');
+                            }
+
+                        } else if ($Parser['success'] == FALSE){
+
+                            if ($Mode == "wart"){
+                                $ResMeta = lade_reservierung($ResID);
+                                if($ResMeta['user'] == lade_user_id()){
+                                    $HTML = zurueck_karte_generieren(TRUE, $Parser['meldung'], 'my_reservations.php');
+                                } else {
+                                    $HTML = zurueck_karte_generieren(TRUE, $Parser['meldung'], 'reservierungsmanagement.php');
+                                }
+                            } else if ($Mode == "eigen"){
+                                $HTML = zurueck_karte_generieren(FALSE, $Parser['meldung'], 'my_reservations.php');
+                            }
+
                         }
                     }
     $HTML .= "</div>";
