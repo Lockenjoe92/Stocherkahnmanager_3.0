@@ -9,6 +9,7 @@
 include_once "./ressources/ressourcen.php";
 session_manager('ist_wart');
 $Header = "&Uuml;bergabewesen - " . lade_db_einstellung('site_name');
+$AngebotHinzufuegenParser = terminangebot_hinzufuegen_listenelement_parser();
 
 #Generate content
 # Page Title
@@ -16,10 +17,15 @@ $PageTitle = '<h1 class="center-align hide-on-med-and-down">Deine &Uuml;bergaben
 $PageTitle .= '<h1 class="center-align hide-on-large-only">&Uuml;bergaben</h1>';
 $HTML .= section_builder($PageTitle);
 
+#Parser output
+if(($AngebotHinzufuegenParser['success'] == false) OR ($AngebotHinzufuegenParser['success'] == true)){
+    $HTML .= section_builder("<h3>".$AngebotHinzufuegenParser['meldung']."</h3>");
+}
+
 # Content
 $HTML .= spalte_uebergabeangebote();
-#$HTML .= spalte_uebergaben();
-#$HTML .= spalte_termine();
+$HTML .= spalte_uebergaben();
+$HTML .= spalte_termine();
 
 # Put it all into a container
 $HTML = container_builder($HTML);
@@ -27,7 +33,6 @@ $HTML = container_builder($HTML);
 # Output site
 echo site_header($Header);
 echo site_body($HTML);
-
 
 
 
@@ -59,7 +64,7 @@ function spalte_uebergabeangebote(){
     } else if ($AnzahlLadeAktiveUebergabeangebote > 0){
         for ($a = 1; $a <= $AnzahlLadeAktiveUebergabeangebote; $a ++) {
             $Angebot = mysqli_fetch_assoc($AbfrageLadeAktiveUebergabeangebote);
-            #$HTML .= terminangebot_listenelement_generieren($Angebot['id']);
+            $HTML .= terminangebot_listenelement_generieren($Angebot['id']);
         }
     }
 
@@ -70,7 +75,6 @@ function spalte_uebergabeangebote(){
 
     return $HTML;
 }
-
 function terminangebot_hinzufuegen_listenelement_generieren(){
 
 
@@ -93,8 +97,6 @@ function terminangebot_hinzufuegen_listenelement_generieren(){
     } else {
         $CheckboxWoechentlich = "unchecked";
     }
-
-    #terminangebot_hinzufuegen_listenelement_parser();
 
     //Bigscreen
     //DATUM UND TERMINIERUNG
@@ -123,9 +125,9 @@ function terminangebot_hinzufuegen_listenelement_generieren(){
     //REPEAT
     $BigscreenContent .= "<h3 class='center-align'>Angebot wiederholen</h3>";
     $RepeatContent = table_form_swich_item('Täglich wiederholen', 'terminangebot_taeglich_wiederholen', 'Nein', 'Ja', $CheckboxTaeglich, false);
-    $RepeatContent .= table_form_select_item('Anzahl Tage', 'terminangebot_taeglich_wiederholen_tage', 1, 14, $_POST['terminangebot_taeglich_wiederholen_tage'], 'Tage', 'Terminierung', '', false);
+    $RepeatContent .= table_form_select_item('Anzahl weitere Tage', 'terminangebot_taeglich_wiederholen_tage', 1, 14, $_POST['terminangebot_taeglich_wiederholen_tage'], 'Tage', 'Terminierung', '', false);
     $RepeatContent .= table_form_swich_item('Wöchentlich wiederholen', 'terminangebot_woechentlich_wiederholen', 'Nein', 'Ja', $CheckboxWoechentlich, false);
-    $RepeatContent .= table_form_select_item('Anzahl Wochen', 'terminangebot_woechentlich_wiederholen_wochen', 1, 12, $_POST['terminangebot_woechentlich_wiederholen_wochen'], 'Wochen', 'Terminierung', '', false);
+    $RepeatContent .= table_form_select_item('Anzahl weitere Wochen', 'terminangebot_woechentlich_wiederholen_wochen', 1, 12, $_POST['terminangebot_woechentlich_wiederholen_wochen'], 'Wochen', 'Terminierung', '', false);
     $BigscreenContent .= table_builder($RepeatContent);
     $BigscreenContent .= divider_builder();
 
@@ -139,6 +141,244 @@ function terminangebot_hinzufuegen_listenelement_generieren(){
     return $Collapsible;
 
 }
+function terminangebot_hinzufuegen_listenelement_parser(){
 
+    $Antwort['success'] = NULL;
+    $Antwort['meldung'] = NULL;
+
+    if(isset($_POST['action_terminangebot_anlegen'])) {
+
+        //DAU
+        $DAUcounter = 0;
+        $DAUerror = "";
+
+        if(($_POST['datum_terminangebot_anlegen']) == ""){
+            $DAUcounter++;
+            $DAUerror .= "Du musst ein Datum f&uuml;r das Terminangebot angeben!<br>";
+        }
+
+        if(!isset($_POST['beginn_terminangebot_anlegen'])){
+            $DAUcounter++;
+            $DAUerror .= "Du musst eine Anfangszeit w&auml;hlen!<br>";
+        }
+
+        if(!isset($_POST['ende_terminangebot_anlegen'])){
+            $DAUcounter++;
+            $DAUerror .= "Du musst eine End-Zeit w&auml;hlen!<br>";
+        }
+
+        if(isset($_POST['terminierung_terminangebot_anlegen'])){
+            if(!isset($_POST['stunden_terminierung_terminangebot_anlegen'])){
+                $DAUcounter++;
+                $DAUerror .= "Wenn du eine Terminierung w&uuml;nschst, musst du angeben wie viele Stunden vorher das Angebot nicht mehr angezeigt werden soll!<br>";
+            }
+        }
+
+        if(isset($_POST['terminangebot_taeglich_wiederholen'])){
+            if(!isset($_POST['terminangebot_taeglich_wiederholen_tage'])){
+                $DAUcounter++;
+                $DAUerror .= "Wenn du ein Angebot für mehrere Tage wiederholen willst, musst du angeben für wie viele Tage!<br>";
+            }
+        }
+
+        if(isset($_POST['terminangebot_woechentlich_wiederholen'])){
+            if(!isset($_POST['terminangebot_woechentlich_wiederholen_wochen'])){
+                $DAUcounter++;
+                $DAUerror .= "Wenn du ein Angebot für mehrere Wochen wiederholen willst, musst du angeben für wie viele Wochen!<br>";
+            }
+        }
+
+        if (isset($_POST['terminangebot_taeglich_wiederholen']) AND isset($_POST['terminangebot_woechentlich_wiederholen'])){
+            $DAUcounter++;
+            $DAUerror .= "Du kannst nur entweder tage- oder wochenweises Wiederholen wählen!<br>";
+        }
+
+        if(($_POST['ortsangabe_terminangebot_anlegen'] == "") AND ($_POST['ortsangabe_schriftlich_terminangebot_anlegen'] == "")){
+            $DAUcounter++;
+            $DAUerror .= "Du musst eine Angabe zum Treffpunkt geben!<br>";
+        }
+
+        if(($_POST['ortsangabe_terminangebot_anlegen'] != "") AND ($_POST['ortsangabe_schriftlich_terminangebot_anlegen'] != "")){
+            $DAUcounter++;
+            $DAUerror .= "Du kannst nicht eine Ortsvorlage und eine manuelle Eingabe gleichzeitig machen!<br>";
+        }
+
+        $DatumBeginn = "".$_POST['datum_terminangebot_anlegen']." ".$_POST['beginn_terminangebot_anlegen'].":00";
+        $DatumEnde = "".$_POST['datum_terminangebot_anlegen']." ".$_POST['ende_terminangebot_anlegen'].":00";
+
+        if (strtotime($DatumEnde) < strtotime($DatumBeginn)){
+            $DAUcounter++;
+            $DAUerror .= "Der Anfang darf nicht nach dem Ende liegen!<br>";
+        }
+
+        if (strtotime($DatumBeginn) === strtotime($DatumEnde)){
+            $DAUcounter++;
+            $DAUerror .= "Die Zeitpunkte d&uuml;rfen nicht identisch sein!<br>";
+        }
+
+        //DAU auswerten
+        if ($DAUcounter > 0){
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = $DAUerror;
+        } else {
+
+            if(isset($_POST['terminangebot_taeglich_wiederholen'])){
+                $TotalDays = 1 + intval($_POST['terminangebot_taeglich_wiederholen_tage']);
+                $UserID = lade_user_id();
+                for($a=0;$a<$TotalDays;$a++){
+
+                    if($a>=1){
+                        $TerminierungBefehl = "+ ".$a." days";
+                        $DatumBeginnAdapted = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumBeginn)));
+                        $DatumEndeAdapted = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumEnde)));
+                    } else {
+                        $DatumBeginnAdapted = $DatumBeginn;
+                        $DatumEndeAdapted = $DatumEnde;
+                    }
+
+                    if (isset($_POST['terminierung_terminangebot_anlegen'])){
+                        $TerminierungBefehl = "- ".$_POST['stunden_terminierung_terminangebot_anlegen']." hours";
+                        $TerminierungTimestamp = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumBeginnAdapted)));
+                    } else {
+                        $TerminierungTimestamp = "0000-00-00 00:00:00";
+                    }
+
+                    if ($_POST['ortsangabe_terminangebot_anlegen'] != ""){
+                        $Ortsangabe = $_POST['ortsangabe_terminangebot_anlegen'];
+                    } else {
+                        $Ortsangabe = $_POST['ortsangabe_schriftlich_terminangebot_anlegen'];
+                    }
+
+                    $Antwort = terminangebot_hinzufuegen($UserID, $DatumBeginnAdapted, $DatumEndeAdapted, $Ortsangabe, $_POST['kommentar_terminangebot_anlegen'], $TerminierungTimestamp);
+
+                }
+
+            } elseif (isset($_POST['terminangebot_woechentlich_wiederholen'])){
+                $TotalWeeks = 1 + intval($_POST['terminangebot_woechentlich_wiederholen_wochen']);
+                $UserID = lade_user_id();
+                for($a=0;$a<$TotalWeeks;$a++){
+
+                    if($a>=1){
+                        $TerminierungBefehl = "+ ".$a." weeks";
+                        $DatumBeginnAdapted = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumBeginn)));
+                        $DatumEndeAdapted = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumEnde)));
+                    } else {
+                        $DatumBeginnAdapted = $DatumBeginn;
+                        $DatumEndeAdapted = $DatumEnde;
+                    }
+
+                    if (isset($_POST['terminierung_terminangebot_anlegen'])){
+                        $TerminierungBefehl = "- ".$_POST['stunden_terminierung_terminangebot_anlegen']." hours";
+                        $TerminierungTimestamp = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumBeginnAdapted)));
+                    } else {
+                        $TerminierungTimestamp = "0000-00-00 00:00:00";
+                    }
+
+                    if ($_POST['ortsangabe_terminangebot_anlegen'] != ""){
+                        $Ortsangabe = $_POST['ortsangabe_terminangebot_anlegen'];
+                    } else {
+                        $Ortsangabe = $_POST['ortsangabe_schriftlich_terminangebot_anlegen'];
+                    }
+
+                    $Antwort = terminangebot_hinzufuegen($UserID, $DatumBeginnAdapted, $DatumEndeAdapted, $Ortsangabe, $_POST['kommentar_terminangebot_anlegen'], $TerminierungTimestamp);
+
+                }
+            } else {
+                if (isset($_POST['terminierung_terminangebot_anlegen'])){
+                    $TerminierungBefehl = "- ".$_POST['stunden_terminierung_terminangebot_anlegen']." hours";
+                    $TerminierungTimestamp = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumBeginn)));
+                } else {
+                    $TerminierungTimestamp = "0000-00-00 00:00:00";
+                }
+
+                if ($_POST['ortsangabe_terminangebot_anlegen'] != ""){
+                    $Ortsangabe = $_POST['ortsangabe_terminangebot_anlegen'];
+                } else {
+                    $Ortsangabe = $_POST['ortsangabe_schriftlich_terminangebot_anlegen'];
+                }
+
+                $Antwort = terminangebot_hinzufuegen(lade_user_id(), $DatumBeginn, $DatumEnde, $Ortsangabe, $_POST['kommentar_terminangebot_anlegen'], $TerminierungTimestamp);
+            }
+
+        }
+    }
+
+    return $Antwort;
+}
+function spalte_uebergaben(){
+
+    //Grundsätzliches
+    $link = connect_db();
+
+    //Lade aktive Übergaben
+    $AnfrageLadeAktiveUebergaben = "SELECT id FROM uebergaben WHERE durchfuehrung = '0000-00-00 00:00:00' AND wart = '".lade_user_id()."' AND storno_user = '0' ORDER BY beginn ASC";
+    $AbfrageLadeAktiveUebergaben = mysqli_query($link, $AnfrageLadeAktiveUebergaben);
+    $AnzahlLadeAktiveUebergaben = mysqli_num_rows($AbfrageLadeAktiveUebergaben);
+
+    $HTML = "<div class='section'>";
+    $HTML .= "<h5 class='header'>Deine Schl&uuml;ssel&uuml;bergaben</h5>";
+
+    if ($AnzahlLadeAktiveUebergaben == 0){
+        $HTML .= "<p class='caption'>Derzeit hast du keine aktiven Schl&uuml;ssel&uuml;bergaben! <br>";
+        $HTML .= "<div class='section'>";
+        $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
+        $HTML .= spontanuebergabe_listenelement_generieren();
+        $HTML .= dokumente_listenelement_generieren();
+        $HTML .= "</ul>";
+        $HTML .= "</div>";
+
+    } else if ($AnzahlLadeAktiveUebergaben > 0){
+        $HTML .= "<div class='section'>";
+        $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
+
+        for ($a = 1; $a <= $AnzahlLadeAktiveUebergaben; $a ++){
+            $Uebergabe = mysqli_fetch_assoc($AbfrageLadeAktiveUebergaben);
+            $HTML .= uebergabe_listenelement_generieren($Uebergabe['id'], TRUE);
+        }
+
+        $HTML .= spontanuebergabe_listenelement_generieren();
+        $HTML .= uebergabe_planen_listenelement_generieren();
+        $HTML .= dokumente_listenelement_generieren();
+
+        $HTML .= "</ul>";
+        $HTML .= "</div>";
+    }
+
+    $HTML .= "</div>";
+
+    return $HTML;
+}
+function spalte_termine(){
+
+    //Grundsätzliches
+    $link = connect_db();
+
+    //Lade aktive Übergaben
+    $AnfrageLadeAktiveTermine = "SELECT id FROM termine WHERE durchfuehrung = '0000-00-00 00:00:00' AND wart = '".lade_user_id()."' AND storno_user = '0'";
+    $AbfrageLadeAktiveTermine = mysqli_query($link, $AnfrageLadeAktiveTermine);
+    $AnzahlLadeAktiveTermine = mysqli_num_rows($AbfrageLadeAktiveTermine);
+
+    $HTML = "<div class='section'>";
+    $HTML .= "<h5 class='header'>Weitere Termine</h5>";
+
+    if ($AnzahlLadeAktiveTermine == 0){
+        $HTML .= "<p class='caption'>Derzeit hast du keine anstehenden Termine! <br>";
+    } else if ($AnzahlLadeAktiveTermine > 0){
+        $HTML .= "<div class='section'>";
+        $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
+
+        for ($a = 1; $a <= $AnzahlLadeAktiveTermine; $a ++){
+            $Termin = mysqli_fetch_assoc($AbfrageLadeAktiveTermine);
+            $HTML .= termin_listenelement_generieren($Termin['id']);
+        }
+
+        $HTML .= "</ul>";
+        $HTML .= "</div>";
+    }
+
+    $HTML .= "</div>";
+
+    return $HTML;
+}
 
 ?>

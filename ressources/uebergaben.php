@@ -648,11 +648,9 @@ function terminangebot_listenelement_generieren($IDangebot){
     $Abfrage = mysqli_query($link, $Anfrage);
     $Angebot = mysqli_fetch_assoc($Abfrage);
 
-    $Wart = lade_user_meta($Angebot['wart']);
-
     //Textinhalte generieren
-    $Zeitraum = "<b>".strftime("%A, %d. %B %G %H:%M", strtotime($Angebot['von']))."</b> bis <b>".strftime("%H:%M Uhr", strtotime($Angebot['bis']))."</b>";
-    $ZeitraumMobil = "<b>".strftime("%a, %d. %b - %H:%M", strtotime($Angebot['von']))."</b> bis <b>".strftime("%H:%M Uhr", strtotime($Angebot['bis']))."</b>";
+    $Zeitraum = "<b>".strftime("%A, %d. %B %G %H:%M", strtotime($Angebot['von']))."</b>&nbsp;bis&nbsp;<b>".strftime("%H:%M Uhr", strtotime($Angebot['bis']))."</b>";
+    $ZeitraumMobil = "<b>".strftime("%a, %d. %b - %H:%M", strtotime($Angebot['von']))."</b>&nbsp;bis&nbsp;<b>".strftime("%H:%M Uhr", strtotime($Angebot['bis']))."</b>";
 
     if($Angebot['terminierung'] == "0000-00-00 00:00:00"){
         $Terminierung = "keine Terminierung";
@@ -667,32 +665,32 @@ function terminangebot_listenelement_generieren($IDangebot){
     }
 
     //Ausgabe
-    echo "<li>";
-    echo "<div class='collapsible-header hide-on-med-and-down'><i class='large material-icons'>label_outline</i>Terminangebot: ".$Zeitraum."</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<ul class='collection'>";
-    echo "<li class='collection-item'><i class='tiny material-icons'>alarm_on</i> ".$Terminierung."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Angebot['ort']."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>settings_ethernet</i> ".lade_entstandene_uebergaben($IDangebot)."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Kommentar."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Wart['vorname']." ".$Wart['nachname']."";
-    echo "<li class='collection-item'> <a href='angebot_bearbeiten.php?id=".$IDangebot."'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='angebot_loeschen.php?id=".$IDangebot."'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
-    echo "</ul>";
-    echo "</div>";
-    echo "</li>";
-    echo "<li>";
-    echo "<div class='collapsible-header hide-on-large-only'><i class='large material-icons'>label_outline</i>".$ZeitraumMobil."</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<ul class='collection'>";
-    echo "<li class='collection-item'><i class='tiny material-icons'>alarm_on</i> ".$Terminierung."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Angebot['ort']."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>settings_ethernet</i> ".lade_entstandene_uebergaben($IDangebot)."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Kommentar."";
-    echo "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Wart['vorname']." ".$Wart['nachname']."";
-    echo "<li class='collection-item'> <a href='angebot_bearbeiten.php?id=".$IDangebot."'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='angebot_loeschen.php?id=".$IDangebot."'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
-    echo "</ul>";
-    echo "</div>";
-    echo "</li>";
+    $HTML = "<li>";
+    $HTML .= "<div class='collapsible-header hide-on-med-and-down'><i class='large material-icons'>label_outline</i>".$Zeitraum."</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<ul class='collection'>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>alarm_on</i> ".$Terminierung."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Angebot['ort']."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>settings_ethernet</i> ".lade_entstandene_uebergaben($IDangebot)."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Kommentar."";
+    $HTML .= "<li class='collection-item'> <a href='angebot_bearbeiten.php?id=".$IDangebot."'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='angebot_loeschen.php?id=".$IDangebot."'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
+    $HTML .= "</ul>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+    $HTML .= "<li>";
+    $HTML .= "<div class='collapsible-header hide-on-large-only'><i class='large material-icons'>label_outline</i>".$ZeitraumMobil."</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<ul class='collection'>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>alarm_on</i> ".$Terminierung."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Angebot['ort']."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>settings_ethernet</i> ".lade_entstandene_uebergaben($IDangebot)."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Kommentar."";
+    $HTML .= "<li class='collection-item'> <a href='angebot_bearbeiten.php?id=".$IDangebot."'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='angebot_loeschen.php?id=".$IDangebot."'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
+    $HTML .= "</ul>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+
+    return $HTML;
 }
 
 function uebergabe_listenelement_generieren($IDuebergabe, $Action){
@@ -773,177 +771,6 @@ function termin_listenelement_generieren($IDtermin){
     $HTML .= "</li>";
 
     return $HTML;
-}
-
-function terminangebot_hinzufuegen_listenelement_parser(){
-
-    if(isset($_POST['action_terminangebot_anlegen'])) {
-
-        //DAU
-        $DAUcounter = 0;
-        $DAUerror = "";
-
-        if(($_POST['datum_terminangebot_anlegen']) == ""){
-            $DAUcounter++;
-            $DAUerror .= "Du musst ein Datum f&uuml;r das Terminangebot angeben!<br>";
-        }
-
-        if(!isset($_POST['stunde_beginn_terminangebot_anlegen'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine Anfangsstunde w&auml;hlen!<br>";
-        }
-
-        if(!isset($_POST['minute_beginn_terminangebot_anlegen'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine Anfangsminute w&auml;hlen!<br>";
-        }
-
-        if(!isset($_POST['stunde_ende_terminangebot_anlegen'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine End-stunde w&auml;hlen!<br>";
-        }
-
-        if(!isset($_POST['minute_ende_terminangebot_anlegen'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine End-minute w&auml;hlen!<br>";
-        }
-
-        if(isset($_POST['terminierung_terminangebot_anlegen'])){
-            if(!isset($_POST['stunden_terminierung_terminangebot_anlegen'])){
-                $DAUcounter++;
-                $DAUerror .= "Wenn du eine Terminierung w&uuml;nschst, musst du angeben wie viele Stunden vorher das Angebot nicht mehr angezeigt werden soll!<br>";
-            }
-        }
-
-        if(($_POST['ortsangabe_terminangebot_anlegen'] == "") AND ($_POST['ortsangabe_schriftlich_terminangebot_anlegen'] == "")){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine Angabe zum Treffpunkt geben!<br>";
-        }
-
-        if(($_POST['ortsangabe_terminangebot_anlegen'] != "") AND ($_POST['ortsangabe_schriftlich_terminangebot_anlegen'] != "")){
-            $DAUcounter++;
-            $DAUerror .= "Du kannst nicht eine Ortsvorlage und eine manuelle Eingabe gleichzeitig machen!<br>";
-        }
-
-        $DatumBeginn = "".$_POST['datum_terminangebot_anlegen']." ".$_POST['stunde_beginn_terminangebot_anlegen'].":".$_POST['minute_beginn_terminangebot_anlegen'].":00";
-        $DatumEnde = "".$_POST['datum_terminangebot_anlegen']." ".$_POST['stunde_ende_terminangebot_anlegen'].":".$_POST['minute_ende_terminangebot_anlegen'].":00";
-
-        if (strtotime($DatumEnde) < strtotime($DatumBeginn)){
-            $DAUcounter++;
-            $DAUerror .= "Der Anfang darf nicht nach dem Ende liegen!<br>";
-        }
-
-        if (strtotime($DatumBeginn) === strtotime($DatumEnde)){
-            $DAUcounter++;
-            $DAUerror .= "Die Zeitpunkte d&uuml;rfen nicht identisch sein!<br>";
-        }
-
-        //DAU auswerten
-        if ($DAUcounter > 0){
-            toast_ausgeben($DAUerror);
-        } else {
-
-            if (isset($_POST['terminierung_terminangebot_anlegen'])){
-                $TerminierungBefehl = "- ".$_POST['stunden_terminierung_terminangebot_anlegen']." hours";
-                $TerminierungTimestamp = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumBeginn)));
-            } else {
-                $TerminierungTimestamp = "0000-00-00 00:00:00";
-            }
-
-            if ($_POST['ortsangabe_terminangebot_anlegen'] != ""){
-                $Ortsangabe = $_POST['ortsangabe_terminangebot_anlegen'];
-            } else {
-                $Ortsangabe = $_POST['ortsangabe_schriftlich_terminangebot_anlegen'];
-            }
-
-            $Antwort = terminangebot_hinzufuegen(lade_user_id(), $DatumBeginn, $DatumEnde, $Ortsangabe, $_POST['kommentar_terminangebot_anlegen'], $TerminierungTimestamp);
-            toast_ausgeben($Antwort['meldung']);
-        }
-    }
-
-    if(isset($_POST['action_terminangebot_anlegen_mobil'])) {
-
-        //DAU
-        $DAUcounter = 0;
-        $DAUerror = "";
-
-        if(($_POST['datum_terminangebot_anlegen_mobil']) == ""){
-            $DAUcounter++;
-            $DAUerror .= "Du musst ein Datum f&uuml;r das Terminangebot angeben!<br>";
-        }
-
-        if(!isset($_POST['stunde_beginn_terminangebot_anlegen_mobil'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine Anfangsstunde w&auml;hlen!<br>";
-        }
-
-        if(!isset($_POST['minute_beginn_terminangebot_anlegen_mobil'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine Anfangsminute w&auml;hlen!<br>";
-        }
-
-        if(!isset($_POST['stunde_ende_terminangebot_anlegen_mobil'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine End-stunde w&auml;hlen!<br>";
-        }
-
-        if(!isset($_POST['minute_ende_terminangebot_anlegen_mobil'])){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine End-minute w&auml;hlen!<br>";
-        }
-
-        if(isset($_POST['terminierung_terminangebot_anlegen_mobil'])){
-            if(!isset($_POST['stunden_terminierung_terminangebot_anlegen_mobil'])){
-                $DAUcounter++;
-                $DAUerror .= "Wenn du eine Terminierung w&uuml;nschst, musst du angeben wie viele Stunden vorher das Angebot nicht mehr angezeigt werden soll!<br>";
-            }
-        }
-
-        if(($_POST['ortsangabe_terminangebot_anlegen_mobil'] == "") AND ($_POST['ortsangabe_schriftlich_terminangebot_anlegen_mobil'] == "")){
-            $DAUcounter++;
-            $DAUerror .= "Du musst eine Angabe zum Treffpunkt geben!<br>";
-        }
-
-        if(($_POST['ortsangabe_terminangebot_anlegen_mobil'] != "") AND ($_POST['ortsangabe_schriftlich_terminangebot_anlegen_mobil'] != "")){
-            $DAUcounter++;
-            $DAUerror .= "Du kannst nicht eine Ortsvorlage und eine manuelle Eingabe gleichzeitig machen!<br>";
-        }
-
-        $DatumBeginn = "".$_POST['datum_terminangebot_anlegen_mobil']." ".$_POST['stunde_beginn_terminangebot_anlegen_mobil'].":".$_POST['minute_beginn_terminangebot_anlegen_mobil'].":00";
-        $DatumEnde = "".$_POST['datum_terminangebot_anlegen_mobil']." ".$_POST['stunde_ende_terminangebot_anlegen_mobil'].":".$_POST['minute_ende_terminangebot_anlegen_mobil'].":00";
-
-        if (strtotime($DatumEnde) < strtotime($DatumBeginn)){
-            $DAUcounter++;
-            $DAUerror .= "Der Anfang darf nicht nach dem Ende liegen!<br>";
-        }
-
-        if (strtotime($DatumBeginn) === strtotime($DatumEnde)){
-            $DAUcounter++;
-            $DAUerror .= "Die Zeitpunkte d&uuml;rfen nicht identisch sein!<br>";
-        }
-
-        //DAU auswerten
-        if ($DAUcounter > 0){
-            toast_ausgeben($DAUerror);
-        } else {
-
-            if (isset($_POST['terminierung_terminangebot_anlegen_mobil'])){
-                $TerminierungBefehl = "- ".$_POST['stunden_terminierung_terminangebot_anlegen_mobil']." hours";
-                $TerminierungTimestamp = date("Y-m-d G:i:s", strtotime($TerminierungBefehl, strtotime($DatumBeginn)));
-            } else {
-                $TerminierungTimestamp = "0000-00-00 00:00:00";
-            }
-
-            if ($_POST['ortsangabe_terminangebot_anlegen_mobil'] != ""){
-                $Ortsangabe = $_POST['ortsangabe_terminangebot_anlegen_mobil'];
-            } else {
-                $Ortsangabe = $_POST['ortsangabe_schriftlich_terminangebot_anlegen_mobil'];
-            }
-
-            $Antwort = terminangebot_hinzufuegen(lade_user_id(), $DatumBeginn, $DatumEnde, $Ortsangabe, $_POST['kommentar_terminangebot_anlegen_mobil'], $TerminierungTimestamp);
-            toast_ausgeben($Antwort['meldung']);
-        }
-    }
 }
 
 function spontanuebergabe_listenelement_parser(){
