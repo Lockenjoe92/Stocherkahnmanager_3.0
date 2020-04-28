@@ -1,31 +1,27 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: marc
+ * Date: 12.11.18
+ * Time: 13:24
+ */
 
-include_once "./ressourcen/ressourcen.php";
-
-session_manager();
-$link = connect_db();
-
-$Typ = $_GET['typ'];
-$ID = $_GET['id'];
-
-//Überprüfen ob der User auch das recht hat auf die Seite zuzugreifen
-$Benutzerrollen = benutzerrollen_laden('');
-if (!$Benutzerrollen['wart'] == true){
-    header("Location: ./wartwesen.php");
-    die();
-}
+include_once "./ressources/ressourcen.php";
+session_manager('ist_wart');
+$Header = "Kahnausfall l&ouml;schen - " . lade_db_einstellung('site_name');
 
 //DAU Typ & ID abfangen
-if (!isset($Typ)){
+if (isset($_POST['typ'])){
     $Typ = $_POST['typ'];
 } else {
     $Typ = $_GET['typ'];
 }
-if (!isset($ID)){
+if (isset($_POST['id'])){
     $ID = $_POST['id'];
 } else {
     $ID = $_GET['id'];
 }
+$link = connect_db();
 if ($Typ === "pause"){
     $Modename = "Betriebspause";
 
@@ -46,107 +42,42 @@ if ($Typ === "pause"){
     die();
 }
 
-//SEITE Initiieren
-echo "<html>";
-header_generieren("Kahnausfall l&ouml;schen");
-echo "<body>";
-navbar_generieren($Benutzerrollen, TRUE, 'ausfall_loeschen');
-echo "<main>";
-
-echo "<div class='container'>";
-echo "<div class='row'>";
-echo "<div class='col s12 m9 l12'>";
-
-//Einstellungen laden
-$Farbe = lade_einstellung('farbemenucard');
-$FarbeText = lade_einstellung('farbemenutext');
-
 //PARSER
 $Parser = parser($Typ, $ID);
 
-//SEITENINHALT
-echo "<div class='section'><h3 class='center-align'>".$Modename." l&ouml;schen</h3></div>";
+# Page Title
+$PageTitle = '<h1 class="center-align hide-on-med-and-down">'.$Modename.' l&ouml;schen</h1>';
+$PageTitle .= '<h1 class="center-align hide-on-large-only">'.$Modename.' l&ouml;schen</h1>';
+$HTML = section_builder($PageTitle);
+$HTML .= seiteninhalt($Parser, $Modename, $Daten, $ID, $Typ);
+$HTML = container_builder($HTML);
 
-if ($Parser['success'] === TRUE){
+# Output site
+echo site_header($Header);
+echo site_body($HTML);
 
-    echo "<form action='ausfall_loeschen.php' method='post'>";
-    echo "<div class='row'>";
-    echo "<div class='col s12 m10 l8 offset-l2 offset-m1'>";
-        echo "<div class=\"card " .$Farbe. "\">";
-            echo "<div class=\"card-content ".$FarbeText."\">";
-                echo "<span class=\"card-title\">Erfolg!</span>";
-                echo "<div class='section'>";
-                    echo "<p>Die ".$Modename." wurde erfolgreich gel&ouml;scht!</p>";
-                echo "</div>";
-                echo "<div class='section'>";
-                    echo "<div class='input-field'>
-                            <a href='ausfaelle.php' class='btn waves-effect waves-light'>Zur&uuml;ck</a>
-                            </div>";
-                echo "</div>";
-            echo "</div>";
-        echo "</div>";
-    echo "</div>";
-    echo "</div>";
-    echo "</form>";
 
-} else if ($Parser['success'] === FALSE){
 
-    echo "<form action='ausfall_loeschen.php' method='post'>";
-    echo "<div class='row'>";
-    echo "<div class='col s12 m10 l8 offset-l2 offset-m1'>";
-        echo "<div class=\"card " .$Farbe. "\">";
-            echo "<div class=\"card-content ".$FarbeText."\">";
-                echo "<span class=\"card-title\">Fehler</span>";
-                echo "<div class='section'>";
-                    echo "<p>Fehler beim L&ouml;schen der ".$Modename."!<br>".$Parser['meldung']."</p>";
-                echo "</div>";
-                echo "<div class='section'>";
-                echo "<div class='input-field'>
-                      <a href='ausfaelle.php' class='btn waves-effect waves-light'>Zur&uuml;ck</a>
-                      </div>";
-                echo "</div>";
-            echo "</div>";
-        echo "</div>";
-    echo "</div>";
-    echo "</div>";
-    echo "</form>";
+function seiteninhalt($Parser, $Modename, $Daten, $ID, $Typ){
+    if ($Parser['success'] === TRUE){
+        $HTML = "<h3 class='center-align'>Erfolg!</h3>";
+        $HTML .= section_builder("<p>Die ".$Modename." wurde erfolgreich gel&ouml;scht!</p>", '', 'center-align');
+        $HTML .= section_builder(button_link_creator('Zurück', 'ausfaelle.php', 'arrow_back', ''), '', 'center-align');
+    } else if ($Parser['success'] === FALSE){
+        $HTML = "<h3 class='center-align'>Fehler!</h3>";
+        $HTML .= section_builder("Fehler beim L&ouml;schen der ".$Modename."!<br>".$Parser['meldung']."", '', 'center-align');
+        $HTML .= section_builder(button_link_creator('Zurück', 'ausfaelle.php', 'arrow_back', ''), '', 'center-align');
+    } else if ($Parser['success'] === NULL){
+        $HTML = "<h3 class='center-align'>Achtung!</h3>";
+        $HTML .= section_builder("<p>M&ouml;chtest du die ".$Modename." '".$Daten['titel']."' wirklich l&ouml;schen?</p>", '', 'center-align');
+        $FormHTML = "<input type='hidden' name='id' value='$ID'>";
+        $FormHTML .= "<input type='hidden' name='typ' value='$Typ'>";
+        $FormHTML .= form_button_builder('action', 'Löschen', 'action', 'delete', '')." ".button_link_creator('Abbruch', 'ausfaelle.php', 'arrow_back', '');
+        $HTML .= form_builder(section_builder($FormHTML, '', 'center-align'), '#', 'post', '', '');
+    }
 
-} else if ($Parser['success'] === NULL){
-
-    echo "<form action='ausfall_loeschen.php' method='post'>";
-    echo "<div class='row'>";
-    echo "<div class='col s12 m10 l8 offset-l2 offset-m1'>";
-        echo "<div class=\"card " .$Farbe. "\">";
-            echo "<div class=\"card-content ".$FarbeText."\">";
-                echo "<span class=\"card-title\">Achtung!</span>";
-                echo "<div class='section'>";
-                    echo "<input type='hidden' name='id' value='$ID'>";
-                    echo "<input type='hidden' name='typ' value='$Typ'>";
-                    echo "<p>M&ouml;chtest du die ".$Modename." '".$Daten['titel']."' wirklich l&ouml;schen?</p>";
-                echo "</div>";
-                echo "<div class='section'>";
-                    echo "<div class='input-field'>
-                                        <button class='btn waves-effect waves-light' type='submit' name='action'>L&ouml;schen
-                                        <i class='material-icons left'>delete</i>
-                                        </button>
-                                        <a href='ausfaelle.php' class='btn waves-effect waves-light'>Abbruch</a>
-                     </div>";
-                echo "</div>";
-            echo "</div>";
-        echo "</div>";
-    echo "</div>";
-    echo "</div>";
-    echo "</form>";
+    return $HTML;
 }
-
-echo "</div>";
-echo "</div>";
-echo "</div>";
-
-echo "</main>";
-footer_generieren();
-echo "</body>";
-echo "</html>";
 
 function parser($Typ, $ID){
 
