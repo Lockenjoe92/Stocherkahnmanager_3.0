@@ -542,11 +542,6 @@ function spontanuebergabe_durchfuehren($IDres, $IDschluessel, $Gratisfahrt, $And
         //Spontanübergabe eintragen
         $Ergebnis = spontanuebergabe_eintragen($IDres, $IDschluessel, $Gratisfahrt, $AndererPreis, $GezahlterBetrag, lade_user_id());
 
-        //Vertragsunterzeichnung festhalten
-        if ($Vertrag == TRUE){
-            vertragsunterzeichnung_festhalten($Reservierung['user'], lade_user_id());
-        }
-
         if ($Ergebnis['success'] == TRUE){
             $Antwort['success'] = TRUE;
             $Antwort['meldung'] = "Spontan&uuml;bergabe erfolgreich eingetragen!";
@@ -795,18 +790,13 @@ function termin_listenelement_generieren($IDtermin){
 
 function spontanuebergabe_listenelement_parser(){
 
+    $Ergebnis = array();
+
     if (isset($_POST['action_spontanuebergabe_durchfuehren'])){
-
-        if(isset($_POST['vertrag'])){
-            $Vertrag = TRUE;
-        } else {
-            $Vertrag = FALSE;
-        }
-
-        $Ergebnis = spontanuebergabe_durchfuehren($_POST['reservierung'], $_POST['schluessel'], $_POST['gratis_fahrt'], $_POST['verguenstigung'], $_POST['einnahme'], $Vertrag);
-        toast_ausgeben($Ergebnis['meldung']);
+        $Ergebnis = spontanuebergabe_durchfuehren($_POST['reservierung'], $_POST['schluessel'], $_POST['gratis_fahrt'], $_POST['verguenstigung'], $_POST['einnahme']);
     }
 
+    return $Ergebnis;
 }
 
 function terminangebot_hinzufuegen($IDwart, $Beginn, $Ende, $Ort, $Kommentar, $Terminierung){
@@ -1351,57 +1341,17 @@ function spontanuebergabe_listenelement_generieren(){
 
     spontanuebergabe_listenelement_parser();
 
-    //Ausgabe
-    $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>star</i>Spontan&uuml;bergabe</div>";
-    $HTML .= "<div class='collapsible-body'>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<form method='post'>";
+    $FormHTML = table_row_builder(table_header_builder('Reservierung').table_data_builder(dropdown_aktive_res_spontanuebergabe('reservierung')));
+    $FormHTML .= table_row_builder(table_header_builder('Schlüssel').table_data_builder(dropdown_verfuegbare_schluessel_wart('schluessel', lade_user_id())));
+    $FormHTML .= table_form_swich_item('Gratisfahrt', 'gratis_fahrt', 'Nein', 'Ja', '', false);
+    $FormHTML .= table_form_select_item('Vergünstigung', 'verguenstigung', 0, lade_xml_einstellung('max-kosten-einer-reservierung'), '', '&euro;', 'Vergünstigung', '', false);
+    $FormHTML .= table_form_select_item('Einnahmen', 'einnahme', 0, lade_xml_einstellung('max-kosten-einer-reservierung'), '', '&euro;', 'Einnahmen', '', false);
+    $FormHTML = table_builder($FormHTML);
+    $FormHTML .= divider_builder();
+    $FormHTML .= table_builder(table_row_builder(table_header_builder(form_button_builder('action_spontanuebergabe_durchfuehren', 'Durchf&uuml;hren', 'submit', 'send', '')).table_data_builder('')));
+    $HTML = form_builder($FormHTML, '#', 'post');
+    $HTML = collapsible_item_builder('Spontanübergabe', $HTML, 'star');
 
-    $HTML .= "<div class='section'>";
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>today</i>";
-    $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung');
-    $HTML .= "</div>";
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>vpn_key</i>";
-    $HTML .= dropdown_verfuegbare_schluessel_wart('schluessel', lade_user_id());
-    $HTML .= "</div>";
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>grade</i>";
-    $HTML .= "<input type='checkbox' name='gratis_fahrt' id='gratis_fahrt'>";
-    $HTML .= "<label for='gratis_fahrt'>Als Gratisfahrt eintragen.</label>";
-    $HTML .= "</div>";
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>thumb_up</i>";
-    $HTML .= "<input type='text' name='verguenstigung' id='verguenstigung' data-size='3'>";
-    $HTML .= "<label for='verguenstigung'>Verg&uuml;nstigter Tarif</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>toll</i>";
-    $HTML .= "<input type='text' name='einnahme' id='einnahme' data-size='3'>";
-    $HTML .= "<label for='einnahme'>Einnahmen</label>";
-    $HTML .= "</div>";
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>description</i>";
-    $HTML .= "<input type='checkbox' name='vertrag' id='vertrag'>";
-    $HTML .= "<label for='vertrag'>User hat Vertrag unterzeichnet.</label>";
-    $HTML .= "</div>";
-
-    $HTML .= "</div><div class='section'>";
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<button type='submit' name='action_spontanuebergabe_durchfuehren' class='btn waves-effect waves-light'>Durchf&uuml;hren</button>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</li>";
     return $HTML;
 }
 

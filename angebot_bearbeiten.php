@@ -99,7 +99,7 @@ function angebot_bearbeiten_karte($IDangebot){
     $BigscreenContent .= divider_builder();
 
     //KNÖPFE
-    $KnoepfeContent = table_row_builder(table_header_builder(form_button_builder('action_terminangebot_bearbeiten', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('reset_terminangebot_bearbeiten', 'Reset', 'reset', 'clear_all', '')." ".button_link_creator('Zurück', './termine.php', 'arrow_back', '')).table_data_builder(''));
+    $KnoepfeContent = table_row_builder(table_header_builder(form_button_builder('action_terminangebot_bearbeiten', 'Bearbeiten', 'action', 'edit', '')." ".button_link_creator('Zurück', './termine.php', 'arrow_back', '')).table_data_builder(''));
     $BigscreenContent .= table_builder($KnoepfeContent);
 
     $CollapsibleContent = form_builder($BigscreenContent, '#', 'post', '', '');
