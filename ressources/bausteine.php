@@ -220,34 +220,53 @@ function form_mediapicker_dropdown($ItemName, $StartValue, $Directory, $Label, $
     return $HTML;
 }
 
-function dropdown_menu_wart($NameElement, $PreselectWart){
-
-    $link = connect_db();
-
-    $AnfrageLadeAlleUser = "SELECT id, vorname, nachname, username FROM user WHERE deaktiviert = '0' ORDER BY nachname ASC";
-    $AbfrageLadeAlleUser = mysqli_query($link, $AnfrageLadeAlleUser);
-    $AnzahlLadeAlleUser = mysqli_num_rows($AbfrageLadeAlleUser);
+function dropdown_schluesselorte($NameElement, $Ort){
 
     $Ausgabe = "<select name='" .$NameElement. "' size='4' id='".$NameElement."'>";
 
-    if ($PreselectWart == 0){
-        $Ausgabe .= "<option>Wart</option>";
+    if ($Ort == ''){
+        $Ausgabe .= "<option value='' selected>Ort zuweisen</option>";
+    } else {
+        $Ausgabe .= "<option value=''>Ort zuweisen</option>";
     }
 
+    $MoeglicheSchluesselorte = lade_xml_einstellung('moegliche_schluesselorte');
+    $MoeglicheSchluesselorte = explode(',', $MoeglicheSchluesselorte);
+
+    foreach ($MoeglicheSchluesselorte as $Schluesselort){
+        if ($Schluesselort == $Ort) {
+            $Ausgabe .= "<option value='" . $Schluesselort . "' selected>" . $Schluesselort . "</option>";
+        } else {
+            $Ausgabe .= "<option value='" . $Schluesselort . "'>" . $Schluesselort . "</option>";
+        }
+    }
+
+    $Ausgabe .= "</select>";
+
+    return $Ausgabe;
+}
+
+function dropdown_menu_wart($NameElement, $PreselectWart){
+
+    $Ausgabe = "<select name='" .$NameElement. "' size='4' id='".$NameElement."'>";
+
+    if ($PreselectWart == ""){
+        $Ausgabe .= "<option value='' selected>Wart auswählen</option>";
+    }
+
+    $Users = get_sorted_user_array_with_user_meta_fields('nachname');
     $Counter = 0;
-    for ($a = 1; $a <= $AnzahlLadeAlleUser; $a++){
+    foreach ($Users as $User){
 
-        $Ergebnis = mysqli_fetch_assoc($AbfrageLadeAlleUser);
-        $Benutzerrolle = lade_user_meta($Ergebnis['username']);
-
-        if ($Benutzerrolle['ist_wart'] == true) {
-            if ($Ergebnis['id'] == $PreselectWart) {
-                $Ausgabe .= "<option value='" . $Ergebnis['id'] . "' selected>" . $Ergebnis['vorname'] . " " . $Ergebnis['nachname'] . "</option>";
+        if ($User['ist_wart'] == true) {
+            if ($User['id'] == $PreselectWart) {
+                $Ausgabe .= "<option value='" . $User['id'] . "' selected>" . $User['vorname'] . " " . $User['nachname'] . "</option>";
             } else {
-                $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>" . $Ergebnis['vorname'] . " " . $Ergebnis['nachname'] . "</option>";
+                $Ausgabe .= "<option value='" . $User['id'] . "'>" . $User['vorname'] . " " . $User['nachname'] . "</option>";
             }
             $Counter++;
         }
+
     }
 
     if ($Counter == 0){
@@ -257,6 +276,8 @@ function dropdown_menu_wart($NameElement, $PreselectWart){
     $Ausgabe .= "</select>";
 
     return $Ausgabe;
+
+
 }
 
 function form_switch_item($ItemName, $OptionLeft='off', $OptionRight='on', $BooleanText='off', $Disabled=false){

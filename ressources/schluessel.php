@@ -136,7 +136,7 @@ function schluessel_hinzufuegen($ChosenID, $Farbe, $FarbeMat, $RFID){
 
     return $Antwort;
 }
-function schluessel_umbuchen($Schluessel, $AktuellerOrtUser, $AnUser, $AnOrt, $Wart){
+function schluessel_umbuchen($Schluessel, $AnWart, $AnOrt, $Wart){
 
     $link = connect_db();
     $Antwort = array();
@@ -151,45 +151,26 @@ function schluessel_umbuchen($Schluessel, $AktuellerOrtUser, $AnUser, $AnOrt, $W
         $DAUerror .= "Du musst einen zu bewegenden Schl&uuml;ssel angeben!<br>";
     }
 
-    //kein aktueller ort oder user übergeben
-    if($AktuellerOrtUser == ""){
-        $DAUcounter++;
-        $DAUerror .= "Es muss ein absendender Ort oder User übergeben werden!<br>";
-    }
-
     //kein ort oder user angegeben
-    if(($AnUser == "") AND ($AnOrt == "")){
+    if(($AnWart == "") AND ($AnOrt == "")){
         $DAUcounter++;
         $DAUerror .= "Du musst ein Ziel ausw&auml;hlen!<br>";
     }
 
     //sowohl ort als auch user gegeben
-    if(($AnUser != "") AND ($AnOrt != "")){
+    if(($AnWart != "") AND ($AnOrt != "")){
         $DAUcounter++;
         $DAUerror .= "Du kannst nicht zwei Ziele angeben!<br>";
-    }
-
-    //AnUser ist kein Wart -> dann muss eine Schlüsselübergabe gemacht werden!
-    if($AnUser > 0){
-
-        $Anfrage = "SELECT id FROM user_rollen WHERE user = '$AnUser' AND storno_user = '0'";
-        $Abfrage = mysqli_query($link, $Anfrage);
-        $Anzahl = mysqli_num_rows($Abfrage);
-
-        if ($Anzahl == 0){
-            $DAUcounter++;
-            $DAUerror .= "Der gew&auml;hlte User ist kein Verwaltungsmitglied, sondern ein normaler User.<br>Um einem User einen Schl&uuml;ssel zu geben, nutze bitte die &Uuml;bergabefunktionen! So kann das System sich um eine zeitige R&uuml;ckgabe k&uuml;mmern!<br>";
-        }
     }
 
     if($DAUcounter > 0){
         $Antwort['success'] = FALSE;
         $Antwort['meldung'] = $DAUerror;
     } else if ($DAUcounter == 0){
-        $Anfrage = "UPDATE schluessel SET akt_ort = '$AnOrt', akt_user = '$AnUser' WHERE id = '$Schluessel'";
+        $Anfrage = "UPDATE schluessel SET akt_ort = '$AnOrt', akt_user = '$AnWart' WHERE id = '$Schluessel'";
         if (mysqli_query($link, $Anfrage)){
 
-            $Event = "Umbuchung von ".$AktuellerOrtUser." nach ".$AnOrt."".$AnUser." durch ".$Wart."";
+            $Event = "Umbuchung von ".$Schluessel." nach ".$AnOrt."".$AnWart." durch ".$Wart."";
             add_protocol_entry(lade_user_id(), $Event, 'schluessel');
 
             $Antwort['success'] = FALSE;
@@ -277,6 +258,55 @@ function schluessel_bearbeiten($SchluesselID, $NewID, $Farbe, $FarbeMatCSS, $RFI
             $Antwort['success'] = FALSE;
             $Antwort['meldung'] = "Datenbankfehler!";
         }
+    }
+
+    return $Antwort;
+}
+function schluessel_umbuchen_listenelement_parser($Schluessel, $AnWart, $AnOrt){
+
+    $Antwort = array();
+    $SchluesselData = lade_schluesseldaten($Schluessel);
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    //Kein Schlüssel gewählt
+    if($Schluessel == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen zu bewegenden Schl&uuml;ssel angeben!<br>";
+    } else {
+        //Schlüssel inzwischen storniert
+        if($SchluesselData['delete_user'] != "0"){
+            $DAUcounter++;
+            $DAUerror .= "Schl&uuml;ssel ist inzwischen storniert!<br>";
+        }
+        //Mehrfachwahl (2 von 3 und 3 von 3)
+        if (($AnOrt != "") AND ($AnWart != "")){
+            $DAUcounter++;
+            $DAUerror .= "Schl&uuml;ssel kann nicht an mehrere Ziele gleichzeitig gebucht werden!<br>";
+        }
+        //Keine Auswahl
+        if((($AnOrt == "") AND ($AnWart == ""))){
+            $DAUcounter++;
+            $DAUerror .= "Du hast kein Ziel ausgew&auml;hlt!<br>";
+        }
+    }
+
+    if($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else if ($DAUcounter == 0) {
+
+        //Falls aktueller User kein Wart ist, buchen wir eine Schlüsselrückgabe!
+        $UserID = intval($SchluesselData['akt_user']);
+        if($UserID > 0){
+            $UserMeta = lade_user_meta($UserID);
+            $Benutzerrollen = lade_user_meta($UserMeta['username']);
+            if ($Benutzerrollen['ist_wart'] != true){
+                schluesselrueckgabe_festhalten($Schluessel);
+            }
+        }
+
+        $Antwort = schluessel_umbuchen($Schluessel, $AnWart, $AnOrt, lade_user_id());
     }
 
     return $Antwort;

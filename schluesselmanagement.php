@@ -333,93 +333,13 @@ function spalte_schluessel_verwalten(){
 
 function schluessel_umbuchen_listenelement_generieren(){
 
-    //CHeckbox rückgabekasten parsen
-    if((isset($_POST['rueckgabekasten'])) OR (isset($_POST['rueckgabekasten_mobil']))){
-        $Checked = "checked";
-    } else {
-        $Checked = "unchecked";
-    }
-
-    $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>swap_calls</i>Schl&uuml;ssel umbuchen</div>";
-    $HTML .= "<div class='collapsible-body'>";
-
-    //Großer Screen
-    $HTML .= "<div class='section hide-on-med-and-down'>";
-    $HTML .= "<form method='POST'>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<div class='row'>";
-    $HTML .= "<div class='input-field col s4'>";
-    $HTML .= "<i class=\"material-icons prefix\">vpn_key</i>";
-    $HTML .= dropdown_aktive_schluessel('id_schluessel_umbuchen');
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field col s4\">";
-    $HTML .= "<i class=\"material-icons prefix\">android</i>";
-    $HTML .= dropdown_menu_wart('an_wart_umbuchen', $_POST['an_wart_umbuchen']);
-    $HTML .= "<label for=\"an_wart_umbuchen\">An Wart umbuchen</label>";
-    $HTML .= "</div>";
-    //echo "<div class=\"input-field col s3\">";
-    //echo "<i class=\"material-icons prefix\">perm_identity</i>";
-    //echo dropdown_menu_user('an_user_umbuchen', $_POST['an_user_umbuchen']);
-    //echo "<label for=\"an_user_umbuchen\">An User umbuchen</label>";
-    //echo "</div>";
-    $HTML .= "<div class=\"input-field col s4\">";
-    $HTML .= "<i class=\"material-icons prefix\">play_for_work</i>";
-    $HTML .= "<input type='checkbox' id='rueckgabekasten' name='rueckgabekasten' ".$Checked.">";
-    $HTML .= "<label for=\"rueckgabekasten\">In den R&uuml;ckgabekasten buchen!</label>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "<div class='divider'></div>";
-    $HTML .= "<div class='row'>";
-    $HTML .= "<div class=\"input-field col s4\">";
-    $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_umbuchen' value=''><i class=\"material-icons left\">swap_calls</i>Umbuchen</button>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field col s4\">";
-    $HTML .= "<button class='btn waves-effect waves-light' type='reset' name='action_schluessel_umbuchen_reset' value=''><i class=\"material-icons left\">clear_all</i>Formular leeren</button>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-
-    //kleiner Screen
-    $HTML .= "<div class='section hide-on-large-only'>";
-    $HTML .= "<form method='POST'>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">vpn_key</i>";
-    $HTML .= dropdown_aktive_schluessel('id_schluessel_umbuchen_mobil');
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">android</i>";
-    $HTML .= dropdown_menu_wart('an_wart_umbuchen_mobil', $_POST['an_wart_umbuchen_mobil']);
-    $HTML .= "<label for=\"an_wart_umbuchen_mobil\">An Wart umbuchen</label>";
-    $HTML .= "</div>";
-    //echo "<div class=\"input-field\">";
-    //echo "<i class=\"material-icons prefix\">perm_identity</i>";
-    //echo dropdown_menu_user('an_user_umbuchen_mobil', $_POST['an_user_umbuchen_mobil']);
-    //echo "<label for=\"an_user_umbuchen_mobil\">An User umbuchen</label>";
-    //echo "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">play_for_work</i>";
-    $HTML .= "<input type='checkbox' id='rueckgabekasten_mobil' name='rueckgabekasten_mobil' ".$Checked.">";
-    $HTML .= "<label for=\"rueckgabekasten_mobil\">In den R&uuml;ckgabekasten buchen!</label>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "<div class='divider'></div>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_umbuchen_mobil' value=''><i class=\"material-icons left\">swap_calls</i>Umbuchen</button>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<button class='btn waves-effect waves-light red' type='submit' name='action_schluessel_umbuchen_reset_mobil' value=''><i class=\"material-icons left\">delete</i>L&ouml;schen</button>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-
-    $HTML .= "</div>";
-    $HTML .= "</li>";
+    $FormTable = table_row_builder(table_header_builder('Schlüssel auswählen').table_data_builder(dropdown_aktive_schluessel('id_schluessel_umbuchen')));
+    $FormTable .= table_row_builder(table_header_builder('An Wart umbuchen').table_data_builder(dropdown_menu_wart('an_wart_umbuchen', $_POST['an_wart_umbuchen'])));
+    $FormTable .= table_row_builder(table_header_builder('An Ort umbuchen').table_data_builder(dropdown_schluesselorte('an_ort_umbuchen', $_POST['an_ort_umbuchen'])));
+    $FormTable .= table_row_builder(table_header_builder(form_button_builder('action_schluessel_umbuchen', 'Umbuchen', 'action', 'send', '')).table_data_builder(''));
+    $FormTable = table_builder($FormTable);
+    $FormTable = form_builder($FormTable, '#', 'post', '', '');
+    $HTML = collapsible_item_builder('Schlüssel umbuchen', $FormTable, 'swap_calls');
 
     return $HTML;
 }
@@ -470,25 +390,7 @@ function parser_schluesselmanagement(){
     }
 
     if(isset($_POST['action_schluessel_umbuchen'])){
-
-        if (isset($_POST['rueckgabekasten'])){
-            $AngabeRueckgabekasten = "rueckgabekasten";
-        } else {
-            $AngabeRueckgabekasten = "";
-        }
-
-        $Parser = schluessel_umbuchen_listenelement_parser($_POST['id_schluessel_umbuchen'], $_POST['an_user_umbuchen'], $AngabeRueckgabekasten, $_POST['an_wart_umbuchen']);
-    }
-
-    if(isset($_POST['rueckgabekasten_mobil'])){
-
-        if (isset($_POST['action_schluessel_umbuchen_mobil'])){
-            $AngabeRueckgabekasten = "rueckgabekasten";
-        } else {
-            $AngabeRueckgabekasten = "";
-        }
-
-        $Parser = schluessel_umbuchen_listenelement_parser($_POST['id_schluessel_umbuchen_mobil'], $_POST['an_user_umbuchen_mobil'], $AngabeRueckgabekasten, $_POST['an_wart_umbuchen_mobil']);
+        $Parser = schluessel_umbuchen_listenelement_parser($_POST['id_schluessel_umbuchen'], $_POST['an_wart_umbuchen'], $_POST['an_ort_umbuchen']);
     }
 
     if (isset($_POST['action_schluessel_bearbeiten'])){

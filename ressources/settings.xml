@@ -59,6 +59,7 @@
     <tage-spontanuebergabe-reservierungen-zukunft-dropdown>14</tage-spontanuebergabe-reservierungen-zukunft-dropdown>
     <tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>3</tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>
     <erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>2</erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>
+    <moegliche_schluesselorte>rueckgabekasten,vermisst,verloren</moegliche_schluesselorte>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>
