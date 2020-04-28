@@ -220,6 +220,45 @@ function form_mediapicker_dropdown($ItemName, $StartValue, $Directory, $Label, $
     return $HTML;
 }
 
+function dropdown_menu_wart($NameElement, $PreselectWart){
+
+    $link = connect_db();
+
+    $AnfrageLadeAlleUser = "SELECT id, vorname, nachname, username FROM user WHERE deaktiviert = '0' ORDER BY nachname ASC";
+    $AbfrageLadeAlleUser = mysqli_query($link, $AnfrageLadeAlleUser);
+    $AnzahlLadeAlleUser = mysqli_num_rows($AbfrageLadeAlleUser);
+
+    $Ausgabe = "<select name='" .$NameElement. "' size='4' id='".$NameElement."'>";
+
+    if ($PreselectWart == 0){
+        $Ausgabe .= "<option>Wart</option>";
+    }
+
+    $Counter = 0;
+    for ($a = 1; $a <= $AnzahlLadeAlleUser; $a++){
+
+        $Ergebnis = mysqli_fetch_assoc($AbfrageLadeAlleUser);
+        $Benutzerrolle = lade_user_meta($Ergebnis['username']);
+
+        if ($Benutzerrolle['ist_wart'] == true) {
+            if ($Ergebnis['id'] == $PreselectWart) {
+                $Ausgabe .= "<option value='" . $Ergebnis['id'] . "' selected>" . $Ergebnis['vorname'] . " " . $Ergebnis['nachname'] . "</option>";
+            } else {
+                $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>" . $Ergebnis['vorname'] . " " . $Ergebnis['nachname'] . "</option>";
+            }
+            $Counter++;
+        }
+    }
+
+    if ($Counter == 0){
+        $Ausgabe .= "<option>Bislang kein User mit Wartrolle angelegt!</option>";
+    }
+
+    $Ausgabe .= "</select>";
+
+    return $Ausgabe;
+}
+
 function form_switch_item($ItemName, $OptionLeft='off', $OptionRight='on', $BooleanText='off', $Disabled=false){
 
     $HTML = "<div class='switch'>";
