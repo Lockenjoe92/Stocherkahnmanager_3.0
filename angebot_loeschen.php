@@ -35,27 +35,6 @@ echo site_header($Header);
 echo site_body($HTML);
 
 
-
-
-function infos_section($IDangebot){
-
-    $Angebot = lade_terminangebot($IDangebot);
-    zeitformat();
-
-    $HTML = "<div class='section'>";
-    $HTML .= "<div class='card-panel " .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
-    $HTML .= "<h5>Informationen zum &Uuml;bergabeangebot</h5>";
-    $HTML .= "<ul class='collection'>";
-    $HTML .= "<li class='collection-item'>Datum: ".strftime("%A, %d. %B %G", strtotime($Angebot['von']))."</li>";
-    $HTML .= "<li class='collection-item'>Zeitraum: ".date("G:i", strtotime($Angebot['von']))." bis ".date("G:i", strtotime($Angebot['bis']))." Uhr</li>";
-    $HTML .= "<li class='collection-item'>Treffpunkt: ".$Angebot['ort']."</li>";
-    $HTML .= "<li class='collection-item'>Entstandene &Uuml;bergaben: ".lade_entstandene_uebergaben($IDangebot)."</li>";
-    $HTML .= "</ul>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-
-    return $HTML;
-}
 function parser_angebot_loeschen($IDangebot){
 
     $DAUcounter = 0;

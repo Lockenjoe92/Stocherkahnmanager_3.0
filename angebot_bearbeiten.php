@@ -1,148 +1,111 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: marc
+ * Date: 03.06.19
+ * Time: 13:59
+ */
 
-include_once "./ressourcen/ressourcen.php";
-
-session_manager();
-$link = connect_db();
-
-$Benutzerrollen = benutzerrollen_laden('');
-
-//Überprüfen ob der User auch das recht hat auf die Seite zuzugreifen
-if ($Benutzerrollen['wart'] != true){
-    header("Location: ./wartwesen.php");
-    die();
-}
-
+include_once "./ressources/ressourcen.php";
+session_manager('ist_wart');
+$Header = "Terminangebot bearbeiten - " . lade_db_einstellung('site_name');
 $IDangebot = $_GET['id'];
-
-//SEITE Initiieren
-echo "<html>";
-header_generieren("Terminangebot bearbeiten");
-echo "<body>";
-navbar_generieren($Benutzerrollen, TRUE, 'angebot_bearbeiten');
-echo "<main>";
-
-echo "<div class='section'><h3 class='center-align'>Terminangebot bearbeiten</h3></div>";
-
-echo "<div class='container'>";
-echo "<div class='row'>";
-echo "<div class='col s12 m9 l12'>";
-
 $Parser = parser_angebot_bearbeiten($IDangebot);
 
+#Generate content
+# Page Title
+$PageTitle = '<h1 class="center-align hide-on-med-and-down">Terminangebot bearbeiten</h1>';
+$PageTitle .= '<h1 class="center-align hide-on-large-only">Terminangebot bearbeiten</h1>';
+$HTML .= section_builder($PageTitle);
+
 if ($Parser['success'] === NULL){
-    infos_section($IDangebot);
-    angebot_bearbeiten_karte($IDangebot);
+    $HTML .= infos_section($IDangebot);
+    $HTML .= angebot_bearbeiten_karte($IDangebot);
 } else if ($Parser['success'] === FALSE){
-    zurueck_karte_generieren(FALSE, $Parser['meldung'], 'termine.php');
+    $HTML .= zurueck_karte_generieren(FALSE, $Parser['meldung'], 'termine.php');
 } else if ($Parser['success'] === TRUE){
-    zurueck_karte_generieren(TRUE, 'Terminangebot wurde erfolgreich ge&auml;ndert!', 'termine.php');
+    $HTML .= zurueck_karte_generieren(TRUE, 'Terminangebot wurde erfolgreich ge&auml;ndert!', 'termine.php');
 }
 
-echo "</div>";
-echo "</div>";
-echo "</div>";
+# Put it all into a container
+$HTML = container_builder($HTML);
 
-echo "</main>";
-footer_generieren();
-echo "</body>";
-echo "</html>";
+# Output site
+echo site_header($Header);
+echo site_body($HTML);
 
 
-function infos_section($IDangebot){
 
-    $Angebot = lade_terminangebot($IDangebot);
-    zeitformat();
 
-    echo "<div class='section'>";
-    echo "<div class='card-panel " .lade_einstellung('kalender-hintergrund'). " z-depth-3'>";
-    echo "<h5>Informationen zum &Uuml;bergabeangebot</h5>";
-    echo "<ul class='collection'>";
-    echo "<li class='collection-item'>Datum: ".strftime("%A, %d. %B %G", strtotime($Angebot['von']))."</li>";
-    echo "<li class='collection-item'>Zeitraum: ".date("G:i", strtotime($Angebot['von']))." bis ".date("G:i", strtotime($Angebot['bis']))." Uhr</li>";
-    echo "<li class='collection-item'>Treffpunkt: ".$Angebot['ort']."</li>";
-    echo "<li class='collection-item'>Entstandene &Uuml;bergaben: ".lade_entstandene_uebergaben($IDangebot)."</li>";
-    echo "</ul>";
-    echo "</div>";
-    echo "</div>";
-}
+
+
+
+
+
 function angebot_bearbeiten_karte($IDangebot){
 
     $Angebot = lade_terminangebot($IDangebot);
 
-    if ($Angebot['terminierung'] != "0000-00-00 00:00:00"){
-        $CheckboxTermin = "checked";
-    } else if ($Angebot['terminierung'] == "0000-00-00 00:00:00"){
-        $CheckboxTermin = "unchecked";
+    if(isset($_POST['beginn_terminangebot_bearbeiten'])){
+        $BeginnZeit = $_POST['beginn_terminangebot_bearbeiten'];
+    } else {
+        $BeginnZeit = date('G:i', strtotime($Angebot['von']));
     }
 
-    echo "<div class='card-panel " .lade_einstellung('kalender-hintergrund'). " z-depth-3'>";
-        echo "<p>Du kannst den Zeitraum und die Terminierung des Angebots ver&auml;ndern - um den Ort zu &auml;ndern lege bitte ein neues Angebot an!</p>";
-        echo "<p>Bereits entstandene &Uuml;bergaben und Termine werden von der &Auml;nderung nicht betroffen! Storniere diese ggf. direkt.</p>";
+    if(isset($_POST['ende_terminangebot_bearbeiten'])){
+        $EndeZeit = $_POST['ende_terminangebot_bearbeiten'];
+    } else {
+        $EndeZeit = date('G:i', strtotime($Angebot['bis']));
+    }
 
-            echo "<div class='section'>";
-            echo "<form method='POST'>";
-            echo "<div class='container'>";
+    if(isset($_POST['stunden_terminierung_terminangebot_anlegen'])){
+        $StundenTermin = $_POST['stunden_terminierung_terminangebot_anlegen'];
+    } else {
+        if($Angebot['terminierung'] != "0000-00-00 00:00:00"){
+            $StundenTermin = date('G', strtotime($Angebot['von']))-date('G', strtotime($Angebot['terminierung']));
+        } else {
+            $StundenTermin = "";
+        }
+    }
 
-            echo "<div class='row'>";
-                echo "<div class=\"input-field col s3\">";
-                echo "<i class=\"material-icons prefix\">schedule</i>";
-                echo dropdown_stunden('stunde_beginn_terminangebot_anlegen', date("G", strtotime($Angebot['von'])));
-                echo "<label for=\"stunde_beginn_terminangebot_anlegen\">Uhrzeit Beginn</label>";
-                echo "</div>";
-                echo "<div class=\"input-field col s2\">";
-                echo dropdown_zentel_minuten('minute_beginn_terminangebot_anlegen', date("i", strtotime($Angebot['von'])), 00);
-                echo "<label for=\"minute_beginn_terminangebot_anlegen\">Minuten</label>";
-                echo "</div>";
-                echo "<div class=\"input-field col s3\">";
-                echo "<i class=\"material-icons prefix\">schedule</i>";
-                echo dropdown_stunden('stunde_ende_terminangebot_anlegen', date("G", strtotime($Angebot['bis'])));
-                echo "<label for=\"stunde_ende_terminangebot_anlegen\">Uhrzeit Ende</label>";
-                echo "</div>";
-                echo "<div class=\"input-field col s2\">";
-                echo dropdown_zentel_minuten('minute_ende_terminangebot_anlegen', date("i", strtotime($Angebot['bis'])), 00);
-                echo "<label for=\"minute_ende_terminangebot_anlegen\">Minuten</label>";
-                echo "</div>";
-            echo "</div>";
-            echo "<div class='row'>";
-                echo "<div class=\"input-field col s6\">";
-                echo "<i class=\"material-icons prefix\">alarm_on</i>";
-                echo "<input type='checkbox' name='terminierung_terminangebot_anlegen' id='terminierung_terminangebot_anlegen' " .$CheckboxTermin. ">";
-                echo "<label for=\"terminierung_terminangebot_anlegen\">Terminierung aktivieren</label>";
-                echo "</div>";
-                echo "<div class=\"input-field col s6\">";
-                echo dropdown_stunden('stunden_terminierung_terminangebot_anlegen', date("G", strtotime($Angebot['terminierung'])));
-                echo "<label for='stunden_terminierung_terminangebot_anlegen'>Terminierung Stunden</label>";
-                echo "</div>";
-            echo "</div>";
 
-            echo "<div class='divider'></div>";
 
-            echo "<div class='row'>";
-            echo "<div class=\"input-field col s12\">";
-            echo "<i class=\"material-icons prefix\">comment</i>";
-            echo "<textarea name='kommentar_terminangebot_anlegen' id='kommentar_terminangebot_anlegen' class='materialize-textarea'>".$Angebot['kommentar']."</textarea>";
-            echo "<label for=\"kommentar_terminangebot_anlegen\">Optional: weiterer Kommentar</label>";
-            echo "</div>";
-            echo "</div>";
+    //Checkbox Schalter
+    if(isset($_POST['terminierung_terminangebot_anlegen'])){
+        $CheckboxTermin = "checked";
+    } else {
 
-            echo "<div class='divider'></div>";
+        if($Angebot['terminierung'] != "0000-00-00 00:00:00"){
+            $CheckboxTermin = "on";
+        } else {
+            $CheckboxTermin = "off";
+        }
+    }
 
-            echo "<div class='row'>";
-            echo "<div class=\"input-field\">";
-            echo "<button class='btn waves-effect waves-light' type='submit' name='action_terminangebot_bearbeiten' value=''><i class=\"material-icons left\">send</i>Bearbeiten</button>";
-            echo "</div>";
-            echo "<div class=\"input-field\">";
-            echo "<button class='btn waves-effect waves-light' type='reset' name='reset_terminangebot_bearbeiten' value=''><i class=\"material-icons left\">clear_all</i>Reset</button>";
-            echo "</div>";
-            echo "</div>";
+    //Bigscreen
+    //DATUM UND TERMINIERUNG
+    $BigscreenContent = "<h3 class='center-align'>Zeiten und Terminierung</h3>";
+    $BigscreenContent .= table_form_timepicker_item('Beginn', 'beginn_terminangebot_bearbeiten', $BeginnZeit, false, true, '');
+    $BigscreenContent .= table_form_timepicker_item('Ende', 'ende_terminangebot_bearbeiten', $EndeZeit, false, true, '');
+    $BigscreenContent .= table_form_swich_item('Terminierung aktivieren', 'terminierung_terminangebot_bearbeiten', 'Nein', 'Ja', $CheckboxTermin, false);
+    $BigscreenContent .= table_form_select_item('Terminierung für', 'stunden_terminierung_terminangebot_bearbeiten', 1, 24, $StundenTermin, 'h', 'Terminierung', '', false);
+    $BigscreenContent = table_builder($BigscreenContent);
+    $BigscreenContent .= divider_builder();
 
-            echo "</div>";
-            echo "</form>";
-            echo "</div>";
+    //KOMMENTAR
+    $BigscreenContent .= "<h3 class='center-align'>Kommentar</h3>";
+    $KommentarContent = table_form_string_item('Kommentar (optional)', 'kommentar_terminangebot_bearbeiten', $Angebot['kommentar'], false);
+    $BigscreenContent .= table_builder($KommentarContent);
+    $BigscreenContent .= divider_builder();
 
-    echo "</div>";
+    //KNÖPFE
+    $KnoepfeContent = table_row_builder(table_header_builder(form_button_builder('action_terminangebot_bearbeiten', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('reset_terminangebot_bearbeiten', 'Reset', 'reset', 'clear_all', '')." ".button_link_creator('Zurück', './termine.php', 'arrow_back', '')).table_data_builder(''));
+    $BigscreenContent .= table_builder($KnoepfeContent);
 
+    $CollapsibleContent = form_builder($BigscreenContent, '#', 'post', '', '');
+    $Collapsible = section_builder($CollapsibleContent);
+
+    return $Collapsible;
 }
 function parser_angebot_bearbeiten($IDangebot){
 
@@ -160,13 +123,13 @@ function parser_angebot_bearbeiten($IDangebot){
     //Keine ID in URL
     if($IDangebot === ""){
         $DAUcounter++;
-        $DAUerror .= "Es wurde keine zu l&ouml;schende &Uuml;bergabe ausgew&auml;hlt!<br>";
+        $DAUerror .= "Es wurde keine zu bearbeitende &Uuml;bergabe ausgew&auml;hlt!<br>";
     }
 
     if (isset($_POST['action_terminangebot_bearbeiten'])){
         //Zeiten verdreht?
-        $EingabeAnfang = "".date("Y-m-d", strtotime($Angebot['von']))." ".$_POST['stunde_beginn_terminangebot_anlegen'].":".$_POST['minute_beginn_terminangebot_anlegen'].":00";
-        $EingabeEnde = "".date("Y-m-d", strtotime($Angebot['von']))." ".$_POST['stunde_ende_terminangebot_anlegen'].":".$_POST['minute_ende_terminangebot_anlegen'].":00";
+        $EingabeAnfang = "".date("Y-m-d", strtotime($Angebot['von']))." ".$_POST['beginn_terminangebot_bearbeiten'].":00";
+        $EingabeEnde = "".date("Y-m-d", strtotime($Angebot['von']))." ".$_POST['ende_terminangebot_bearbeiten'].":00";
 
         if (strtotime($EingabeAnfang) > strtotime($EingabeEnde)){
             $DAUcounter++;
@@ -178,7 +141,7 @@ function parser_angebot_bearbeiten($IDangebot){
             $DAUerror .= "Die Zeiten d&uuml;rfen nicht identisch sein!<br>";
         }
 
-        if ((isset($_POST['terminierung_terminangebot_anlegen'])) AND ($_POST['stunden_terminierung_terminangebot_anlegen'] == "")){
+        if ((isset($_POST['terminierung_terminangebot_bearbeiten'])) AND ($_POST['stunden_terminierung_terminangebot_bearbeiten'] == "")){
             $DAUcounter++;
             $DAUerror .= "Du musst eine Angabe zur Dauer der Terminierung angeben, wenn du diese einschalten m&oumlchtest!<br>";
         }
@@ -191,18 +154,17 @@ function parser_angebot_bearbeiten($IDangebot){
         $link = connect_db();
         if(isset($_POST['action_terminangebot_bearbeiten'])){
 
-            if (isset($_POST['terminierung_terminangebot_anlegen'])){
-                $Befehl = "- ".$_POST['stunden_terminierung_terminangebot_anlegen']." hours";
+            if (isset($_POST['terminierung_terminangebot_bearbeiten'])){
+                $Befehl = "- ".$_POST['stunden_terminierung_terminangebot_bearbeiten']." hours";
                 $Terminierung = date('Y-m-d G:i:s', strtotime($Befehl, strtotime($EingabeAnfang)));
             } else {
                 $Terminierung = "0000-00-00 00:00:00";
             }
 
-            $Anfrage = "UPDATE terminangebote SET von = '$EingabeAnfang', bis = '$EingabeEnde', terminierung = '$Terminierung', kommentar = '".$_POST['kommentar_terminangebot_anlegen']."' WHERE id = '$IDangebot'";
+            $Anfrage = "UPDATE terminangebote SET von = '$EingabeAnfang', bis = '$EingabeEnde', terminierung = '$Terminierung', kommentar = '".$_POST['kommentar_terminangebot_bearbeiten']."' WHERE id = '$IDangebot'";
             if(mysqli_query($link, $Anfrage)){
                 $Antwort['success'] = TRUE;
                 $Antwort['meldung'] = "Terminangebot erfolgreich bearbeitet!";
-                toast_ausgeben('Terminangebot erfolgreich bearbeitet!');
             } else {
                 $Antwort['success'] = FALSE;
                 $Antwort['meldung'] = "Datenbankfehler!";
