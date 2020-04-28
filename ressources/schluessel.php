@@ -76,7 +76,7 @@ function schluesselrueckgabe_festhalten($ID){
     }
 
 }
-function schluessel_hinzufuegen($Farbe, $FarbeMat, $RFID, $TimestampFormular){
+function schluessel_hinzufuegen($ChosenID, $Farbe, $FarbeMat, $RFID){
 
     $link = connect_db();
     $Antwort = array();
@@ -84,6 +84,11 @@ function schluessel_hinzufuegen($Farbe, $FarbeMat, $RFID, $TimestampFormular){
     //DAU
     $DAUcounter = 0;
     $DAUerror = "";
+
+    if ($ChosenID == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du musst eine Schl&uuml;sselnummer angeben!<br>";
+    }
 
     if ($Farbe == ""){
         $DAUcounter++;
@@ -95,7 +100,7 @@ function schluessel_hinzufuegen($Farbe, $FarbeMat, $RFID, $TimestampFormular){
         $DAUerror .= "Du musst eine Materialize-Schl&uuml;sselfarbe angeben! Welche Farben es gibt kannst du <a href='http://materializecss.com/color.html'>hier</a> sehen.<br>";
     }
 
-    $AnfrageDAU = "SELECT id FROM schluessel WHERE create_time = '$TimestampFormular'";
+    $AnfrageDAU = "SELECT * FROM schluessel WHERE id = '$ChosenID'";
     $AbfrageDAU = mysqli_query($link, $AnfrageDAU);
     $AnzahlDAU = mysqli_num_rows($AbfrageDAU);
 
@@ -111,21 +116,17 @@ function schluessel_hinzufuegen($Farbe, $FarbeMat, $RFID, $TimestampFormular){
         $Antwort['meldung'] = $DAUerror;
     } else if ($DAUcounter == 0){
 
-        $Anfrage = "INSERT INTO schluessel (farbe, farbe_materialize, RFID, akt_ort, akt_user, create_time, delete_time, delete_user, loeschgrund) VALUES ('$Farbe', '$FarbeMat', '$RFID', 'rueckgabekasten', '0', '$TimestampFormular', '0000-00-00 00:00:00', '0', '')";
+        if(isset($_POST['is_wartschluessel'])){
+            $AnAusWart = 'on';
+        } else {
+            $AnAusWart = 'off';
+        }
+
+        $Anfrage = "INSERT INTO schluessel (id, farbe, farbe_materialize, RFID, ist_wartschluessel, akt_ort, akt_user, create_time, delete_time, delete_user, loeschgrund) VALUES ('$ChosenID','$Farbe', '$FarbeMat', '$RFID', '$AnAusWart', 'rueckgabekasten', '', '".timestamp()."', '0000-00-00 00:00:00', '0', '')";
         if (mysqli_query($link, $Anfrage)){
 
-            $AnfrageID = "SELECT id FROM schluessel WHERE create_time = '$TimestampFormular'";
-            $AbfrageID = mysqli_query($link, $AnfrageID);
-            if ($AbfrageID){
-
-                $Schluessel = mysqli_fetch_assoc($AbfrageID);
-                $Antwort['success'] = TRUE;
-                $Antwort['meldung'] = "Der Schl&uuml;ssel wurde erfolgreich eingetragen! Er hat die #".$Schluessel['id']."!";
-
-            } else {
-                $Antwort['success'] = FALSE;
-                $Antwort['meldung'] = "Fehler 2 beim Datenbankzugriff!";
-            }
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "Schlüssel erfolgreich angelegt!";
 
         } else {
             $Antwort['success'] = FALSE;
@@ -193,6 +194,85 @@ function schluessel_umbuchen($Schluessel, $AktuellerOrtUser, $AnUser, $AnOrt, $W
 
             $Antwort['success'] = FALSE;
             $Antwort['meldung'] = "Der Schl&uuml;ssel wurde erfolgreich umgebucht!";
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Datenbankfehler!";
+        }
+    }
+
+    return $Antwort;
+}
+function schluessel_bearbeiten($SchluesselID, $NewID, $Farbe, $FarbeMatCSS, $RFID){
+
+    $link = connect_db();
+    $Antwort = array();
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    //Kein Schlüssel gewählt
+    if($SchluesselID == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen Schl&uuml;ssel ausw&auml;hlen!<br>";
+    } else {
+
+        //Schlüssel schon storniert?
+        $Schluessel = lade_schluesseldaten($SchluesselID);
+        if(intval($Schluessel['delete_user']) != 0){
+            $DAUcounter++;
+            $DAUerror .= "Der ausgew&auml;hlte Schl&uuml;ssel ist inzwischen storniert!<br>";
+        }
+
+        if($NewID!=""){
+            if($SchluesselID!=$NewID){
+
+                $AnfrageDAU = "SELECT * FROM schluessel WHERE id = '$NewID' AND delete_user = 0";
+                $AbfrageDAU = mysqli_query($link, $AnfrageDAU);
+                $AnzahlDAU = mysqli_num_rows($AbfrageDAU);
+
+                if ($AnzahlDAU > 0){
+                    $DAUcounter++;
+                    $DAUerror .= "Ein Schlüssel mit dieser Nummer existiert bereits!<br>";
+                }
+
+            }
+        }
+
+    }
+
+    if(($Farbe == "") AND ($FarbeMatCSS == "") AND ($RFID == "") AND ($NewID == "")){
+        $DAUcounter++;
+        $DAUerror .= "Du hast keine &Auml;nderungen eingegeben!<br>";
+    }
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else {
+
+        //Befehl bauen
+        $Aenderungsbefehl = "";
+        if ($Farbe != ""){
+            $Aenderungsbefehl .= "farbe = '".$Farbe."', ";
+        }
+
+        if ($FarbeMatCSS != ""){
+            $Aenderungsbefehl .= "farbe_materialize = '".$FarbeMatCSS."', ";
+        }
+
+        if ($Farbe != ""){
+            $Aenderungsbefehl .= "RFID = '".$RFID."'";
+        }
+
+        if($NewID!=""){
+            $Aenderungsbefehl .= "id = '".$NewID."'";
+        }
+
+        $Anfrage = "UPDATE schluessel SET ".$Aenderungsbefehl." WHERE id = '$SchluesselID'";
+        if (mysqli_query($link, $Anfrage)){
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "&Auml;nderungen am Schl&uuml;ssel ".$SchluesselID." erfolgreich eingetragen!";
+            $EintragText = "Schl&uuml;ssel ".$SchluesselID." von Wart ".lade_user_id()." bearbeitet: ".$Aenderungsbefehl."";
+            add_protocol_entry(lade_user_id(),$EintragText, 'schluessel');
         } else {
             $Antwort['success'] = FALSE;
             $Antwort['meldung'] = "Datenbankfehler!";

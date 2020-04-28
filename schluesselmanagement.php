@@ -16,6 +16,12 @@ $PageTitle = '<h1 class="center-align hide-on-med-and-down">Schl&uuml;sselverwal
 $PageTitle .= '<h1 class="center-align hide-on-large-only">Schl&uuml;ssel verwalten</h1>';
 $HTML = section_builder($PageTitle);
 
+#ParserStuff
+$Parser = parser_schluesselmanagement();
+if(isset($Parser['meldung'])){
+    $HTML .= "<h5>".$Parser['meldung']."</h5>";
+}
+
 # Content
 $HTML .= spalte_anstehende_rueckgaben();
 $HTML .= spalte_verfuegbare_schluessel();
@@ -34,16 +40,11 @@ function spalte_anstehende_rueckgaben(){
 
     $link = connect_db();
     zeitformat();
-    $Parser = spalte_anstehende_rueckgaben_parser();
 
     $HTML = "<div class='section'>";
     $HTML .= "<h5 class='header'>Anstehende R&uuml;ckgaben</h5>";
     $HTML .= "<h5 class='header center-align hide-on-large-only'>Anstehende R&uuml;ckgaben</h5>";
     $HTML .= "<div class='section'>";
-
-    if(isset($Parser['meldung'])){
-        $HTML .= "<h5>".$Parser['meldung']."</h5>";
-    }
 
     $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
 
@@ -424,129 +425,50 @@ function schluessel_umbuchen_listenelement_generieren(){
 }
 function schluessel_bearbeiten_listenelement_generieren(){
 
-    $Timestamp = timestamp();
+    $FormHTML = table_row_builder(table_header_builder('Schlüssel auswählen').table_data_builder(dropdown_aktive_schluessel('id_schluessel_bearbeiten')));
+    $FormHTML .= table_form_select_item('Schlüsselnummer ändern', 'schluessel_id', 1, 50, $_POST['schluessel_id'], '', 'Schlüsselnummer', '', false);
+    $FormHTML .= table_form_string_item('Farbe', 'farbe_schluessel', $_POST['farbe_schluessel'], false);
+    $FormHTML .= table_form_string_item('Farbe in materialize.css', 'farbe_schluessel_mat', $_POST['farbe_schluessel_mat'], false);
+    $FormHTML .= table_form_string_item('RFID Code', 'rfid_code', $_POST['rfid_code'], false);
+    $FormHTML .= table_row_builder(table_header_builder(form_button_builder('action_schluessel_bearbeiten', 'Eintragen', 'submit', 'send', '')." ".form_button_builder('action_schluessel_loeschen', 'Löschen', 'action', 'delete', '')).table_data_builder(''));
+    $FormHTML = table_builder($FormHTML);
+    $FormHTML = form_builder($FormHTML, '#', 'post', '', '');
 
-    $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>edit</i>Schl&uuml;ssel bearbeiten</div>";
-    $HTML .= "<div class='collapsible-body'>";
-
-    //Großer Screen
-    $HTML .= "<div class='section hide-on-med-and-down'>";
-    $HTML .= "<form method='POST'>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<div class='row'>";
-    $HTML .= "<div class=\"input-field col s3\">";
-    $HTML .= "<i class=\"material-icons prefix\">vpn_key</i>";
-    $HTML .= dropdown_aktive_schluessel('id_schluessel_bearbeiten');
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field col s3\">";
-    $HTML .= "<i class=\"material-icons prefix\">invert_colors</i>";
-    $HTML .= "<input type='text' id='farbe_schluessel_bearbeiten' name='farbe_schluessel_bearbeiten' value='".$_POST['farbe_schluessel_bearbeiten']."' length='15' class='validate'>";
-    $HTML .= "<label for=\"farbe_schluessel_bearbeiten\">Farbe</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field col s3\">";
-    $HTML .= "<i class=\"material-icons prefix\">visibility</i>";
-    $HTML .= "<input type='text' id='farbe_schluessel_mat_bearbeiten' name='farbe_schluessel_mat_bearbeiten' value='".$_POST['farbe_schluessel_mat_bearbeiten']."' length='20' class='validate'>";
-    $HTML .= "<input type='hidden' name='timestamp' value='$Timestamp'>";
-    $HTML .= "<label for=\"farbe_schluessel_mat_bearbeiten\">Farbe in materialize.css</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field col s3\">";
-    $HTML .= "<i class=\"material-icons prefix\">settings_input_antenna</i>";
-    $HTML .= "<input type='text' id='rfid_code_bearbeiten' name='rfid_code_bearbeiten' value='".$_POST['rfid_code_bearbeiten']."' length='8' class='validate'>";
-    $HTML .= "<label for=\"rfid_code_bearbeiten\">RFID Code</label>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "<div class='divider'></div>";
-    $HTML .= "<div class='row'>";
-    $HTML .= "<div class=\"input-field col s4\">";
-    $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_bearbeiten' value=''><i class=\"material-icons left\">send</i>Eintragen</button>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field col s4\">";
-    $HTML .= "<button class='btn waves-effect waves-light' type='reset' name='reset_schluessel_bearbeiten' value=''><i class=\"material-icons left\">clear_all</i>Reset</button>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field col s4\">";
-    $HTML .= "<button class='btn waves-effect waves-light red' type='submit' name='action_schluessel_loeschen' value=''><i class=\"material-icons left\">delete</i>L&ouml;schen</button>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-
-    //kleiner Screen
-    $HTML .= "<div class='section hide-on-large-only'>";
-    $HTML .= "<form method='POST'>";
-    $HTML .= "<div class='container'>";
-
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">invert_colors</i>";
-    $HTML .= dropdown_aktive_schluessel('id_schluessel_bearbeiten_mobil');
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">invert_colors</i>";
-    $HTML .= "<input type='text' id='farbe_schluessel_bearbeiten_mobil' name='farbe_schluessel_bearbeiten_mobil' value='".$_POST['farbe_schluessel_bearbeiten_mobil']."' length='15' class='validate'>";
-    $HTML .= "<label for=\"farbe_schluessel_bearbeiten_mobil\">Farbe</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">visibility</i>";
-    $HTML .= "<input type='text' id='farbe_schluessel_mat_bearbeiten_mobil' name='farbe_schluessel_mat_bearbeiten_mobil' value='".$_POST['farbe_schluessel_mat_bearbeiten_mobil']."' length='20' class='validate'>";
-    $HTML .= "<input type='hidden' name='timestamp' value='$Timestamp'>";
-    $HTML .= "<label for=\"farbe_schluessel_mat_bearbeiten_mobil\">Farbe in materialize.css</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">settings_input_antenna</i>";
-    $HTML .= "<input type='text' id='rfid_code_bearbeiten_mobil' name='rfid_code_bearbeiten_mobil' value='".$_POST['rfid_code_bearbeiten_mobil']."' length='8' class='validate'>";
-    $HTML .= "<label for=\"rfid_code_bearbeiten_mobil\">RFID Code</label>";
-    $HTML .= "</div>";
-
-    $HTML .= "<div class='divider'></div>";
-
-
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_bearbeiten_mobil' value=''><i class=\"material-icons left\">send</i>Eintragen</button>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<button class='btn waves-effect waves-light' type='reset' name='reset_schluessel_bearbeiten_mobil' value=''><i class=\"material-icons left\">clear_all</i>Formular leeren</button>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<button class='btn waves-effect waves-light red' type='submit' name='action_schluessel_loeschen_mobil' value=''><i class=\"material-icons left\">delete</i>L&ouml;schen</button>";
-    $HTML .= "</div>";
-
-    $HTML .= "</div>";
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-
-    $HTML .= "</div>";
-    $HTML .= "</li>";
+    $HTML = collapsible_item_builder('Schlüssel bearbeiten', $FormHTML, 'edit');
 
     return $HTML;
 }
 function schluessel_hinzufuegen_listenelement_generieren(){
 
-    if (isset($_POST['action_schluessel_hinzufuegen'])){
-        $Parser = schluessel_hinzufuegen($_POST['schluessel_id'], $_POST['farbe_schluessel'], $_POST['farbe_schluessel_mat'], $_POST['rfid_code']);
-    }
-
-    if(isset($Parser['meldung'])){
-        $HTML = "<h3 class='center-align'>".$Parser['meldung']."</h3>";
+    if(isset($_POST['is_wartschluessel'])){
+        $AnAusWart = 'on';
     } else {
-        $HTML = "";
+        $AnAusWart = 'off';
     }
 
     $FormHTML = table_form_select_item('Schlüsselnummer', 'schluessel_id', 1, 50, $_POST['schluessel_id'], '', 'Schlüsselnummer', '', false);
     $FormHTML .= table_form_string_item('Farbe', 'farbe_schluessel', $_POST['farbe_schluessel'], false);
     $FormHTML .= table_form_string_item('Farbe in materialize.css', 'farbe_schluessel_mat', $_POST['farbe_schluessel_mat'], false);
     $FormHTML .= table_form_string_item('RFID Code', 'rfid_code', $_POST['rfid_code'], false);
+    $FormHTML .= table_form_swich_item('Ist ein Wartschlüssel', 'is_wartschluessel', 'Nein', 'Ja', $AnAusWart, false);
     $FormHTML .= table_row_builder(table_header_builder(form_button_builder('action_schluessel_hinzufuegen', 'Eintragen', 'submit', 'send', '')).table_data_builder(''));
     $FormHTML = table_builder($FormHTML);
     $FormHTML = form_builder($FormHTML, '#', 'post', '', '');
 
-    $HTML .= collapsible_item_builder('Schlüssel anlegen', $FormHTML, 'library_add');
+    $HTML = collapsible_item_builder('Schlüssel anlegen', $FormHTML, 'library_add');
 
     return $HTML;
 }
 
 
-function parser(){
+function parser_schluesselmanagement(){
+
+    $Parser = spalte_anstehende_rueckgaben_parser();
+
+    if (isset($_POST['action_schluessel_hinzufuegen'])){
+        $Parser = schluessel_hinzufuegen($_POST['schluessel_id'], $_POST['farbe_schluessel'], $_POST['farbe_schluessel_mat'], $_POST['rfid_code']);
+    }
+
     if(isset($_POST['action_schluessel_umbuchen'])){
 
         if (isset($_POST['rueckgabekasten'])){
@@ -556,7 +478,6 @@ function parser(){
         }
 
         $Parser = schluessel_umbuchen_listenelement_parser($_POST['id_schluessel_umbuchen'], $_POST['an_user_umbuchen'], $AngabeRueckgabekasten, $_POST['an_wart_umbuchen']);
-        toast_ausgeben($Parser['meldung']);
     }
 
     if(isset($_POST['rueckgabekasten_mobil'])){
@@ -568,28 +489,17 @@ function parser(){
         }
 
         $Parser = schluessel_umbuchen_listenelement_parser($_POST['id_schluessel_umbuchen_mobil'], $_POST['an_user_umbuchen_mobil'], $AngabeRueckgabekasten, $_POST['an_wart_umbuchen_mobil']);
-        toast_ausgeben($Parser['meldung']);
     }
 
     if (isset($_POST['action_schluessel_bearbeiten'])){
-        $Parser = schluessel_bearbeiten($_POST['id_schluessel_bearbeiten'], $_POST['farbe_schluessel_bearbeiten'], $_POST['farbe_schluessel_mat_bearbeiten'], $_POST['rfid_code_bearbeiten']);
-        toast_ausgeben($Parser['meldung']);
-    }
-
-    if (isset($_POST['action_schluessel_bearbeiten_mobil'])){
-        $Parser = schluessel_bearbeiten($_POST['id_schluessel_bearbeiten_mobil'], $_POST['farbe_schluessel_bearbeiten_mobil'], $_POST['farbe_schluessel_mat_bearbeiten_mobil'], $_POST['rfid_code_bearbeiten_mobil']);
-        toast_ausgeben($Parser['meldung']);
+        $Parser = schluessel_bearbeiten($_POST['id_schluessel_bearbeiten'], $_POST['schluessel_id'], $_POST['farbe_schluessel_bearbeiten'], $_POST['farbe_schluessel_mat_bearbeiten'], $_POST['rfid_code_bearbeiten']);
     }
 
     if (isset($_POST['action_schluessel_loeschen'])){
         $Parser = schluessel_loeschen($_POST['id_schluessel_bearbeiten']);
-        toast_ausgeben($Parser['meldung']);
     }
 
-    if (isset($_POST['action_schluessel_loeschen_mobil'])){
-        $Parser = schluessel_loeschen($_POST['id_schluessel_bearbeiten_mobil']);
-        toast_ausgeben($Parser['meldung']);
-    }
+    return $Parser;
 }
 
 function spalte_anstehende_rueckgaben_parser(){
