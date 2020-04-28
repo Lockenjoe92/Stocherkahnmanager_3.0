@@ -181,17 +181,13 @@ function spalte_verfuegbare_schluessel(){
 function spalte_dir_zugeteilte_schluessel(){
 
     $link = connect_db();
-    $Parser = spalte_dir_zugeteilte_schluessel_parser();
+
     $VerfuegbareSchluessel = wart_verfuegbare_schluessel(lade_user_id());
 
     $HTML = "<div class='section'>";
     $HTML .= "<h5 class='header'>Dir zugeteilte Schl&uuml;ssel</h5>";
     $HTML .= "<h5 class='header center-align hide-on-large-only'>Dir zugeteilte Schl&uuml;ssel</h5>";
     $HTML .= "<div class='section'>";
-
-    if(isset($Parser['meldung'])){
-        $HTML .= "<h5>".$Parser['meldung']."</h5>";
-    }
 
     $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
 
@@ -214,40 +210,14 @@ function spalte_dir_zugeteilte_schluessel(){
 
             $Schluessel = mysqli_fetch_assoc($AbfrageLadeZugeteilteSchluessel);
 
-            $HTML .= "<li>";
-            $HTML .= "<div class='collapsible-header'><i class='large material-icons ".$Schluessel['farbe_materialize']."'>vpn_key</i>Schl&uumlssel #".$Schluessel['id']." - ".$Schluessel['farbe']."</div>";
-            $HTML .= "<div class='collapsible-body'>";
-            if ($VerfuegbareSchluessel > 0){
-                $HTML .= "<div class='section hide-on-med-and-down'>";
-                $HTML .= "<form method='POST'>";
-                $HTML .= "<div class='container'>";
-                $HTML .= "<div class='row'>";
-
-                $HTML .= "<div class=\"input-field\">";
-                $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_zuruecklegen'><i class=\"material-icons left\">send</i>Schl&uuml;ssel zur&uuml;cklegen</button>";
-                $HTML .= "</div>";
-
-                $HTML .= "</div>";
-                $HTML .= "</div>";
-                $HTML .= "</form>";
-                $HTML .= "</div>";
-
-                $HTML .= "<div class='section hide-on-large-only'>";
-                $HTML .= "<form method='POST'>";
-                $HTML .= "<div class='container'>";
-                $HTML .= "<div class='container'>";
-
-                $HTML .= "<div class=\"input-field\">";
-                $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_zuruecklegen'><i class=\"material-icons left\">send</i>Zur&uuml;cklegen</button>";
-                $HTML .= "</div>";
-
-                $HTML .= "</div>";
-                $HTML .= "</div>";
-                $HTML .= "</form>";
-                $HTML .= "</div>";
+            $Titel = "Schl&uumlssel #".$Schluessel['id']." - ".$Schluessel['farbe']."";
+            if ($VerfuegbareSchluessel > 0) {
+                $Content = form_builder(table_builder(table_row_builder(table_header_builder(form_button_builder('action_schluessel_' . $Schluessel['id'] . '_zuruecklegen', 'Zurücklegen', 'action', 'send', '')))), '#', 'post', '', '');
+            } else {
+                $Content = "Schlüssel bereits verplant!";
             }
-            $HTML .= "</div>";
-            $HTML .= "</li>";
+            $HTML .= collapsible_item_builder($Titel, $Content, 'vpn_key', $Schluessel['farbe_materialize']);
+
         }
 
     }
@@ -360,6 +330,10 @@ function parser_schluesselmanagement(){
 
     $Parser = spalte_anstehende_rueckgaben_parser();
 
+    if($Parser['success'] == NULL){
+        $Parser = spalte_dir_zugeteilte_schluessel_parser();
+    }
+
     spalte_verfuegbare_schluessel_parser();
 
     if (isset($_POST['action_schluessel_hinzufuegen'])){
@@ -459,7 +433,7 @@ function spalte_dir_zugeteilte_schluessel_parser(){
         $Schluessel = mysqli_fetch_assoc($AbfrageLadeVerfuegbareSchluessel);
         $PostNameGenerieren = "action_schluessel_".$Schluessel['id']."_zuruecklegen";
         if(isset($_POST[$PostNameGenerieren])){
-            $Antwort = schluessel_umbuchen($Schluessel['id'], lade_user_id(), '', 'rueckgabekasten', lade_user_id());
+            $Antwort = schluessel_umbuchen($Schluessel['id'],'', 'rueckgabekasten', lade_user_id());
         }
     }
 

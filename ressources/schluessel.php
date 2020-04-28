@@ -173,7 +173,7 @@ function schluessel_umbuchen($Schluessel, $AnWart, $AnOrt, $Wart){
             $Event = "Umbuchung von ".$Schluessel." nach ".$AnOrt."".$AnWart." durch ".$Wart."";
             add_protocol_entry(lade_user_id(), $Event, 'schluessel');
 
-            $Antwort['success'] = FALSE;
+            $Antwort['success'] = TRUE;
             $Antwort['meldung'] = "Der Schl&uuml;ssel wurde erfolgreich umgebucht!";
         } else {
             $Antwort['success'] = FALSE;
