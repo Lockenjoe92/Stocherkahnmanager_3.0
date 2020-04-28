@@ -7,7 +7,7 @@
  */
 
 include_once "./ressources/ressourcen.php";
-session_manager();
+session_manager('ist_wart');
 $Header = "Wartansicht - " . lade_db_einstellung('site_name');
 
 $HTML = section_builder("<h1>Wartansicht</h1>");
