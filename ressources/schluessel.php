@@ -262,6 +262,57 @@ function schluessel_bearbeiten($SchluesselID, $NewID, $Farbe, $FarbeMatCSS, $RFI
 
     return $Antwort;
 }
+function schluessel_loeschen($SchluesselID){
+
+    $link = connect_db();
+    $Antwort = array();
+    $DAUcounter = 0;
+    $DAUerror = "";
+    $Schluessel = lade_schluesseldaten($SchluesselID);
+
+    if($SchluesselID == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du hast keinen Schl&uuml;ssel ausgew&auml;hlt!<br>";
+    } else {
+        //Schluessel noch bei einem nicht-Wart
+        $UserID = intval($Schluessel['akt_user']);
+
+        if($UserID > 0){
+
+            $User = lade_user_meta($UserID);
+
+            if ($User['ist_wart'] != true){
+                $DAUcounter++;
+                $DAUerror .= "Der Schl&uuml;ssel ist noch bei einem User gebucht! Buche ihn zuerst zu dir oder in den R&uuml;ckgabeort zur&uuml;ck!<br>";
+            }
+        }
+
+        //Schluessel bereits storniert
+        if(intval($Schluessel['delete_user']) > 0){
+            $DAUcounter++;
+            $DAUerror .= "Der Schl&uuml;ssel ist bereits gel&ouml;scht!<br>";
+        }
+    }
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else {
+
+        $Anfrage = "UPDATE schluessel SET delete_user = '".lade_user_id()."', delete_time = '".timestamp()."' WHERE id = '".$SchluesselID."'";
+        if (mysqli_query($link, $Anfrage)){
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "Schl&uuml;ssel ".$SchluesselID." erfolgreich gel&ouml;scht!";
+            $EintragText = "Schl&uuml;ssel ".$SchluesselID." von Wart ".lade_user_id()." gel&ouml;scht.";
+            add_protocol_entry(lade_user_id(), $EintragText, 'schluessel');
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Datenbankfehler!";
+        }
+    }
+
+    return $Antwort;
+}
 function schluessel_umbuchen_listenelement_parser($Schluessel, $AnWart, $AnOrt){
 
     $Antwort = array();

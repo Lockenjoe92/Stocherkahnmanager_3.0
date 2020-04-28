@@ -134,9 +134,9 @@ function collapsible_builder($ListElements){
 
 }
 
-function collapsible_item_builder($Title, $Content, $Icon){
+function collapsible_item_builder($Title, $Content, $Icon, $IconColor=''){
 
-    if($Icon == ''){$IconHTML = '';} else {$IconHTML = "<i class='material-icons'>".$Icon."</i>";}
+    if($Icon == ''){$IconHTML = '';} else {$IconHTML = "<i class='material-icons ".$IconColor."'>".$Icon."</i>";}
 
     $HTML = "<li>";
     $HTML .= "<div class='collapsible-header'>".$IconHTML."".$Title."</div>";

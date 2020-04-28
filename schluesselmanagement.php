@@ -136,7 +136,6 @@ function spalte_anstehende_rueckgaben(){
 function spalte_verfuegbare_schluessel(){
 
     $link = connect_db();
-    spalte_verfuegbare_schluessel_parser();
 
     $HTML = "<div class='section'>";
     $HTML .= "<h5 class='header'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
@@ -164,34 +163,10 @@ function spalte_verfuegbare_schluessel(){
 
             $Schluessel = mysqli_fetch_assoc($AbfrageLadeVerfuegbareSchluessel);
 
-            $HTML .= "<li>";
-            $HTML .= "<div class='collapsible-header'><i class='large material-icons ".$Schluessel['farbe_materialize']."'>vpn_key</i>Schl&uumlssel #".$Schluessel['id']." - ".$Schluessel['farbe']."</div>";
-            $HTML .= "<div class='collapsible-body'>";
+            $TitleString = "Schl&uumlssel #".$Schluessel['id']." - ".$Schluessel['farbe']."";
+            $Content = form_builder(table_builder(table_header_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_herausnehmen', 'Herausnehmen', 'action', 'send'))), '#', 'post', '','');
+            $HTML .= collapsible_item_builder($TitleString, $Content, 'vpn_key', $Schluessel['farbe_materialize']);
 
-            $HTML .= "<div class='section hide-on-med-and-down'>";
-            $HTML .= "<form method='POST'>";
-            $HTML .= "<div class='container'>";
-            $HTML .= "<div class='row'>";
-
-            $HTML .= "<div class=\"input-field\">";
-            $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_herausnehmen'><i class=\"material-icons left\">send</i>Schl&uuml;ssel herausnehmen</button>";
-            $HTML .= "</div>";
-
-            $HTML .= "</div>";
-            $HTML .= "</div>";
-            $HTML .= "</form>";
-            $HTML .= "</div>";
-
-            $HTML .= "<div class='section hide-on-large-only'>";
-            $HTML .= "<form method='POST'>";
-            $HTML .= "<div class=\"input-field\">";
-            $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_herausnehmen'><i class=\"material-icons left\">send</i>Herausnehmen</button>";
-            $HTML .= "</div>";
-            $HTML .= "</form>";
-            $HTML .= "</div>";
-
-            $HTML .= "</div>";
-            $HTML .= "</li>";
         }
 
     }
@@ -385,6 +360,8 @@ function parser_schluesselmanagement(){
 
     $Parser = spalte_anstehende_rueckgaben_parser();
 
+    spalte_verfuegbare_schluessel_parser();
+
     if (isset($_POST['action_schluessel_hinzufuegen'])){
         $Parser = schluessel_hinzufuegen($_POST['schluessel_id'], $_POST['farbe_schluessel'], $_POST['farbe_schluessel_mat'], $_POST['rfid_code']);
     }
@@ -411,6 +388,7 @@ function spalte_anstehende_rueckgaben_parser(){
     $AnfrageLadeAlleSchluesselausgaben = "SELECT * FROM schluesselausgabe WHERE storno_user = '0' AND ausgabe <> '0000-00-00 00:00:00' AND rueckgabe = '0000-00-00 00:00:00' ORDER BY schluessel ASC";
     $AbfrageLadeAlleSchluesselausgaben = mysqli_query($link, $AnfrageLadeAlleSchluesselausgaben);
     $AnzahlLadeAlleSchluesselausgaben = mysqli_num_rows($AbfrageLadeAlleSchluesselausgaben);
+    $UserID = lade_user_id();
 
     for ($a = 1; $a <= $AnzahlLadeAlleSchluesselausgaben; $a++){
 
@@ -418,37 +396,40 @@ function spalte_anstehende_rueckgaben_parser(){
 
         $ActionName = "action_schluessel_".$Ausgabe['schluessel']."_rueckgabe_festhalten";
         $ErinnerungName = "action_schluessel_".$Ausgabe['schluessel']."_erinnerung_senden";
+        $PostNameGenerierenHerausnehmen = "action_schluessel_".$Ausgabe['schluessel']."_rueckgabe_und_mitnehmen";
 
         if (isset($_POST[$ActionName])){
 
-            $Ergebnis = schluesselrueckgabe_festhalten($Ausgabe['schluessel']);
-
-            if ($Ergebnis == TRUE){
-                $Ergebnis['success'] = true;
-                $Ergebnis['meldung'] = 'Schl&uuml;sselr&uuml;ckgabe erfolgreich festgehalten!';
-            } else if ($Ergebnis == FALSE){
-                $Ergebnis['success'] = false;
-                $Ergebnis['meldung'] = 'Fehler bei Schl&uuml;sselr&uuml;ckgabe - Admin kontaktieren!';
-            }
+            $Antwort = schluessel_umbuchen($Ausgabe['schluessel'], '', 'rueckgabekasten', $UserID);
+            $Event = "Schl&uuml;ssel ".$Ausgabe['schluessel']." von ".$UserID." als zurückgegeben vermerkt";
+            add_protocol_entry($UserID, $Event, 'schluessel');
 
         }
 
+        if(isset($_POST[$PostNameGenerierenHerausnehmen])){
+            $Antwort = schluessel_umbuchen($Ausgabe['schluessel'], $UserID, '', $UserID);
+            $Event = "Schl&uuml;ssel ".$Ausgabe['schluessel']." von ".$UserID." aus R&uuml;ckgabekasten genommen und die Rückgabe gespeichert";
+            add_protocol_entry($UserID, $Event, 'schluessel');
+        }
+
+
         if (isset($_POST[$ErinnerungName])){
-            $Ergebnis['success'] = false;
-            $Ergebnis['meldung'] = 'Diese Funktion muss noch implementiert werden!';
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = 'Diese Funktion muss noch implementiert werden!';
         }
 
     }
 
-    return $Ergebnis;
+    return $Antwort;
 }
 function spalte_verfuegbare_schluessel_parser(){
 
     $link = connect_db();
 
-    $AnfrageLadeVerfuegbareSchluessel = "SELECT id, farbe, farbe_materialize FROM schluessel WHERE akt_ort = 'rueckgabekasten' AND delete_user = '0' ORDER BY id ASC";
+    $AnfrageLadeVerfuegbareSchluessel = "SELECT id FROM schluessel WHERE akt_ort = 'rueckgabekasten' AND delete_user = '0' ORDER BY id ASC";
     $AbfrageLadeVerfuegbareSchluessel = mysqli_query($link, $AnfrageLadeVerfuegbareSchluessel);
     $AnzahlLadeVerfuegbareSchluessel = mysqli_num_rows($AbfrageLadeVerfuegbareSchluessel);
+    $UserID = lade_user_id();
 
     for($a = 1; $a <= $AnzahlLadeVerfuegbareSchluessel; $a++){
 
@@ -456,9 +437,9 @@ function spalte_verfuegbare_schluessel_parser(){
         $PostNameGenerieren = "action_schluessel_".$Schluessel['id']."_herausnehmen";
 
         if(isset($_POST[$PostNameGenerieren])){
-            $Antwort = schluessel_umbuchen($Schluessel['id'], 'rueckgabekasten', lade_user_id(), '', lade_user_id());
-            $Event = "Schl&uuml;ssel ".$Schluessel['id']." von ".lade_user_id()." aus R&uuml;ckgabekasten genommen";
-            add_protocol_entry(lade_user_id(), $Event, 'schluessel');
+            $Antwort = schluessel_umbuchen($Schluessel['id'], $UserID, '', $UserID);
+            $Event = "Schl&uuml;ssel ".$Schluessel['id']." von ".$UserID." aus R&uuml;ckgabekasten genommen";
+            add_protocol_entry($UserID, $Event, 'schluessel');
         }
     }
 
