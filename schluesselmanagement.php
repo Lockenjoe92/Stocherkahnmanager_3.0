@@ -102,14 +102,9 @@ function spalte_anstehende_rueckgaben(){
                     $HTML .= "<ul class='collection'>";
                     $HTML .= "<li class='collection-item'>Fahrtende: ".$FahrtZuendeSeit."</li>";
                     $HTML .= "<li class='collection-item'>Letzte Erinnerung: ".$LetzeErinnerung."</li>";
-                    $HTML .= "<li class='collection-item'>
-                                        <div class='input-field'>
-                                        <button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_rueckgabe_festhalten'>R&uuml;ckgabe festhalten</button>
-                                        </div>
-                                        <div class='input-field'>
-                                        <button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_erinnerung_senden'>Erinnerung senden</button>
-                                        </div>
-                                        </li>";
+                    $HTML .= collection_item_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_rueckgabe_festhalten', 'Rückgabe', 'action', 'send', ''));
+                    $HTML .= collection_item_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_rueckgabe_und_mitnehmen', 'Mitnehmen', 'action', 'send', ''));
+                    $HTML .= collection_item_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_erinnerung_senden', 'Erinnerung', 'action', 'send', ''));
                     $HTML .= "</ul>";
                     $HTML .= "</form>";
                     $HTML .= "</div>";
