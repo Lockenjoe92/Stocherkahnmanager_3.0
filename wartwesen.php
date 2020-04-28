@@ -12,6 +12,13 @@ $Header = "Wartansicht - " . lade_db_einstellung('site_name');
 
 $HTML = section_builder("<h1>Wartansicht</h1>");
 
+#ParserStuff
+$Parser = spalte_verfuegbare_schluessel_parser();
+if(isset($Parser['meldung'])){
+    $HTML .= "<h5>".$Parser['meldung']."</h5>";
+}
+
+
 $HTML .= section_termine_uebergaben();
 $HTML .= section_status();
 $HTML .= section_wart_schluessel();
@@ -172,7 +179,6 @@ function section_anstehende_rueckgaben(){
 function section_verfuegbare_schluessel(){
 
     $link = connect_db();
-    spalte_verfuegbare_schluessel_parser();
 
     $AnfrageLadeVerfuegbareSchluessel = "SELECT id, farbe, farbe_materialize FROM schluessel WHERE akt_ort = 'rueckgabekasten' AND delete_user = '0' ORDER BY id ASC";
     $AbfrageLadeVerfuegbareSchluessel = mysqli_query($link, $AnfrageLadeVerfuegbareSchluessel);
@@ -189,41 +195,10 @@ function section_verfuegbare_schluessel(){
         for ($a = 1; $a <= $AnzahlLadeVerfuegbareSchluessel; $a++){
 
             $Schluessel = mysqli_fetch_assoc($AbfrageLadeVerfuegbareSchluessel);
+            $TitleString = "Schl&uumlssel #".$Schluessel['id']." - ".$Schluessel['farbe']."";
+            $Content = form_builder(table_builder(table_header_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_herausnehmen', 'Herausnehmen', 'action', 'send'))), '#', 'post', '','');
+            $HTML .= collapsible_item_builder($TitleString, $Content, 'vpn_key', $Schluessel['farbe_materialize']);
 
-            $HTML .= "<li>";
-            $HTML .= "<div class='collapsible-header'><i class='large material-icons ".$Schluessel['farbe_materialize']."'>vpn_key</i>Schl&uumlssel #".$Schluessel['id']." - ".$Schluessel['farbe']."</div>";
-            $HTML .= "<div class='collapsible-body'>";
-
-            $HTML .= "<div class='section hide-on-med-and-down'>";
-            $HTML .= "<form method='POST'>";
-            $HTML .= "<div class='container'>";
-            $HTML .= "<div class='row'>";
-
-            $HTML .= "<div class=\"input-field\">";
-            $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_herausnehmen'><i class=\"material-icons left\">send</i>Schl&uuml;ssel herausnehmen</button>";
-            $HTML .= "</div>";
-
-            $HTML .= "</div>";
-            $HTML .= "</div>";
-            $HTML .= "</form>";
-            $HTML .= "</div>";
-
-            $HTML .= "<div class='section hide-on-large-only'>";
-            $HTML .= "<form method='POST'>";
-            $HTML .= "<div class='container'>";
-            $HTML .= "<div class='container'>";
-
-            $HTML .= "<div class=\"input-field\">";
-            $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action_schluessel_".$Schluessel['id']."_herausnehmen'><i class=\"material-icons left\">send</i>Herausnehmen</button>";
-            $HTML .= "</div>";
-
-            $HTML .= "</div>";
-            $HTML .= "</div>";
-            $HTML .= "</form>";
-            $HTML .= "</div>";
-
-            $HTML .= "</div>";
-            $HTML .= "</li>";
         }
 
         $HTML .= "</ul>";
@@ -247,12 +222,13 @@ function spalte_verfuegbare_schluessel_parser(){
         $PostNameGenerieren = "action_schluessel_".$Schluessel['id']."_herausnehmen";
 
         if(isset($_POST[$PostNameGenerieren])){
-            $Antwort = schluessel_umbuchen($Schluessel['id'], 'rueckgabekasten', lade_user_id(), '', lade_user_id());
+            $Antwort = schluessel_umbuchen($Schluessel['id'], lade_user_id(), '', lade_user_id());
             $Event = "Schl&uuml;ssel ".$Schluessel['id']." von ".lade_user_id()." aus R&uuml;ckgabekasten genommen";
-            schluessel_protokoll_event_hinzufuegen($Schluessel['id'], $Event);
-            toast_ausgeben($Antwort['message']);
+            add_protocol_entry(lade_user_id(), $Event, 'schluessel');
         }
     }
+
+    return $Antwort;
 }
 function spalte_moegliche_rueckzahlungen(){
 
