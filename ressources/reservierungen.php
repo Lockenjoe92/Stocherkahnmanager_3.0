@@ -728,7 +728,7 @@ function zahlungswesen($ID){
     return $Antwort;
 }
 
-function uebergabewesen($ID){
+function uebergabewesen($ID, $Ansicht='user'){
 
     $link = connect_db();
     $Antwort = "";
@@ -740,9 +740,13 @@ function uebergabewesen($ID){
 
     $Schluesselrollen = lade_user_meta($Reservierung['user']);
 
-    if (($Schluesselrollen['hat_eig_schluessel'] == 1) OR ($Schluesselrollen['wg_hat_schluessel'] == 1)){
+    if (($Schluesselrollen['hat_eig_schluessel'] == 'true') OR ($Schluesselrollen['wg_hat_schluessel'] == 'true')){
 
-        $Antwort = "Du hast einen eigenen Schl&uuml;ssel und brauchst daher keine &Uuml;bergabe. Wir w&uuml;nschen eine gute Fahrt!:)";
+        if($Ansicht == 'user'){
+            $Antwort = "Du hast einen eigenen Schl&uuml;ssel und brauchst daher keine &Uuml;bergabe. Wir w&uuml;nschen eine gute Fahrt!:)";
+        } elseif ($Ansicht == 'wart'){
+            $Antwort = "User hat eigenen Schl&uuml;ssel.";
+        }
 
     } else {
 
@@ -764,16 +768,28 @@ function uebergabewesen($ID){
                 if (time() > $Grenzzeit){
 
                     //Übergabe ist abgelaufen
-                    $Antwort = "<b>Du hast eine Schl&uuml;ssel&uumlbergabe ausgemacht, welche jedoch abgelaufen ist.</b><br><a href='uebergabe_infos_user.php?id=".$Uebergabe['id']."'><i class='material-icons tiny'>info</i> Infos zur &Uuml;bergabe</a><br><a href='neue_uebergabe_ausmachen.php?res=".$ID."'><i class='material-icons tiny'>loop</i> Neue &Uuml;bergabe ausmachen</a>";
+                    if($Ansicht == 'user'){
+                        $Antwort = "<b>Du hast eine Schl&uuml;ssel&uumlbergabe ausgemacht, welche jedoch abgelaufen ist.</b><br><a href='uebergabe_infos_user.php?id=".$Uebergabe['id']."'><i class='material-icons tiny'>info</i> Infos zur &Uuml;bergabe</a><br><a href='neue_uebergabe_ausmachen.php?res=".$ID."'><i class='material-icons tiny'>loop</i> Neue &Uuml;bergabe ausmachen</a>";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Schl&uuml;ssel&uumlbergabe abgelaufen!";
+                    }
 
                 } else if (time() < $Grenzzeit){
                     //Übergabe steht noch aus
-                    $Antwort = "<b>Du hast eine Schl&uuml;ssel&uumlbergabe ausgemacht.</b><br><a href='uebergabe_infos_user.php?id=".$Uebergabe['id']."'><i class='material-icons tiny'>info</i> Infos zur &Uuml;bergabe</a>";
+                    if($Ansicht == 'user'){
+                        $Antwort = "<b>Du hast eine Schl&uuml;ssel&uumlbergabe ausgemacht.</b><br><a href='uebergabe_infos_user.php?id=".$Uebergabe['id']."'><i class='material-icons tiny'>info</i> Infos zur &Uuml;bergabe</a>";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Schl&uuml;ssel&uumlbergabe steht an!";
+                    }
                 }
 
             } else {
                 //Übergabe durchgeführt
-                $Antwort = "Die Schl&uuml;ssel&uuml;bergabe wurde erfolgreich durchgef&uuml;hrt!<br>";
+                if($Ansicht == 'user'){
+                    $Antwort = "Die Schl&uuml;ssel&uuml;bergabe wurde erfolgreich durchgef&uuml;hrt!<br>";
+                } elseif ($Ansicht == 'wart'){
+                    $Antwort = "Schl&uuml;ssel&uumlbergabe durchgeführt!";
+                }
             }
 
         } else {
@@ -789,7 +805,11 @@ function uebergabewesen($ID){
 
                 $Uebernahme = mysqli_fetch_assoc($AbfrageUebernahme);
                 //Übernahme gebucht
-                $Antwort = "<b>Du hast eine Schl&uuml;ssel&uumlbernahme von der Gruppe vor dir ausgemacht.</b><br>Bitte sei p&uuml;nktlich um <b>".date("G", strtotime($Reservierung['beginn']))." Uhr</b> an der Stocherkahnanlegestelle um den Schl&uuml;ssel entgegenzunehmen!<br><a href='uebernahme_absagen.php?uebernahme=".$Uebernahme['id']."'>&Uuml;bernahme absagen</a>";
+                if($Ansicht == 'user'){
+                    $Antwort = "<b>Du hast eine Schl&uuml;ssel&uumlbernahme von der Gruppe vor dir ausgemacht.</b><br>Bitte sei p&uuml;nktlich um <b>".date("G", strtotime($Reservierung['beginn']))." Uhr</b> an der Stocherkahnanlegestelle um den Schl&uuml;ssel entgegenzunehmen!<br><a href='uebernahme_absagen.php?uebernahme=".$Uebernahme['id']."'>&Uuml;bernahme absagen</a>";
+                } elseif ($Ansicht == 'wart'){
+                    $Antwort = "Schl&uuml;ssel&uumlbernahme ausgemacht!";
+                }
 
             } else {
 
@@ -798,16 +818,27 @@ function uebergabewesen($ID){
                 $Uebernahmemoeglich = uebernahme_moeglich($ID);
                 if ($Uebernahmemoeglich == TRUE){
                     //Keine Übergabe, Übernahme möglich
-                    $Antwort = "<b>Du musst dich noch darum k&uuml;mmern wie du an den Kahnschl&uuml;ssel kommst.</b><br><a href='uebergabe_ausmachen.php?res=".$ID."'>Schl&uuml;ssel&uuml;bergabe ausmachen</a><br>";
+                    if($Ansicht == 'user'){
+                        $Antwort = "<b>Du musst dich noch darum k&uuml;mmern wie du an den Kahnschl&uuml;ssel kommst.</b><br><a href='uebergabe_ausmachen.php?res=".$ID."'>Schl&uuml;ssel&uuml;bergabe ausmachen</a><br>";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Nix ausgemacht!";
+                    }
 
                     if (lade_xml_einstellung('uebernahmefunktion-globel-aktiv') === "true"){
-                        $Antwort .= "<a href='uebernahme_ausmachen.php?res=".$ID."'>Du kannst auch einfach den Schl&uuml;ssel von der Gruppe vor dir &uuml;bernehmen.</a>";
+                        if($Ansicht == 'user'){
+                            $Antwort .= "<a href='uebernahme_ausmachen.php?res=".$ID."'>Du kannst auch einfach den Schl&uuml;ssel von der Gruppe vor dir &uuml;bernehmen.</a>";
+                        } elseif ($Ansicht == 'wart'){
+                            $Antwort = " - Schl&uuml;ssel&uumlbernahme möglich!";
+                        }
                     }
 
                 } else if ($Uebernahmemoeglich == FALSE){
-
                     //Keine Übergabe, keine Übernahme möglich
-                    $Antwort = "<b>Du musst dich noch darum k&uuml;mmern wie du an den Kahnschl&uuml;ssel kommst.</b><br><a href='uebergabe_ausmachen.php?res=".$ID."'>Schl&uuml;ssel&uuml;bergabe ausmachen</a>";
+                    if($Ansicht == 'user'){
+                        $Antwort = "<b>Du musst dich noch darum k&uuml;mmern wie du an den Kahnschl&uuml;ssel kommst.</b><br><a href='uebergabe_ausmachen.php?res=".$ID."'>Schl&uuml;ssel&uuml;bergabe ausmachen</a>";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Nix ausgemacht!";
+                    }
 
                 }
             }
@@ -816,7 +847,7 @@ function uebergabewesen($ID){
     return $Antwort;
 }
 
-function schluesselwesen($ID){
+function schluesselwesen($ID, $Ansicht='user'){
 
     $link = connect_db();
     $Timestamp = timestamp();
@@ -837,7 +868,11 @@ function schluesselwesen($ID){
         //Rückgabe notwendig? Res vorbei?
         if (strtotime($Reservierung['ende']) > strtotime($Timestamp)){
 
-            $Antwort = "Dir ist Schl&uuml;ssel #".$Ausgabe['schluessel']." zugeteilt.";
+            if($Ansicht == 'user'){
+                $Antwort = "Dir ist Schl&uuml;ssel #".$Ausgabe['schluessel']." zugeteilt.";
+            } elseif ($Ansicht == 'wart'){
+                $Antwort = "Hat Schl&uuml;ssel #".$Ausgabe['schluessel'].".";
+            }
 
         } else {
 
@@ -849,16 +884,28 @@ function schluesselwesen($ID){
             if ($AnzahlWeitereReservierungenMitDiesemSchluessel > 0){
 
                 //Er darf den schlüssel noch weiter behalten
-                $Antwort = "Du darfst den Schl&uuml;ssel noch f&uuml;r weitere Reservierungen verwenden.";
+                if($Ansicht == 'user'){
+                    $Antwort = "Du darfst den Schl&uuml;ssel noch f&uuml;r weitere Reservierungen verwenden.";
+                } elseif ($Ansicht == 'wart'){
+                    $Antwort = "Schl&uuml;ssel darf noch f&uuml;r weitere Reservierungen verwendt werden.";
+                }
 
             } else {
 
                 if ($Ausgabe['rueckgabe'] === "0000-00-00 00:00:00"){
                     //Er soll den schlüssel zurück geben
-                    $Antwort = "Bitte bring deinen Schl&uuml;ssel zeitnah zur&uuml;ck. Du kannst ihn ganz einfach in unseren <a href='schluesselrueckgabe_howto.php'>R&uuml;ckgabebriefkasten</a> werfen:)";
+                    if($Ansicht == 'user'){
+                        $Antwort = "Bitte bring deinen Schl&uuml;ssel zeitnah zur&uuml;ck. Du kannst ihn ganz einfach in unseren <a href='schluesselrueckgabe_howto.php'>R&uuml;ckgabebriefkasten</a> werfen:)";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Schl&uuml;sselrückgabe ausstehend!";
+                    }
                 } else {
                     //Er soll den schlüssel zurück geben
-                    $Antwort = "Deine Schl&uuml;sselr&uumlckgabe wurde festgehalten! Vielen Dank:)";
+                    if($Ansicht == 'user'){
+                        $Antwort = "Deine Schl&uuml;sselr&uumlckgabe wurde festgehalten! Vielen Dank:)";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Schl&uuml;sselrückgabe erfolgt!";
+                    }
                 }
             }
         }
@@ -869,7 +916,11 @@ function schluesselwesen($ID){
         $Schluesselrollen = lade_user_meta($Reservierung['user']);
 
         if (($Schluesselrollen['hat_eig_schluessel'] == "1")){
-            $Antwort = "Du hast einen eigenen Schl&uuml;ssel.";
+            if($Ansicht == 'user'){
+                $Antwort = "Du hast einen eigenen Schl&uuml;ssel.";
+            } elseif ($Ansicht == 'wart'){
+                $Antwort = "User hat eigenen Schl&uuml;ssel.";
+            }
         } else {
 
             //Hat er eine Schlüsselübernahme gebucht?
@@ -880,17 +931,33 @@ function schluesselwesen($ID){
                 $UebergabeVorfahrendeReservierung = lade_uebergabe_res($VorfahrendeReservierungID);
 
                 if ($UebergabeVorfahrendeReservierung['durchfuehrung'] == "0000-00-00 00:00:00"){
-                    $Antwort = "Die Gruppe vor dir hat noch keinen Schl&uuml;ssel ausgeteilt bekommen.";
+                    if($Ansicht == 'user'){
+                        $Antwort = "Die Gruppe vor dir hat noch keinen Schl&uuml;ssel ausgeteilt bekommen.";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "User hat noch KEINEN Schl&uuml;ssel.";
+                    }
                 } else if (strtotime("0000-00-00 00:00:00") < strtotime($UebergabeVorfahrendeReservierung['durchfuehrung'])){
-                    $Antwort = "Du &uuml;bernimmst Schl&uuml;ssel #".$UebergabeVorfahrendeReservierung['schluessel']." von der Gruppe vor dir.";
+                    if($Ansicht == 'user'){
+                        $Antwort = "Du &uuml;bernimmst Schl&uuml;ssel #".$UebergabeVorfahrendeReservierung['schluessel']." von der Gruppe vor dir.";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "User &uuml;bernimmt Schl&uuml;ssel #".$UebergabeVorfahrendeReservierung['schluessel']." von der Gruppe davor.";
+                    }
                 }
 
             } else {
                 //Er hat keinen shclüssle
                 if($Reservierung['storno_user'] == "0"){
-                    $Antwort = "Dir ist bislang noch kein Schl&uuml;ssel zugeteilt worden.";
+                    if($Ansicht == 'user'){
+                        $Antwort = "Dir ist bislang noch kein Schl&uuml;ssel zugeteilt worden.";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Dem User ist bislang noch KEIN Schl&uuml;ssel zugeteilt worden.";
+                    }
                 } else if($Reservierung['storno_user'] != "0"){
-                    $Antwort = "Dir war kein Schl&uuml;ssel zugeteilt.";
+                    if($Ansicht == 'user'){
+                        $Antwort = "Dir war kein Schl&uuml;ssel zugeteilt.";
+                    } elseif ($Ansicht == 'wart'){
+                        $Antwort = "Dem User war kein Schl&uuml;ssel zugeteilt.";
+                    }
                 }
             }
         }

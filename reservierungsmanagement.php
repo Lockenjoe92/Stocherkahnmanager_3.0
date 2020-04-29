@@ -278,54 +278,26 @@ function reservierungsobjekt_generieren($ResID, $Bearbeiten, $Stornieren, $Storn
 
     } else if (($Reservierung['gratis_fahrt'] == "0") AND ($Reservierung['preis_geaendert'] == "0")){
 
-        //Rollen
-        $Schluesselrollen = lade_user_meta($Reservierung['user']);
-        $Benutzerrollen = $Schluesselrollen;
+        $Kosten = kosten_reservierung($ResID);
 
-        if (($Schluesselrollen['ehemaliger'] ==  "1") OR ($Schluesselrollen['gratis_fahrt'] ==  "1")){
-
-            if ($Schluesselrollen['ehemaliger'] ==  "1"){
-                $Finanzen = "Nutzer ist ein Ehemaliger";
-                $Zahlungen = "nicht notwendig";
-            } else if ($Schluesselrollen['gratis_fahrt'] ==  "1"){
-                $Finanzen = "Nutzer darf immer gratis fahren";
-                $Zahlungen = "nicht notwendig";
-            }
-
-        } else if ($Benutzerrollen['wart'] == true) {
-
-            $Finanzen = "User ist ein Wart";
+        $Finanzen = $Kosten."&euro;";
+        if($Kosten == 0){
             $Zahlungen = "nicht notwendig";
-
         } else {
-
             //Nachsehen ob schon gezahlt wurde
             $Forderung = lade_forderung_res($ResID);
             $Zahlungen = lade_gezahlte_summe_forderung($Forderung['id']);
 
             if ($Zahlungen == 0){
-
-                $Finanzen = "".kosten_reservierung($ResID)."&euro;";
                 $Zahlungen = "keine";
-
             } else {
-
                 if ($Zahlungen >= intval($Forderung['betrag'])){
-
-                    $Finanzen = "".kosten_reservierung($ResID)."&euro;";
                     $Zahlungen = "bezahlt";
-
                 } else if ($Zahlungen < intval($Forderung['betrag'])){
-
-                    $Finanzen = "".kosten_reservierung($ResID)."&euro;";
                     $Zahlungen = "unvollst&auml;ndig: ".$Zahlungen."&euro;";
-
                 }
-
             }
-
         }
-
     }
 
     //Verknüpfungsfähigkeit
@@ -340,50 +312,44 @@ function reservierungsobjekt_generieren($ResID, $Bearbeiten, $Stornieren, $Storn
         $SpanUebergabeNotwendig = "<span class=\"new badge green darken-2\" data-badge-caption=\"Verkn&uuml;pfung m&ouml;glich\"></span>";
 
         //Button generieren
-        $VerknuepfenButton = "<a class='btn waves-effect waves-light' href='reservierung_verknuepfen.php?res=".$Reservierung['id']."&res2=".$ReservierungVerknuepfung['id']."'><i class='small material-icons'>call_merge</i> Verkn&uuml;pfen</a>";
+        $VerknuepfenButton = button_link_creator('Verknüpfen', 'reservierung_verknuepfen.php?res='.$Reservierung['id'].'&res2='.$ReservierungVerknuepfung['id'].'', 'call_merge', '');
     }
 
-    $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'>".$SpanUebergabeNotwendig."<i class='large material-icons'>today</i>".$ResID." - ".$FahrtDatum." - ".$Fahrzeiten." - ".$AngabenUser."</div>";
-    $HTML .= "<div class='collapsible-body'>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<form method='post'>";
-    $HTML .= "<ul class='collection'>";
-    $HTML .= "<li class='collection-item'>User: ".$AngabenUser."</li>";
-    $HTML .= "<li class='collection-item'>Datum: ".$FahrtDatum."</li>";
-    $HTML .= "<li class='collection-item'>Fahrzeit: ".$Fahrzeiten."</li>";
-    $HTML .= "<li class='collection-item'>Kosten: ".$Finanzen."</li>";
-    $HTML .= "<li class='collection-item'>Zahlungen: ".$Zahlungen."</li>";
-    $HTML .= "<li class='collection-item'>&Uuml;bergabestatus: ".$LetzeErinnerung."</li>";
-    $HTML .= "<li class='collection-item'>Schl&uuml;sselstatus: ".$LetzeErinnerung."</li>";
-
-    if ($StornoAufheben == TRUE){
+    $Titel = "".$ResID." - ".$FahrtDatum." - ".$Fahrzeiten." - ".$AngabenUser." ".$SpanUebergabeNotwendig."";
+    $TableHTML = table_row_builder(table_header_builder("User:").table_data_builder($AngabenUser));
+    $TableHTML .= table_row_builder(table_header_builder("Datum:").table_data_builder($FahrtDatum));
+    $TableHTML .= table_row_builder(table_header_builder("Fahrzeit:").table_data_builder($Fahrzeiten));
+    $TableHTML .= table_row_builder(table_header_builder("Kosten:").table_data_builder($Finanzen));
+    $TableHTML .= table_row_builder(table_header_builder("Zahlungen:").table_data_builder($Zahlungen));
+    $TableHTML .= table_row_builder(table_header_builder("&Uuml;bergabestatus:").table_data_builder(uebergabewesen($ResID, 'wart')));
+    $TableHTML .= table_row_builder(table_header_builder("Schl&uuml;sselstatus:").table_data_builder(schluesselwesen($ResID, 'wart')));
+    if ($StornoAufheben == TRUE) {
         $StornoUser = lade_user_meta($Reservierung['storno_user']);
-        $HTML .= "<li class='collection-item'>Storniert am ".strftime("%A, %d. %b. %G", strtotime($Reservierung['storno_zeit']))." durch ".$StornoUser['vorname']." ".$StornoUser['nachname']."</li>";
+        $StornoText = "Storniert am ".strftime("%A, %d. %b. %G", strtotime($Reservierung['storno_zeit']))." durch ".$StornoUser['vorname']." ".$StornoUser['nachname']."";
+        $TableHTML .= table_row_builder(table_header_builder("Storno:").table_data_builder($StornoText));
     }
+    $ButtonBearbeiten = form_button_builder('action_reservierung_'.$Reservierung['id'].'_bearbeiten', 'Bearbeiten', 'submit', 'mode_edit', '');
+    $ButtonStornieren = form_button_builder('action_reservierung_'.$Reservierung['id'].'_stornieren', 'Stornieren', 'submit', 'delete', '');
+    $ButtonStornoAufheben = form_button_builder('action_reservierung_'.$Reservierung['id'].'_storno_aufheben', 'Storno aufheben', 'submit', 'replay', '');
 
-    $HTML .= "<div class='input-field'>";
-
-    $HTML .= $VerknuepfenButton;
-
+    $Buttons = $VerknuepfenButton;
     if ($Bearbeiten == TRUE){
-        $HTML .= "<div class='input-field'><button class='btn waves-effect waves-light' type='submit' name='action_reservierung_".$Reservierung['id']."_bearbeiten'><i class='small material-icons'>mode_edit</i> Bearbeiten</button></div>";
+        $Buttons .= " ".$ButtonBearbeiten;
     }
     if ($Stornieren == TRUE){
-        $HTML .= "<div class='input-field'><button class='btn waves-effect waves-light' type='submit' name='action_reservierung_".$Reservierung['id']."_stornieren'><i class='small material-icons'>delete</i> Stornieren</button></div>";
+        $Buttons .= " ".$ButtonStornieren;
     }
     if ($StornoAufheben == TRUE){
-        $HTML .= "<div class='input-field'><button class='btn waves-effect waves-light' type='submit' name='action_reservierung_".$Reservierung['id']."_storno_aufheben'><i class='small material-icons'>replay</i> Storno aufheben</button></div>";
+        $Buttons .= " ".$ButtonStornoAufheben;
     }
 
-    $HTML .= "</li>";
-    $HTML .= "</ul>";
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</li>";
+    $TableHTML .= table_row_builder(table_header_builder($Buttons).table_data_builder(""));
+    $Content = table_builder($TableHTML);
+    $Content = form_builder($Content, '#', 'action', '', '');
 
-    return $HTML;
+    $CollapsibleItem = collapsible_item_builder($Titel, $Content, 'today', '');
+
+    return $CollapsibleItem;
 }
 
 ?>
