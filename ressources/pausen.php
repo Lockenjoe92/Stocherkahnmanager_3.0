@@ -77,6 +77,101 @@
         return $Antwort;
     }
 
+function pause_bearbeiten($PauseID, $BeginnPause, $EndePause, $Typ, $Titel, $Erklaerung, $OverrideReservations){
+
+    //Eingaben auswerten
+    $Auswertung = pauseneingabe_auswerten($BeginnPause, $EndePause, $Typ, $Titel, $Erklaerung, 'edit');
+
+    //Liegt ein general Error vor?
+    if ($Auswertung['fatal_error'] == TRUE){
+
+        //Wir beenden den Vorgang
+        $Antwort['erfolg'] = FALSE;
+        $Antwort['meldung'] = $Auswertung['error_text'];
+
+    } else if ($Auswertung['fatal_error'] == FALSE){
+
+        //Überprüfen ob Reservierungen von der Pause betroffen sind
+        if ($Auswertung['reservierung_betroffen'] == TRUE){
+
+            $AnzahlBetroffeneReservierungen = mysqli_num_rows($Auswertung['betroffene_reservierungen']);
+
+            //Überprüfen ob wir im override-mode sind
+            if ($OverrideReservations == TRUE){
+                $ErfolgCounter = 0;
+                $ErrorMessage = "";
+
+                //Generieren der Begründung für Mail an den User
+                $Begruendung = "<p>Zum Zeitpunkt deiner Reservierung musste leider eine betriebsbedingte Pause des Kahnbetriebs eingetragen werden.</p>";
+                $Begruendung .= "<p>Hier die Daten zu der Betriebspause:<br>";
+                $Begruendung .= "Typ: ".$Typ."<br>";
+                $Begruendung .= "Titel: ".$Titel."<br>";
+                $Begruendung .= "Details: ".$Erklaerung."</p>";
+
+                //Wir iterieren und stornieren die betroffenen Reservierungen
+                for ($a = 1; $a <= $AnzahlBetroffeneReservierungen; $a++){
+
+                    $BetroffeneReservierung = mysqli_fetch_assoc($Auswertung['betroffene_reservierungen']);
+                    $ID = $BetroffeneReservierung['id'];
+                    $ReservierungStornieren = reservierung_stornieren($ID, lade_user_id(), $Begruendung);
+
+                    if ($ReservierungStornieren['success'] == TRUE){
+                        $ErfolgCounter++;
+                    } else {
+                        $ErrorMessage .= "Fehler beim Stornieren der Reservierung ".$ID."!<br>";
+                    }
+                }
+
+                if ($ErfolgCounter == $AnzahlBetroffeneReservierungen){
+                    $Eintrag = pause_bearbeiten_dostuff($PauseID, $Typ, $BeginnPause, $EndePause, $Titel, $Erklaerung);
+                    $Antwort['erfolg'] = $Eintrag['success'];
+                    $Antwort['meldung'] = "Pause erfolgreich bearbeitet! Es wurden ".$ErfolgCounter." Reservierungen storniert.<br>";
+                } else {
+                    $Antwort['erfolg'] = FALSE;
+                    $Antwort['meldung'] = $ErrorMessage;
+                }
+
+            } else if ($OverrideReservations == FALSE){
+                //Wir geben eine Fehlermeldung der betroffenen Reservierungven zurück
+                $Antwort['erfolg'] = FALSE;
+                $Antwort['reservierungen_betroffen'] = $AnzahlBetroffeneReservierungen;
+            }
+
+        } else if ($Auswertung['reservierung_betroffen'] == FALSE){
+
+            //Wir tragen die Pause direkt ein
+            $Eintrag = pause_bearbeiten_dostuff($PauseID, $Typ, $BeginnPause, $EndePause, $Titel, $Erklaerung);
+
+            if ($Eintrag['success'] == TRUE){
+                $Antwort['erfolg'] = TRUE;
+                $Antwort['meldung'] = "Die Betriebspause wurde erfolgreich in der Datenbank abgelegt!";
+            } else {
+                $Antwort['erfolg'] = FALSE;
+                $Antwort['meldung'] = $Eintrag['error'];
+            }
+        }
+    }
+
+    return $Antwort;
+}
+
+function pause_bearbeiten_dostuff($ID, $Typ, $Beginn, $Ende, $Titel, $Erklaerung){
+
+    $link = connect_db();
+
+    $AnfragePauseEintragen = "UPDATE pausen SET typ = '$Typ', beginn = '$Beginn', ende = '$Ende', titel = '$Titel', erklaerung = '$Erklaerung' WHERE id = '$ID'";
+    $AbfragePauseEintragen = mysqli_query($link, $AnfragePauseEintragen);
+
+    if ($AbfragePauseEintragen == TRUE){
+        $Antwort['success'] = TRUE;
+    } else {
+        $Antwort['success'] = FALSE;
+        $Antwort['error'] = mysqli_error($link);
+    }
+
+    return $Antwort;
+}
+
     function pause_eintragen($Typ, $Beginn, $Ende, $Titel, $Erklaerung, $Ersteller){
 
         $link = connect_db();
@@ -94,7 +189,7 @@
         return $Antwort;
     }
 
-    function pauseneingabe_auswerten($BeginnPause, $EndePause, $Typ, $Titel, $Erklaerung){
+    function pauseneingabe_auswerten($BeginnPause, $EndePause, $Typ, $Titel, $Erklaerung, $Mode='create'){
 
         //HOUSEKEEPING
         $link = connect_db();
@@ -125,6 +220,7 @@
             $GeneralError .= "Es muss ein Erkl&auml;rungstext f&uuml;r die Pause angegeben werden!<br>";
         }
 
+        if($Mode == 'create'){
             //Liegt bereits eine Pause in diesem Zeitraum vor?
             $AnfrageLadeVorhandenePausen = "SELECT id FROM pausen WHERE ((('$BeginnPause' <= beginn) AND (ende <= '$EndePause')) OR ((beginn <= '$BeginnPause') AND ('$BeginnPause' < ende)) OR ((beginn < '$EndePause') AND ('$EndePause' <= ende))) AND storno_user = '0'";
             $AbfrageLadeVorhandenePausen = mysqli_query($link, $AnfrageLadeVorhandenePausen);
@@ -133,6 +229,7 @@
                 $DAUcounter++;
                 $GeneralError .= "In dem angegebenen Zeitfenster befindet sich bereits mindestens eine andere Pause! Bitte l&ouml;sche diese vorher!<br>";
             }
+        }
 
             //Liegt bereits eine Sperrung in diesem Zeitraum vor?
             $AnfrageLadeVorhandeneSperrungen = "SELECT id FROM sperrungen WHERE ((('$BeginnPause' <= beginn) AND (ende <= '$EndePause')) OR ((beginn <= '$BeginnPause') AND ('$BeginnPause' < ende)) OR ((beginn < '$EndePause') AND ('$EndePause' <= ende))) AND storno_user = '0'";

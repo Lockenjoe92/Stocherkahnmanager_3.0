@@ -36,8 +36,15 @@ $HTML = section_builder($PageTitle);
 $Buttonmode = parser($TypURL, $Modename);
 
 //Formular Anzeigen
-$Von = "".$_POST['datum_von']." ".$_POST['zeit_von'].":00";
-$Bis = "".$_POST['datum_bis']." ".$_POST['zeit_bis'].":00";
+if(isset($_POST['datum_von'])){
+    $Von = "".$_POST['datum_von']." ".$_POST['zeit_von'].":00";
+    $Bis = "".$_POST['datum_bis']." ".$_POST['zeit_bis'].":00";
+} else {
+    $Von = timestamp();
+    $Bis = date("Y-m-d G:i:s", strtotime('+ 1 hour'));
+}
+
+
 $HTML .= ausfall_hinzufuegen_formular($_POST['typus'], $_POST['titel'], $_POST['erklaerung'], $Von, $Bis, $Modename, $Buttonmode, $TypURL);
 
 $HTML = container_builder($HTML);
@@ -49,6 +56,10 @@ echo site_body($HTML);
 function ausfall_hinzufuegen_formular($Typ, $Titel, $Erklaerung, $Von, $Bis, $Modename, $Buttonmode, $TypURL){
 
     $HTML = "<h3 class='center-align'>".$Modename." hinzuf&uuml;gen</h3>";
+
+    if (isset($Buttonmode['meldung'])){
+        $HTML .= section_builder($Buttonmode['meldung'], '', 'center-align');
+    }
 
     if (($Buttonmode['success'] == NULL) OR ($Buttonmode['success'] === FALSE)) {
         $TableHTML = table_form_string_item("Titel der " . $Modename . "", 'titel', $Titel, false);
@@ -80,10 +91,6 @@ function ausfall_hinzufuegen_formular($Typ, $Titel, $Erklaerung, $Von, $Bis, $Mo
     return $HTML;
 }
 
-
-
-
-
 function parser($Modus, $Modename){
 
     $Eintrag = NULL;
@@ -94,8 +101,8 @@ function parser($Modus, $Modename){
         $Titel = $_POST['titel'];
         $Typ = $_POST['typus'];
         $Erklaerung = $_POST['erklaerung'];
-        $Von = "".$_POST['jahr_von']."-".$_POST['monat_von']."-".$_POST['tag_von']." ".$_POST['stunde_von'].":00:00";
-        $Bis = "".$_POST['jahr_bis']."-".$_POST['monat_bis']."-".$_POST['tag_bis']." ".$_POST['stunde_bis'].":00:00";
+        $Von = "".$_POST['datum_von']." ".$_POST['zeit_von'].":00";
+        $Bis = "".$_POST['datum_bis']." ".$_POST['zeit_bis'].":00";
 
         if ($Modus == "pause"){
             $Eintrag = pause_anlegen($Von, $Bis, $Typ, $Titel, $Erklaerung, lade_user_id(), FALSE);
@@ -115,7 +122,7 @@ function parser($Modus, $Modename){
                 }
 
                 $Eintrag['override'] = true;
-                $Eintrag['meldung'] =  "<h5>Achtung!</h5><br>Von dieser ".$Modename." ".$ReservierungText." betroffen!<br>Bitte l&ouml;se den Vorgang erneut aus um die Pause trotzdem einzutragen - betroffene Nutzer werden dann per Mail oder SMS benachrichtigt.";
+                $Eintrag['meldung'] = "<h5>Achtung!</h5><br>Von dieser ".$Modename." ".$ReservierungText." betroffen!<br>Bitte l&ouml;se den Vorgang erneut aus um die Pause trotzdem einzutragen - betroffene Nutzer werden dann per Mail oder SMS benachrichtigt.";
             } else {
                 $Eintrag['meldung'] = "<h5>Fehler!</h5><br>".$Eintrag['meldung']."";
             }

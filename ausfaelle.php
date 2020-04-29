@@ -24,20 +24,6 @@ $HTML = container_builder($HTML);
 echo site_header($Header);
 echo site_body($HTML);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function spalte_pausen(){
 
     //Grundsätzliches
@@ -115,7 +101,7 @@ function spalte_sperrungen(){
 
 
             $Titel = $Sperrung['titel'];
-            $Content = table_row_builder(table_header_builder('Pausentyp').table_data_builder($Sperrung['typ']));
+            $Content = table_row_builder(table_header_builder('Sperrungstyp').table_data_builder($Sperrung['typ']));
             $Content .= table_row_builder(table_header_builder('Zeitraum').table_data_builder($Zeitraum));
             $Content .= table_row_builder(table_header_builder('Erklärung').table_data_builder($Sperrung['erklaerung']));
             $Content .= table_row_builder(table_header_builder('Erstellt von').table_data_builder($Wart['vorname']." ".$Wart['nachname']));

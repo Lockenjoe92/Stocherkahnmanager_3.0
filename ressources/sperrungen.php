@@ -209,4 +209,98 @@ function sperrung_stornieren($ID, $User){
     return $Antwort;
 }
 
+function sperrung_bearbeiten($PauseID, $BeginnPause, $EndePause, $Typ, $Titel, $Erklaerung, $OverrideReservations){
+
+    //Eingaben auswerten
+    $Auswertung = sperrungeingabe_auswerten($BeginnPause, $EndePause, $Typ, $Titel, $Erklaerung);
+
+    //Liegt ein general Error vor?
+    if ($Auswertung['fatal_error'] == TRUE){
+
+        //Wir beenden den Vorgang
+        $Antwort['erfolg'] = FALSE;
+        $Antwort['meldung'] = $Auswertung['error_text'];
+
+    } else if ($Auswertung['fatal_error'] == FALSE){
+
+        //Überprüfen ob Reservierungen von der Pause betroffen sind
+        if ($Auswertung['reservierung_betroffen'] == TRUE){
+
+            $AnzahlBetroffeneReservierungen = mysqli_num_rows($Auswertung['betroffene_reservierungen']);
+
+            //Überprüfen ob wir im override-mode sind
+            if ($OverrideReservations == TRUE){
+                $ErfolgCounter = 0;
+                $ErrorMessage = "";
+
+                //Generieren der Begründung für Mail an den User
+                $Begruendung = "<p>Zum Zeitpunkt deiner Reservierung musste leider eine betriebsbedingte Pause des Kahnbetriebs eingetragen werden.</p>";
+                $Begruendung .= "<p>Hier die Daten zu der Betriebspause:<br>";
+                $Begruendung .= "Typ: ".$Typ."<br>";
+                $Begruendung .= "Titel: ".$Titel."<br>";
+                $Begruendung .= "Details: ".$Erklaerung."</p>";
+
+                //Wir iterieren und stornieren die betroffenen Reservierungen
+                for ($a = 1; $a <= $AnzahlBetroffeneReservierungen; $a++){
+
+                    $BetroffeneReservierung = mysqli_fetch_assoc($Auswertung['betroffene_reservierungen']);
+                    $ID = $BetroffeneReservierung['id'];
+                    $ReservierungStornieren = reservierung_stornieren($ID, lade_user_id(), $Begruendung);
+
+                    if ($ReservierungStornieren['success'] == TRUE){
+                        $ErfolgCounter++;
+                    } else {
+                        $ErrorMessage .= "Fehler beim Stornieren der Reservierung ".$ID."!<br>";
+                    }
+                }
+
+                if ($ErfolgCounter == $AnzahlBetroffeneReservierungen){
+                    $Antwort['erfolg'] = TRUE;
+                    $Antwort['meldung'] = "Sperrung erfolgreich bearbeitet! Es wurden ".$ErfolgCounter." Reservierungen storniert.<br>";
+                } else {
+                    $Antwort['erfolg'] = FALSE;
+                    $Antwort['meldung'] = $ErrorMessage;
+                }
+
+            } else if ($OverrideReservations == FALSE){
+                //Wir geben eine Fehlermeldung der betroffenen Reservierungven zurück
+                $Antwort['erfolg'] = FALSE;
+                $Antwort['reservierungen_betroffen'] = $AnzahlBetroffeneReservierungen;
+            }
+
+        } else if ($Auswertung['reservierung_betroffen'] == FALSE){
+
+            //Wir tragen die Pause direkt ein
+            $Eintrag = sperrung_bearbeiten_dostuff($PauseID, $Typ, $BeginnPause, $EndePause, $Titel, $Erklaerung);
+
+            if ($Eintrag['success'] == TRUE){
+                $Antwort['erfolg'] = TRUE;
+                $Antwort['meldung'] = "Die Betriebspause wurde erfolgreich in der Datenbank abgelegt!";
+            } else {
+                $Antwort['erfolg'] = FALSE;
+                $Antwort['meldung'] = $Eintrag['error'];
+            }
+        }
+    }
+
+    return $Antwort;
+}
+
+function sperrung_bearbeiten_dostuff($ID, $Typ, $Beginn, $Ende, $Titel, $Erklaerung){
+
+    $link = connect_db();
+
+    $AnfragePauseEintragen = "UPDATE sperrungen SET typ = '$Typ', beginn = '$Beginn', ende = '$Ende', titel = '$Titel', erklaerung = '$Erklaerung' WHERE id = '$ID'";
+    $AbfragePauseEintragen = mysqli_query($link, $AnfragePauseEintragen);
+
+    if ($AbfragePauseEintragen == TRUE){
+        $Antwort['success'] = TRUE;
+    } else {
+        $Antwort['success'] = FALSE;
+        $Antwort['error'] = mysqli_error($link);
+    }
+
+    return $Antwort;
+}
+
 ?>
