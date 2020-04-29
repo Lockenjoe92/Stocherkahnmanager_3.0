@@ -1235,6 +1235,22 @@ function kosten_reservierung($ReservierungID){
     return $Kosten;
 }
 
+function lade_alle_reservierungen_eines_users($UserID){
+
+    $link = connect_db();
+    $AnfangDesJahres = date("Y")."-01-01 00:00:00";
+    $Ergebnis = array();
+    $Anfrage = "SELECT * FROM reservierungen WHERE user = '".$UserID."' AND storno_user = '0' AND beginn > '$AnfangDesJahres' ORDER BY beginn ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    for ($a = 1; $a <= $Anzahl; $a++){
+        $Res = mysqli_fetch_assoc($Abfrage);
+        array_push($Ergebnis, $Res);
+    }
+
+    return $Ergebnis;
+}
+
 function lade_weitere_aktive_reservierungen_user($IDres){
 
     $link = connect_db();

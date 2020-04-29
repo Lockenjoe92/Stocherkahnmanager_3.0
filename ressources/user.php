@@ -35,6 +35,25 @@ function lade_user_meta($UserID){
         $Row = mysqli_fetch_assoc($res);
         $Result[$Row['schluessel']] = $Row['wert'];
     }
+
+    if (!($stmt = $link->prepare("SELECT * FROM users WHERE id = ?"))) {
+        $Antwort['erfolg'] = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("i", $UserID)) {
+        $Antwort['erfolg'] = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['erfolg'] = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Stuff = mysqli_fetch_assoc($res);
+
+    $Result['registrierung'] = $Stuff['register'];
+    $Result['mail'] = $Stuff['mail'];
     $Result['id'] = $UserID;
 
     return $Result;
