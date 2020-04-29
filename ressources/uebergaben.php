@@ -446,7 +446,7 @@ function uebergabe_durchfuehrung_festhalten($IDuebergabe, $Schluessel){
     }
 }
 
-function spontanuebergabe_durchfuehren($IDres, $IDschluessel, $Gratisfahrt, $AndererPreis, $GezahlterBetrag, $Vertrag){
+function spontanuebergabe_durchfuehren($IDres, $IDschluessel, $Gratisfahrt, $AndererPreis, $GezahlterBetrag){
 
     $link =connect_db();
 
@@ -503,13 +503,13 @@ function spontanuebergabe_durchfuehren($IDres, $IDschluessel, $Gratisfahrt, $And
     }
 
     //Gratisfahrt angekreuzt und Zahlung
-    if(($Gratisfahrt == TRUE) AND ($AndererPreis != "")){
+    if(isset($Gratisfahrt) AND ($AndererPreis != "")){
         $DAUcounter++;
         $DAUerror .= "Du kannst keine Gratisfahrt und einen verg&uuml;nstigten Tarif angeben!<br>";
     }
 
     //Gratisfahrt angekreuzt und vergünstigter Tarif
-    if(($Gratisfahrt == TRUE) AND ($GezahlterBetrag != "")){
+    if(isset($Gratisfahrt) AND ($GezahlterBetrag != "")){
         $DAUcounter++;
         $DAUerror .= "Du kannst keine Gratisfahrt und gleichzeitig eine Zahlung angeben!<br>";
     }
@@ -885,62 +885,38 @@ function lade_entstandene_uebergaben($IDangebot){
 
 function uebergabe_planen_listenelement_generieren(){
 
-    uebergabe_planen_listenelement_parser();
+    $HTML = "";
+    if(isset($_POST['uebergabe_vorplanen_datum'])){
+        $PlaceholderDatum = $_POST['uebergabe_vorplanen_datum'];
+        $PlaceholderZeit = "".$_POST['uebergabe_vorplanen_zeit'].":00";
+    } else {
+        $PlaceholderDatum = date('Y-m-d');
+        $PlaceholderZeit = date('G:i');
+    }
 
-    //Ausgabe
-    $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>open_in_browser</i>&Uuml;bergabe vorplanen</div>";
-    $HTML .= "<div class='collapsible-body'>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<form method='post'>";
+    $Parser = uebergabe_planen_listenelement_parser();
+    if(isset($Parser['meldung'])){
+        $HTML .= "<h5 class='center-align'>".$Parser['meldung']."</h5>";
+    }
 
-    //Reservierung und deren modifizierung
-    $HTML .= "<h5>Reservierung w&auml;hlen</h5>";
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>today</i>";
-    $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung_uebergabe_vorplanen');
-    $HTML .= "</div>";
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>grade</i>";
-    $HTML .= "<input type='checkbox' name='gratis_fahrt_uebergabe_vorplanen' id='gratis_fahrt_uebergabe_vorplanen'>";
-    $HTML .= "<label for='gratis_fahrt_uebergabe_vorplanen'>Als Gratisfahrt eintragen.</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>thumb_up</i>";
-    $HTML .= "<input type='text' name='verguenstigung_uebergabe_vorplanen' id='verguenstigung_uebergabe_vorplanen' data-size='3'>";
-    $HTML .= "<label for='verguenstigung_uebergabe_vorplanen'>Verg&uuml;nstigter Tarif</label>";
-    $HTML .= "</div>";
-
-    //Übergabeort
-    $HTML .= "<h5>&Uuml;bergabeort w&auml;hlen</h5>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">room</i>";
-    $HTML .= dropdown_vorlagen_ortsangaben('ortsangabe_uebergabe_vorplanen', lade_user_id(), $_POST['ortsangabe_uebergabe_vorplanen']);
-    $HTML .= "<label for=\"ortsangabe_uebergabe_vorplanen\">Vorlage w&auml;hlen</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">room</i>";
-    $HTML .= "<input type='text' id='ortsangabe_schriftlich_uebergabe_vorplanen' name='ortsangabe_schriftlich_uebergabe_vorplanen' value='".$_POST['ortsangabe_schriftlich_uebergabe_vorplanen']."'>";
-    $HTML .= "<label for=\"ortsangabe_schriftlich_uebergabe_vorplanen\">Ortsangabe manuell eingeben</label>";
-    $HTML .= "</div>";
-    $HTML .= "<div class=\"input-field\">";
-    $HTML .= "<i class=\"material-icons prefix\">comment</i>";
-    $HTML .= "<textarea name='kommentar_uebergabe_vorplanen' id='kommentar_uebergabe_vorplanen' class='materialize-textarea'>".$_POST['kommentar_uebergabe_vorplanen']."</textarea>";
-    $HTML .= "<label for=\"kommentar_uebergabe_vorplanen\">Optional: weiterer Kommentar</label>";
-    $HTML .= "</div>";
-
-
-    //Übergabezeitpunkt
-    $HTML .= "<h5>&Uuml;bergabezeit w&auml;hlen</h5>";
-    $HTML .= table_builder(table_form_datepicker_reservation_item('Zeitpunkt der Übergabe', 'uebergabe_zeitpunkt', $_POST['uebergabe_zeitpunkt'], false, true, ''));
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<button type='submit' name='action_uebergabe_vorplanen_durchfuehren' class='btn waves-effect waves-light'>Anlegen</button>";
-    $HTML .= "</div>";
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</li>";
+    $Content = "<h5 class='center-align'>Reservierung w&auml;hlen</h5>";
+    $TableHTML = table_row_builder(table_header_builder('Reservierung wählen').table_data_builder(dropdown_aktive_res_spontanuebergabe('reservierung_uebergabe_vorplanen')));
+    $TableHTML .= table_form_swich_item('Als Gratisfahrt eintragen', 'gratis_fahrt_uebergabe_vorplanen', 'Nein', 'Ja', '', false);
+    $TableHTML .= table_form_select_item('Verg&uuml;nstigter Tarif', 'verguenstigung_uebergabe_vorplanen', 0, lade_xml_einstellung('max-kosten-einer-reservierung'), $_POST['verguenstigung_uebergabe_vorplanen'], '&euro;','Verg&uuml;nstigter Tarif', '');
+    $Content .= table_builder($TableHTML);
+    $Content .= "<h5 class='center-align'>&Uuml;bergabeort w&auml;hlen</h5>";
+    $TableHTML = table_row_builder(table_header_builder('Vorlage w&auml;hlen').table_data_builder(dropdown_vorlagen_ortsangaben('ortsangabe_uebergabe_vorplanen', lade_user_id(), $_POST['ortsangabe_uebergabe_vorplanen'])));
+    $TableHTML .= table_form_string_item('Ortsangabe manuell eingeben', 'ortsangabe_schriftlich_uebergabe_vorplanen', $_POST['ortsangabe_schriftlich_uebergabe_vorplanen'], false);
+    $TableHTML .= table_form_string_item('Optional: weiterer Kommentar', 'kommentar_uebergabe_vorplanen', $_POST['kommentar_uebergabe_vorplanen'], false);
+    $Content .= table_builder($TableHTML);
+    $Content .= "<h5 class='center-align'>&Uuml;bergabezeit w&auml;hlen</h5>";
+    $TableHTML = table_form_datepicker_reservation_item('Datum', 'uebergabe_vorplanen_datum', $PlaceholderDatum, false, true, '');
+    $TableHTML .= table_form_timepicker_item('Uhrzeit', 'uebergabe_vorplanen_zeit', $PlaceholderZeit, false, true, '');
+    $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_uebergabe_vorplanen_durchfuehren', 'Anlegen', 'action', 'send', '')).table_data_builder(''));
+    $Content .= table_builder($TableHTML);
+    $Content = form_builder($Content, '#', 'post');
+    $Titel = "&Uuml;bergabe vorplanen";
+    $HTML .= collapsible_item_builder($Titel, $Content, 'open_in_browser');
 
     return $HTML;
 }
@@ -953,7 +929,7 @@ function uebergabe_planen_listenelement_parser(){
         $ResID = $_POST['reservierung_uebergabe_vorplanen'];
 
         //GRatisfahrt?
-        if ($_POST['gratis_fahrt_uebergabe_vorplanen']){
+        if (isset($_POST['gratis_fahrt_uebergabe_vorplanen'])){
             $Gratis = TRUE;
         } else {
             $Gratis = FALSE;
@@ -966,8 +942,7 @@ function uebergabe_planen_listenelement_parser(){
         $Dropdown = $_POST['ortsangabe_uebergabe_vorplanen'];
         $Manuell = $_POST['ortsangabe_schriftlich_uebergabe_vorplanen'];
         if (($Dropdown != "") AND ($Manuell != "")){
-            toast_ausgeben('Du kannst nicht gleichzeitig eine Vorlage nutzen und einen &Uuml;bergabeort schriftlich eingeben!');
-            return NULL;
+            return 'Du kannst nicht gleichzeitig eine Vorlage nutzen und einen &Uuml;bergabeort schriftlich eingeben!';
         } else {
             $Uebergabeort = "".$Dropdown."".$Manuell."";
         }
@@ -976,11 +951,11 @@ function uebergabe_planen_listenelement_parser(){
         $Kommentar = $_POST['kommentar_uebergabe_vorplanen'];
 
         //Übergabezeitpunkt
-        $Zeitpunkt = "".$_POST['datum_terminangebot_anlegen']." ".$_POST['stunde_beginn_terminangebot_anlegen'].":".$_POST['minute_beginn_terminangebot_anlegen'].":00";
+        $Zeitpunkt = "".$_POST['uebergabe_vorplanen_datum']." ".$_POST['uebergabe_vorplanen_zeit'].":00";
 
         $Parser = geplante_uebergabe_eintragen($ResID, $Gratis, $Verguenstigung, $Uebergabeort, $Kommentar, $Zeitpunkt);
         if ($Parser['meldung'] != ""){
-            toast_ausgeben($Parser['meldung']);
+            return $Parser['meldung'];
         }
 
     } else {
@@ -1304,14 +1279,20 @@ function uebernahme_planen_listenelement_generieren(){
     $HTML .= "<form method='post'>";
 
     //Reservierung und deren modifizierung
-    $HTML .= "<h5>Reservierung w&auml;hlen</h5>";
+    $HTML .= "<h4>Reservierung w&auml;hlen</h4>";
+
+    $Parser = uebernahme_planen_listenelement_parser();
+    if(isset($Parser)){
+        $HTML .= "<h5>".$Parser."</h5>";
+    }
+
     $HTML .= "<div class='input-field'>";
     $HTML .= "<i class='material-icons prefix'>today</i>";
     $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung_uebernahme_vorplanen');
     $HTML .= "</div>";
 
     $HTML .= "<div class='input-field'>";
-    $HTML .= "<button type='submit' name='action_uebernahme_vorplanen_durchfuehren' class='btn waves-effect waves-light'>Vorplanen</button>";
+    $HTML .= form_button_builder('action_uebernahme_vorplanen_durchfuehren', 'Vorplanen', 'submit', 'send');
     $HTML .= "</div>";
     $HTML .= "</form>";
     $HTML .= "</div>";
@@ -1339,7 +1320,12 @@ function uebernahme_planen_listenelement_parser(){
 
 function spontanuebergabe_listenelement_generieren(){
 
-    spontanuebergabe_listenelement_parser();
+    $HTML = "";
+
+    $Parser = spontanuebergabe_listenelement_parser();
+    if(isset($Parser['meldung'])){
+        $HTML .= "<h5 class='center-align'>".$Parser['meldung']."</h5>";
+    }
 
     $FormHTML = table_row_builder(table_header_builder('Reservierung').table_data_builder(dropdown_aktive_res_spontanuebergabe('reservierung')));
     $FormHTML .= table_row_builder(table_header_builder('Schlüssel').table_data_builder(dropdown_verfuegbare_schluessel_wart('schluessel', lade_user_id())));
@@ -1349,7 +1335,7 @@ function spontanuebergabe_listenelement_generieren(){
     $FormHTML = table_builder($FormHTML);
     $FormHTML .= divider_builder();
     $FormHTML .= table_builder(table_row_builder(table_header_builder(form_button_builder('action_spontanuebergabe_durchfuehren', 'Durchf&uuml;hren', 'submit', 'send', '')).table_data_builder('')));
-    $HTML = form_builder($FormHTML, '#', 'post');
+    $HTML .= form_builder($FormHTML, '#', 'post');
     $HTML = collapsible_item_builder('Spontanübergabe', $HTML, 'star');
 
     return $HTML;

@@ -1290,3 +1290,107 @@ function card_resinfos_generieren($IDres){
 
     return $Antwort;
 }
+
+function reservierung_auf_gratis_setzen($IDreservierung){
+
+    $link = connect_db();
+
+    //Reservierung updaten
+    $AnfrageUpdateRes = "UPDATE reservierungen SET gratis_fahrt = '1' WHERE id = '$IDreservierung'";
+
+    if(mysqli_query($link, $AnfrageUpdateRes)){
+
+        $AnfrageForderungenRes = "SELECT id FROM finanz_forderungen WHERE referenz_res = '$IDreservierung' AND storno_user = '0'";
+        $AbfrageForderungenRes = mysqli_query($link, $AnfrageForderungenRes);
+        $Forderung = mysqli_fetch_assoc($AbfrageForderungenRes);
+        $BisherigeEinnahmenForderung = lade_gezahlte_summe_forderung($Forderung['id']);
+
+        if ($BisherigeEinnahmenForderung > 0){
+            //Wir müssen dem User das Geld zurückgeben
+            ausgleich_hinzufuegen_res($IDreservierung, $BisherigeEinnahmenForderung, 19);
+        }
+
+        //Forderung stornieren
+        forderung_stornieren($Forderung['id']);
+        return true;
+
+    } else {
+        return false;
+    }
+}
+
+function ausgleich_hinzufuegen_res($ResID, $Betrag, $Steuersatz){
+
+    $link = connect_db();
+    $Reservierung = lade_reservierung($ResID);
+    $Antwort = array();
+
+    //DAU
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+
+    if(($ResID == "") OR ($ResID == 0)){
+        $DAUcounter++;
+        $DAUerror .= "Du musst eine Resevierung angew&auml;hlt haben!<br>";
+    }
+
+    if(($Betrag == "") OR ($Betrag == 0)){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen Ausgleichsbetrag angeben!<br>";
+    }
+
+    if(($Steuersatz == "")){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen Steuersatz angeben!<br>";
+    }
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else {
+
+        $Anfrage = "INSERT INTO finanz_ausgleiche (betrag, steuersatz, fuer_user, fuer_konto, referenz, referenz_res, timestamp, anleger, update_time, update_user, storno_time, storno_user) VALUES ('$Betrag', '$Steuersatz', '".$Reservierung['user']."', '0', '', '$ResID', '".timestamp()."', '".lade_user_id()."', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '0')";
+
+        if (mysqli_query($link, $Anfrage)){
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "Ausgleich erfolgreich vermerkt!";
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Datenbankfehler!";
+        }
+
+    }
+
+    return $Antwort;
+}
+
+function reservierung_preis_aendern($IDreservierung, $NeuerPreis){
+
+    $link = connect_db();
+
+    $AnfrageReservierungUpdaten = "UPDATE reservierungen SET preis_geaendert = '$NeuerPreis' WHERE id = '$IDreservierung'";
+    if (mysqli_query($link, $AnfrageReservierungUpdaten)){
+
+        $Forderung = lade_forderung_res($IDreservierung);
+
+        if ($Forderung['betrag'] < $NeuerPreis){
+
+            //Einfach nur updaten
+            $AnfrageUpdateForderung = "UPDATE finanz_forderungen SET betrag = '$NeuerPreis', update_user = '".lade_user_id()."', update_time = '".timestamp()."' WHERE id = '".$Forderung['id']."'";
+            mysqli_query($link, $AnfrageUpdateForderung);
+
+        } else if ($Forderung['betrag'] != $NeuerPreis){
+
+            //Wir müssen nachsehen ob er nicht etwas zurückbekommen soll
+            $BisherigeZahlungen = lade_gezahlte_summe_forderung($Forderung['id']);
+
+            if ($BisherigeZahlungen > $NeuerPreis){
+
+                //Differenz als Rückzahlung vermerken
+                $Differenz = $BisherigeZahlungen - $NeuerPreis;
+                ausgleich_hinzufuegen_res($IDreservierung, $Differenz, 19);
+            }
+        }
+    }
+}

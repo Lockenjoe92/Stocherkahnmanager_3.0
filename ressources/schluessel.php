@@ -362,3 +362,32 @@ function schluessel_umbuchen_listenelement_parser($Schluessel, $AnWart, $AnOrt){
 
     return $Antwort;
 }
+function schluessel_an_user_ausgeben($UebergabeID, $Schluessel, $Wart){
+
+    $Uebergabe = lade_uebergabe($UebergabeID);
+    $Reservierung = lade_reservierung($Uebergabe['res']);
+    $link = connect_db();
+    $Timestamp = timestamp();
+
+    //DAU
+
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    if($DAUcounter > 0){
+
+    } else if ($DAUcounter == 0) {
+
+        $Anfrage = "INSERT INTO schluesselausgabe (uebergabe, wart, user, reservierung, schluessel, ausgabe, rueckgabe, storno_user, storno_time, storno_kommentar) VALUES ('$UebergabeID', '$Wart', '".$Reservierung['user']."', '".$Reservierung['id']."', '$Schluessel', '$Timestamp', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '')";
+
+        mysqli_query($link, $Anfrage);
+
+        $AnfrageZwei = "UPDATE schluessel SET akt_user ='".$Reservierung['user']."' WHERE id = '$Schluessel'";
+        mysqli_query($link, $AnfrageZwei);
+
+        add_protocol_entry(lade_user_id(), '&Uuml;bergabe '.$UebergabeID.' durch Wart '.$Wart.' durchgefuehrt. Schluessel '.$Schluessel.' ausgegeben.', 'schluessel');
+
+    }
+
+
+}

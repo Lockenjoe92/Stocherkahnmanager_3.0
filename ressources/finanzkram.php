@@ -199,3 +199,31 @@ function lade_gezahlte_summe_forderung($ForderungID){
 
     return $Zaehler;
 }
+function einnahme_festhalten($Forderung, $Empfangskonto, $Betrag, $Steuersatz){
+
+    $Timestamp = timestamp();
+    $link = connect_db();
+
+    $Anfrage = "INSERT INTO finanz_einnahmen (betrag, steuersatz, forderung_id, konto_id, timestamp, bucher, storno, storno_user) VALUES ('$Betrag', '$Steuersatz', '$Forderung', '$Empfangskonto', '$Timestamp', '".lade_user_id()."', '0000-00-00 00:00:00', '0')";
+    if (mysqli_query($link, $Anfrage)){
+
+        //Konto aktualisieren
+        $KontoAktuell = lade_kontostand($Empfangskonto);
+        $KontoNeu = intval($KontoAktuell) + intval($Betrag);
+        update_kontostand($Empfangskonto, $KontoNeu);
+
+        return true;
+    } else {
+        return false;
+    }
+
+}
+function update_kontostand($KontoID, $KontostandNeu){
+
+    $link = connect_db();
+
+    $Anfrage = "UPDATE finanz_konten SET wert_aktuell = '$KontostandNeu' WHERE id = '$KontoID'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+
+    return $Abfrage;
+}
