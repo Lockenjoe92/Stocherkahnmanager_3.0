@@ -596,6 +596,56 @@ function reservierung_stornieren($ReservierungID, $IDstornierer, $Begruendung){
     return $Antwort;
 }
 
+function reservierung_storno_aufheben($ReservierungID){
+
+    $link = connect_db();
+    $AlteResMeta = lade_reservierung($ReservierungID);
+
+    //Konflikt mit anderen Reservierungen / Sperren / Pausen?
+    if (!($stmt = $link->prepare("SELECT id FROM reservierungen WHERE (((? <= beginn) AND (? > beginn)) OR ((beginn <= ?) AND (? <= ende)) OR ((? < ende) AND (? >= ende))) AND storno_user = 0"))) {
+        #$Antwort['erfolg'] = false;
+        #echo  __LINE__;
+        #echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        return "Fehler";
+    }
+    if (!$stmt->bind_param("ssssss", $AlteResMeta['beginn'], $AlteResMeta['ende'], $AlteResMeta['beginn'], $AlteResMeta['ende'], $AlteResMeta['beginn'], $AlteResMeta['ende'])) {
+        #$Antwort['erfolg'] = false;
+        #echo  __LINE__;
+        #echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        return "Fehler";
+    }
+    if (!$stmt->execute()) {
+        #$Antwort['erfolg'] = false;
+        #echo  __LINE__;
+        #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        return "Fehler";
+    } else {
+        $res = $stmt->get_result();
+        if (mysqli_num_rows($res) > 0){
+            return "Inzwischen existiert leider bereits eine andere Reservierung in diesem Zeitfenster!";
+        } else {
+            if (!($stmt = $link->prepare("UPDATE reservierungen SET storno_user = 0 AND storno_zeit = '0000-00-00 00:00:00' WHERE id = ?"))) {
+                #return "Prepare failed: (" . $link->errno . ") " . $link->error;
+                return "Fehler";
+            }
+
+            if (!$stmt->bind_param("s",$ReservierungID)) {
+                #return "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+                return "Fehler";
+
+            }
+
+            if (!$stmt->execute()) {
+                #return "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+                return "Fehler";
+
+            } else {
+                return "Storno erfolgreich aufgehoben!";
+            }
+        }
+    }
+}
+
 function res_hat_uebergabe($IDres){
 
     $link = connect_db();

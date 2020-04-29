@@ -35,18 +35,14 @@ $HTML .= spalte_vergangene_reservierungen();
 //Stornierte Reservierungen
 //Objekt: ID, Datum, Von-Bis, User, Übergabestatus, Schlüsselstatus, Zahlstatus; Funktionen: storno-aufheben
 $HTML .= spalte_stornierte_reservierungen();
+$HTML = form_builder($HTML, '#', 'post', '', '');
+
 
 $HTML = container_builder($HTML);
 
 # Output site
 echo site_header($Header);
 echo site_body($HTML);
-
-
-
-
-
-
 
 
 function spalte_stats(){
@@ -143,7 +139,7 @@ function spalte_vergangene_reservierungen(){
 
         for ($a = 1; $a <= $Anzahl; $a++){
             $Reservierung = mysqli_fetch_assoc($Abfrage);
-            $HTML .= reservierungsobjekt_generieren($Reservierung['id'], TRUE, TRUE, FALSE);
+            $HTML .= reservierungsobjekt_generieren($Reservierung['id'], TRUE, TRUE, TRUE);
         }
 
     }
@@ -180,7 +176,7 @@ function spalte_stornierte_reservierungen(){
 
         for ($a = 1; $a <= $Anzahl; $a++){
             $Reservierung = mysqli_fetch_assoc($Abfrage);
-            $HTML .= reservierungsobjekt_generieren($Reservierung['id'], FALSE, FALSE, TRUE);
+            $HTML .= reservierungsobjekt_generieren($Reservierung['id'], TRUE, FALSE, TRUE);
         }
 
     }
@@ -227,7 +223,8 @@ function parser_resmanagement(){
         //Storno aufheben?
         $HTMLstornoaufheben = "action_reservierung_".$Reservierung['id']."_storno_aufheben";
         if(isset($_POST[$HTMLstornoaufheben])){
-            return 'Funktion wird noch implementiert!';
+            $Ergebnis = reservierung_storno_aufheben($Reservierung['id']);
+            return $Ergebnis;
         }
 
     }
@@ -345,8 +342,6 @@ function reservierungsobjekt_generieren($ResID, $Bearbeiten, $Stornieren, $Storn
 
     $TableHTML .= table_row_builder(table_header_builder($Buttons).table_data_builder(""));
     $Content = table_builder($TableHTML);
-    $Content = form_builder($Content, '#', 'action', '', '');
-
     $CollapsibleItem = collapsible_item_builder($Titel, $Content, 'today', '');
 
     return $CollapsibleItem;
