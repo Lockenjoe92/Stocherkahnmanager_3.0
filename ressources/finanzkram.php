@@ -140,3 +140,62 @@ function lade_einnahme($IDeinnahme){
 
     return $Einnahme;
 }
+
+function gesamteinnahmen_jahr($Jahr){
+
+    $link = connect_db();
+
+    $AnfangJahr = "".$Jahr."-01-01 00:00:01";
+    $EndeJahr = "".$Jahr."-12-31 23:59:59";
+
+    $Anfrage = "SELECT id, betrag FROM finanz_einnahmen WHERE timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $Einnahmen = 0;
+
+    for ($a = 1; $a <= $Anzahl; $a++){
+        $Einnahme = mysqli_fetch_assoc($Abfrage);
+        $Einnahmen = $Einnahmen + $Einnahme['betrag'];
+    }
+
+    return $Einnahmen;
+}
+
+function gesamtausgaben_jahr($Jahr){
+
+    $link = connect_db();
+
+    $AnfangJahr = "".$Jahr."-01-01 00:00:01";
+    $EndeJahr = "".$Jahr."-12-31 23:59:59";
+
+    $Anfrage = "SELECT id, betrag FROM finanz_ausgaben WHERE timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $Ausgaben = 0;
+
+    for ($a = 1; $a <= $Anzahl; $a++){
+        $Ausgabe = mysqli_fetch_assoc($Abfrage);
+        $Ausgaben = $Ausgaben + $Ausgabe['betrag'];
+    }
+
+    return $Ausgaben;
+}
+
+function lade_gezahlte_summe_forderung($ForderungID){
+
+    $link = connect_db();
+
+    $AnfrageLadeZahlungen = "SELECT id, betrag FROM finanz_einnahmen WHERE forderung_id = '$ForderungID' AND storno_user = '0'";
+    $AbfrageLadeZahlungen = mysqli_query($link, $AnfrageLadeZahlungen);
+    $AnzahlLadeZahlungen = mysqli_num_rows($AbfrageLadeZahlungen);
+
+    $Zaehler = 0;
+
+    for ($a = 1; $a <= $AnzahlLadeZahlungen; $a++){
+
+        $Einnahme = mysqli_fetch_assoc($AbfrageLadeZahlungen);
+        $Zaehler = $Zaehler + intval($Einnahme['betrag']);
+    }
+
+    return $Zaehler;
+}
