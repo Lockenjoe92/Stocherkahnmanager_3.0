@@ -9,7 +9,7 @@
 include_once "./ressources/ressourcen.php";
 session_manager();
 $Header = "Einstellungen - " . lade_db_einstellung('site_name');
-$Settings = ['vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'nutzergruppe'];
+$Settings = ['vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'nutzergruppe', 'telefon'];
 
 #Parse input
 user_settings_parser($Settings);

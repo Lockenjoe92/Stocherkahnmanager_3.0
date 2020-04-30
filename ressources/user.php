@@ -144,15 +144,11 @@ function update_user_meta($UserID, $Key, $Value){
 
     $link = connect_db();
 
-    if ($Value == ''){
-        return false;
-    } else {
-
-        if (!($stmt = $link->prepare("INSERT INTO user_meta (user,schluessel,wert,timestamp) VALUES (?,?,?,?)"))) {
+        if (!($stmt = $link->prepare("UPDATE user_meta SET wert = ?, timestamp = ? WHERE user = ? AND schluessel = ?"))) {
             $Antwort['erfolg'] = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
-        if (!$stmt->bind_param("isss", $UserID, $Key, $Value, timestamp())) {
+        if (!$stmt->bind_param("ssis", $Value, timestamp(), $UserID, $Key)) {
             $Antwort['erfolg'] = false;
             echo  "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
@@ -162,7 +158,6 @@ function update_user_meta($UserID, $Key, $Value){
         } else {
             return true;
         }
-    }
 }
 function check_password($PSWD) {
 

@@ -266,6 +266,7 @@ function register_formular($Parser){
         $TableHTML .= table_form_string_item('Stadt', 'stadt_large', $_POST['stadt_large'], '');
         $TableHTML .= table_form_string_item('Postleitzahl', 'plz_large', $_POST['plz_large'], '');
         $TableHTML .= table_form_email_item('EMail', 'mail_large', $_POST['mail_large'], '');
+        $TableHTML .= table_form_string_item('Telefon (optional)', 'telefon', $_POST['telefon'], '');
         $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Nutzergruppe', 'nutzergruppe', $_POST['nutzergruppe'], 'user');
         $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
         $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
@@ -389,6 +390,7 @@ function register_parser(){
 
             $LadeNutzergruppe = lade_nutzergruppe_infos($_POST['nutzergruppe']);
             $Rollen['ist_nutzergruppe'] = $LadeNutzergruppe['name'];
+            $Rollen['telefon'] = $_POST['telefon'];
 
             $Antwort = add_new_user($_POST['vorname_'.$arg.''], $_POST['nachname_'.$arg.''],
                 $_POST['strasse_'.$arg.''], $_POST['hausnummer_'.$arg.''],
