@@ -28,3 +28,4 @@ include_once "uebergaben.php";
 include_once "schluessel.php";
 include_once "pausen.php";
 include_once "sperrungen.php";
+include_once "ausleihvertraege.php";

@@ -271,8 +271,8 @@ function register_formular($Parser){
         $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
         $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
         $FormHTML = section_builder(table_builder($TableHTML));
-        $FormHTML .= section_builder(ds_unterschreiben_formular_parts());
-        $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')))));
+        $FormHTML .= section_builder(ds_und_vertrag_unterschreiben_formular_parts());
+        $FormHTML .= section_builder(table_builder(table_row_builder(table_data_builder(button_link_creator('Zur&uuml;ck', './login.php', 'arrow_left', '')."&nbsp;".form_button_builder('action_large', 'Registrieren', 'submit', 'send', '')).table_data_builder(''))));
         $HTML .= form_builder($FormHTML, './register.php', 'post', 'register_form', '');
     }
 
@@ -329,6 +329,11 @@ function register_parser(){
         if(!isset($_POST['ds'])){
             $DAUcounter ++;
             $DAUerror .= "Bitte die Datenschutzerkl&auml;rung abhaken!<br>";
+        }
+
+        if(!isset($_POST['vertrag'])){
+            $DAUcounter ++;
+            $DAUerror .= "Bitte den Mietvertrag abhaken!<br>";
         }
 
         if(empty($_POST['mail_'.$arg.''])){
@@ -419,8 +424,13 @@ function register_parser(){
             }
 
             #Datenschutzunterzeichnung festhalten
-            if(isset($_POST['ds_checked'])){
-                ds_unterschreiben($UserID,aktuelle_ds_id_laden());
+            if(isset($_POST['ds'])){
+                $ErgebnisDS = ds_unterschreiben($UserID,aktuelle_ds_id_laden());
+            }
+
+            #Mietvertragunterzeichnung festhalten
+            if(isset($_POST['vertrag'])){
+                $ErgebnisMV = mietvertrag_unterschreiben($UserID,aktuellen_mietvertrag_id_laden());
             }
 
             return $Antwort;
@@ -441,4 +451,30 @@ function generateRandomString($length = 10) {
 
 function protect_brute_force() {
     sleep(1);
+}
+
+function ds_und_vertrag_unterschreiben_formular_parts(){
+
+    $link = connect_db();
+    if(isset($_POST['ds'])){$Checked='on';}else{$Checked='off';}
+    if(isset($_POST['vertrag'])){$Checkedvertrag='on';}else{$Checkedvertrag='off';}
+
+    $Anfrage = "SELECT erklaerung, inhalt FROM datenschutzerklaerungen WHERE archivar = '0' ORDER BY create_time DESC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+
+    $Anfrage = "SELECT erklaerung, inhalt FROM ausleihvertraege WHERE archivar = '0' ORDER BY create_time DESC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $ErgebnisVertrag = mysqli_fetch_assoc($Abfrage);
+
+
+    $CollapsibleItems = collapsible_item_builder('Datenschutzerklärung', $Ergebnis['inhalt'], 'security', '');
+    $CollapsibleItems .= collapsible_item_builder('Nutzungsvertrag', $ErgebnisVertrag['inhalt'], 'assignment', '');
+    $HTML = collapsible_builder($CollapsibleItems);
+    $TableHTML = table_form_swich_item('Ich stimme den Nutzungsbedingungen, sowie der Speicherung und Verarbeitung gem&auml;&szlig; der Datenschutzerkl&auml;rung zu', 'ds', 'Nein', 'Ja', $Checked, false);
+    $TableHTML .= table_form_swich_item('Ich stimme dem Nutzungsvertrag, sowie der Haftungs- und Sicherungsvereinbarung zu', 'vertrag', 'Nein', 'Ja', $Checkedvertrag, false);
+    $HTML .= table_builder($TableHTML);
+
+    return $HTML;
+
 }
