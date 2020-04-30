@@ -66,13 +66,9 @@ function reservierung_loeschen_seiteninhalt($Mode, $ResID, $Parser){
                                 $HTML .= "</div>";
                             }
 
-                        $HTML .= "<div class='input-field'>";
-                        $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='action' value=''><i class='material-icons tiny'>delete</i> L&ouml;schen</button>";
-                        $HTML .= "</div>";
-                        $HTML .= "<div class='input-field'>";
-
-                        $HTML .= "<a href='wartwesen.php' class='btn waves-effect waves-light'>Abbrechen</a>";
-                        $HTML .= "</div>";
+                        $HTML .= button_link_creator('Abbrechen', 'wartwesen.php', 'arrow_back', '');
+                        $HTML .= " ";
+                        $HTML .= form_button_builder('action', 'Löschen', 'submit', 'delete', '');
 
                         $HTML .= "</form>";
 

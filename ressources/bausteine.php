@@ -881,7 +881,7 @@ function zurueck_karte_generieren($Erfolg, $WeitereInfo, $zurueckURI){
     $HTML = "<div class='card-panel " .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
     $HTML .= "<p><b>".$Meldung."</b></p>";
     $HTML .= "<p>".$WeitereInfo."</p>";
-    $HTML .= "<p><a class='btn waves-effect waves-light' href='".$zurueckURI."'>Zur&uuml;ck</a></p>";
+    $HTML .= "<p>".button_link_creator('Zurück', $zurueckURI, 'arrow_back', '')."</p>";
     $HTML .= "</div>";
 
     return $HTML;

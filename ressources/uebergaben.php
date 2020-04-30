@@ -1243,12 +1243,12 @@ function terminangebot_listenelement_buchbar_generieren($IDangebot){
 
     //Textinhalte generieren
     #$Zeitraum = "<b>".strftime("%A, %d. %B %G %H:%M", strtotime($Angebot['von']))."</b> bis <b>".strftime("%H:%M Uhr", strtotime($Angebot['bis']))."</b>";
-    $ZeitraumMobil = "<b>".strftime("%a, %d. %b - %H:%M", strtotime($Angebot['von']))."</b> bis <b>".strftime("%H:%M Uhr", strtotime($Angebot['bis']))."</b>";
+    $ZeitraumMobil = "<b>".strftime("%a, %d. %b - %H:%M", strtotime($Angebot['von']))."</b>&nbsp;bis&nbsp;<b>".strftime("%H:%M Uhr", strtotime($Angebot['bis']))."</b>";
 
     if($Angebot['kommentar'] == ""){
         $Kommentar = "";
     } else {
-        $Kommentar = collection_item_builder($Angebot['kommentar']);
+        $Kommentar = collection_item_builder("<i class='tiny material-icons'>comment</i> Kommentar: ".$Angebot['kommentar']."");
     }
 
     $Dropdownname = "zeitfenster_gewaehlt_terminangebot_".$IDangebot."";
@@ -1260,11 +1260,12 @@ function terminangebot_listenelement_buchbar_generieren($IDangebot){
     $FormularCollection = collection_item_builder($Formular);
 
     //Ausgabe
-    $Collection = collection_item_builder("<i class='tiny material-icons'>room</i> ".$Angebot['ort']."");
+    $Collection = collection_item_builder("<i class='tiny material-icons'>room</i> Ort: ".$Angebot['ort']."");
     $Collection .= $Kommentar;
     $Collection .= collection_item_builder("<i class='tiny material-icons'>perm_identity</i> Schl&uuml;sselwart: ".$Wart['vorname']." ".$Wart['nachname']."");
     $Collection .= $FormularCollection;
-    $HTML = collapsible_item_builder("Terminangebot: ".$ZeitraumMobil."", $Collection, 'today');
+    $Collection = collection_builder($Collection);
+    $HTML = collapsible_item_builder("Terminangebot:&nbsp;".$ZeitraumMobil."", $Collection, 'today');
 
     return $HTML;
 }

@@ -94,5 +94,51 @@
     <h5>Grillen an Bord</h5>
     <p>Wir stecken in unseren Kahn viel Arbeit und hatten leider in den letzten Jahren &ouml;fters schlechte Erfahrungen mit Gruppen die gegrillt und nicht aufgepasst haben. Daher erkennt das ge&uuml;bte Auge auch die eine oder andere Brandspur am Kahn. Daher k&ouml;nnen wir es euch leider nicht mehr erlauben auf dem Kahn zu grillen:/</p>
     </div>]]></html-faq-user-hauptansicht>
+    <impressum_html><![CDATA[
+    <p>
+                            <b>Stocherkahn Medizin T&uuml;bingen e.V.</b>
+                            <br>
+                            Gustav Jung
+                            <br>
+                            Bursagasse 18
+                            <br>
+                            72070 T&uuml;bingen
+                        </p>
+                        <p>
+                            <b>Kontakt:</b>
+                            <br>
+                            Email: info@stocherkahn.fachschaftmedizin.de
+                        </p>
+                        <p>
+                            <b>Verantwortlich nach &sect; 6 Abs.2 MDStV</b>
+                            <br>
+                            Marc Haefeker
+                            <br>
+                            Administrator
+                            <br>
+                            Vogtshaldenstr. 37
+                            <br>
+                            72074 T&uuml;bingen
+                        </p>
+                    </div>
+                    <div class='section'>
+                        <h2 class='header'>Alumni</h2>
+                        <p>
+                            <b>Design und CSS:</b>
+                            <a href='http://www.materializecss.com'>Materialize-CSS</a>
+                        </p>
+                        <p>
+                            <b>Seitenlayout:</b>
+                             Marc Haefeker
+                        </p>
+                        <p>
+                            <b>Buchungssystem:</b>
+                            <br>
+                            Sprachen: PHP, MySQL
+                            <br>
+                            Handgemacht von:
+                            <a href='mailto:marc@stocherkahn.fachschaftmedizin.de'>Marc Haefeker</a>
+                        </p>
+    ]]></impressum_html>
 
 </global_settings>

@@ -35,99 +35,6 @@ $HTML = container_builder($HTML);
 echo site_header($Header);
 echo site_body($HTML);
 
-
-function spalte_anstehende_rueckgaben(){
-
-    $link = connect_db();
-    zeitformat();
-
-    $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header'>Anstehende R&uuml;ckgaben</h5>";
-    $HTML .= "<h5 class='header center-align hide-on-large-only'>Anstehende R&uuml;ckgaben</h5>";
-    $HTML .= "<div class='section'>";
-
-    $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
-
-    $AnfrageLadeAlleSchluesselausgaben = "SELECT * FROM schluesselausgabe WHERE storno_user = '0' AND ausgabe <> '0000-00-00 00:00:00' AND rueckgabe = '0000-00-00 00:00:00' ORDER BY schluessel ASC";
-    $AbfrageLadeAlleSchluesselausgaben = mysqli_query($link, $AnfrageLadeAlleSchluesselausgaben);
-    $AnzahlLadeAlleSchluesselausgaben = mysqli_num_rows($AbfrageLadeAlleSchluesselausgaben);
-
-    if ($AnzahlLadeAlleSchluesselausgaben == 0){
-
-        $HTML .= "<li>";
-        $HTML .= "<div class='collapsible-header'><i class='large material-icons'>info</i>Keine anstehenden R&uuml;ckgaben!</div>";
-        $HTML .= "</li>";
-
-    } else if ($AnzahlLadeAlleSchluesselausgaben > 0){
-
-        $Counter = 0;
-
-        for($a = 1; $a <= $AnzahlLadeAlleSchluesselausgaben; $a++){
-
-            $Ausgabe = mysqli_fetch_assoc($AbfrageLadeAlleSchluesselausgaben);
-
-            //Reservierung vorbei oder storniert?
-            $Reservierung = lade_reservierung($Ausgabe['reservierung']);
-
-            if ((strtotime($Reservierung['ende']) < time()) OR ($Reservierung['storno_user'] != "0")){
-                //darf er dan Schlüssel weiter behalten?
-                $AnfrageWeitereReservierungenMitDiesemSchluessel = "SELECT id, reservierung FROM schluesselausgabe WHERE user = '".$Ausgabe['user']."' AND schluessel = '".$Ausgabe['schluessel']."' AND storno_user = '0' AND rueckgabe = '0000-00-00 00:00:00' AND id <> '".$Ausgabe['id']."'";
-                $AbfrageWeitereReservierungenMitDiesemSchluessel = mysqli_query($link, $AnfrageWeitereReservierungenMitDiesemSchluessel);
-                $AnzahlWeitereReservierungenMitDiesemSchluessel = mysqli_num_rows($AbfrageWeitereReservierungenMitDiesemSchluessel);
-
-                if ($AnzahlWeitereReservierungenMitDiesemSchluessel > 0){
-
-                    //Er darf den schlüssel noch weiter behalte
-
-                } else if ($AnzahlWeitereReservierungenMitDiesemSchluessel == 0){
-
-                    $Counter++;
-
-                    $Schluessel = lade_schluesseldaten($Ausgabe['schluessel']);
-
-                    $FahrtZuendeSeit = strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($Reservierung['ende']));
-                    $LetzteUsererinnerungLaden = lade_letze_erinnerung_schluesselrueckgabe($Ausgabe['user']);
-                    if($LetzteUsererinnerungLaden == NULL){
-                        $LetzeErinnerung = "Nie erfolgt.";
-                    } else {
-                        $LetzeErinnerung = strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($LetzteUsererinnerungLaden));
-                    }
-
-                    //Er soll den schlüssel zurück geben
-                    $HTML .= "<li>";
-                    $HTML .= "<div class='collapsible-header'><i class='large material-icons ".$Schluessel['farbe_materialize']."'>vpn_key</i>Schl&uumlssel #".$Schluessel['id']." - ".$Schluessel['farbe']."</div>";
-                    $HTML .= "<div class='collapsible-body'>";
-                    $HTML .= "<div class='container'>";
-                    $HTML .= "<form method='post'>";
-                    $HTML .= "<ul class='collection'>";
-                    $HTML .= "<li class='collection-item'>Fahrtende: ".$FahrtZuendeSeit."</li>";
-                    $HTML .= "<li class='collection-item'>Letzte Erinnerung: ".$LetzeErinnerung."</li>";
-                    $HTML .= collection_item_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_rueckgabe_festhalten', 'Rückgabe', 'action', 'send', ''));
-                    $HTML .= collection_item_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_rueckgabe_und_mitnehmen', 'Mitnehmen', 'action', 'send', ''));
-                    $HTML .= collection_item_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_erinnerung_senden', 'Erinnerung', 'action', 'send', ''));
-                    $HTML .= "</ul>";
-                    $HTML .= "</form>";
-                    $HTML .= "</div>";
-                    $HTML .= "</div>";
-                    $HTML .= "</li>";
-                }
-            }
-        }
-
-        if ($Counter == 0){
-            $HTML .= "<li>";
-            $HTML .= "<div class='collapsible-header'><i class='large material-icons'>info</i>Keine anstehenden R&uuml;ckgaben!</div>";
-            $HTML .= "</li>";
-        }
-    }
-
-    $HTML .= "</ul>";
-
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-
-    return $HTML;
-}
 function spalte_verfuegbare_schluessel(){
 
     $link = connect_db();
@@ -320,7 +227,6 @@ function schluessel_hinzufuegen_listenelement_generieren(){
     return $HTML;
 }
 
-
 function parser_schluesselmanagement(){
 
     $Parser = spalte_anstehende_rueckgaben_parser();
@@ -348,48 +254,6 @@ function parser_schluesselmanagement(){
     }
 
     return $Parser;
-}
-
-function spalte_anstehende_rueckgaben_parser(){
-
-    $link = connect_db();
-
-    $AnfrageLadeAlleSchluesselausgaben = "SELECT * FROM schluesselausgabe WHERE storno_user = '0' AND ausgabe <> '0000-00-00 00:00:00' AND rueckgabe = '0000-00-00 00:00:00' ORDER BY schluessel ASC";
-    $AbfrageLadeAlleSchluesselausgaben = mysqli_query($link, $AnfrageLadeAlleSchluesselausgaben);
-    $AnzahlLadeAlleSchluesselausgaben = mysqli_num_rows($AbfrageLadeAlleSchluesselausgaben);
-    $UserID = lade_user_id();
-
-    for ($a = 1; $a <= $AnzahlLadeAlleSchluesselausgaben; $a++){
-
-        $Ausgabe = mysqli_fetch_assoc($AbfrageLadeAlleSchluesselausgaben);
-
-        $ActionName = "action_schluessel_".$Ausgabe['schluessel']."_rueckgabe_festhalten";
-        $ErinnerungName = "action_schluessel_".$Ausgabe['schluessel']."_erinnerung_senden";
-        $PostNameGenerierenHerausnehmen = "action_schluessel_".$Ausgabe['schluessel']."_rueckgabe_und_mitnehmen";
-
-        if (isset($_POST[$ActionName])){
-
-            $Antwort = schluessel_umbuchen($Ausgabe['schluessel'], '', 'rueckgabekasten', $UserID);
-            $Event = "Schl&uuml;ssel ".$Ausgabe['schluessel']." von ".$UserID." als zurückgegeben vermerkt";
-            add_protocol_entry($UserID, $Event, 'schluessel');
-
-        }
-
-        if(isset($_POST[$PostNameGenerierenHerausnehmen])){
-            $Antwort = schluessel_umbuchen($Ausgabe['schluessel'], $UserID, '', $UserID);
-            $Event = "Schl&uuml;ssel ".$Ausgabe['schluessel']." von ".$UserID." aus R&uuml;ckgabekasten genommen und die Rückgabe gespeichert";
-            add_protocol_entry($UserID, $Event, 'schluessel');
-        }
-
-
-        if (isset($_POST[$ErinnerungName])){
-            $Antwort['success'] = false;
-            $Antwort['meldung'] = 'Diese Funktion muss noch implementiert werden!';
-        }
-
-    }
-
-    return $Antwort;
 }
 function spalte_verfuegbare_schluessel_parser(){
 
