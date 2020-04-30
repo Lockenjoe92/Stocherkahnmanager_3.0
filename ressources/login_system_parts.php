@@ -26,8 +26,8 @@ function login_formular($Parser, $SessionMessage){
     $HTMLBigscreenButtons = row_builder($HTMLBigscreenButtons);
 
     $HTMLMobileButtons = row_builder(form_button_builder('submit', 'Einloggen', 'submit', 'send'));
-    $HTMLMobileButtons .= row_builder(button_link_creator('Registrieren', './register.php', '', 'person_add'));
-    $HTMLMobileButtons .= row_builder(button_link_creator('Passwort vergessen', './iforgot.php', '', 'loop'));
+    $HTMLMobileButtons .= row_builder(button_link_creator('Registrieren', './register.php', 'person_add', ''));
+    $HTMLMobileButtons .= row_builder(button_link_creator('Passwort vergessen', './iforgot.php', 'loop', ''));
 
     $FormSections = section_builder($HTMLform);
     $FormSections .= section_builder($HTMLBigscreenButtons, '', 'hide-on-small-and-down');
@@ -266,6 +266,7 @@ function register_formular($Parser){
         $TableHTML .= table_form_string_item('Stadt', 'stadt_large', $_POST['stadt_large'], '');
         $TableHTML .= table_form_string_item('Postleitzahl', 'plz_large', $_POST['plz_large'], '');
         $TableHTML .= table_form_email_item('EMail', 'mail_large', $_POST['mail_large'], '');
+        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Nutzergruppe', 'nutzergruppe', $_POST['nutzergruppe'], 'user');
         $TableHTML .= table_form_password_item('Passwort', 'password_large', '', '');
         $TableHTML .= table_form_password_item('Passwort wiederholen', 'password_verify_large', '', '');
         $FormHTML = section_builder(table_builder($TableHTML));
@@ -317,6 +318,11 @@ function register_parser(){
         if(empty($_POST['stadt_'.$arg.''])){
             $DAUcounter ++;
             $DAUerror .= "Gib bitte deinen Wohnort an!<br>";
+        }
+
+        if($_POST['nutzergruppe'] == ''){
+            $DAUcounter ++;
+            $DAUerror .= "Bitte wähle eine Nutzergruppe aus!<br>";
         }
 
         if(!isset($_POST['ds'])){
@@ -381,10 +387,13 @@ function register_parser(){
 
         } else {
 
+            $LadeNutzergruppe = lade_nutzergruppe_infos($_POST['nutzergruppe']);
+            $Rollen[$LadeNutzergruppe['name']] = 'true';
+
             $Antwort = add_new_user($_POST['vorname_'.$arg.''], $_POST['nachname_'.$arg.''],
                 $_POST['strasse_'.$arg.''], $_POST['hausnummer_'.$arg.''],
                 $_POST['plz_'.$arg.''], $_POST['stadt_'.$arg.''],
-                $_POST['mail_'.$arg.''], $_POST['password_'.$arg.''], null);
+                $_POST['mail_'.$arg.''], $_POST['password_'.$arg.''], $Rollen);
 
             #Lade User ID
             if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {

@@ -941,4 +941,50 @@ function dropdown_ende_reservierung_verschieben($NameElement, $MoegicheStundenFr
     return $Ausgabe;
 }
 
+function dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Mode='user'){
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Startwert
+    if($Selected == ''){
+        $Ausgabe .= "<option value='' selected>wählen</option>";
+    } else {
+        $Ausgabe .= "<option value=''>wählen</option>";
+    }
+
+    $Nutzergruppen = lade_alle_nutzgruppen();
+    foreach ($Nutzergruppen as $Nutzergruppe){
+        $Name = $Nutzergruppe['name'];
+        $ID = $Nutzergruppe['id'];
+        $UserVisible = $Nutzergruppe['visible_for_user'];
+
+        if($UserVisible == 'true'){
+            if($ID == $Selected){
+                $Ausgabe .= "<option value='".$ID."' selected>".$Name."</option>";
+            } else {
+                $Ausgabe .= "<option value='".$ID."'>".$Name."</option>";
+            }
+        } elseif ($UserVisible == 'false'){
+            if($Mode=='wart'){
+                if($ID == $Selected){
+                    $Ausgabe .= "<option value='".$ID."' selected>".$Name."</option>";
+                } else {
+                    $Ausgabe .= "<option value='".$ID."'>".$Name."</option>";
+                }
+            }
+        }
+    }
+
+    $Ausgabe .= "</select>";
+    return $Ausgabe;
+}
+
+function table_form_dropdown_nutzergruppen_waehlen($ItemTitle, $NameElement, $Selected, $Mode){
+
+    $TableRowContents = table_header_builder($ItemTitle);
+    $TableRowContents .= table_data_builder(dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Mode));
+    $TableRow = table_row_builder($TableRowContents);
+
+    return $TableRow;
+}
+
 ?>
