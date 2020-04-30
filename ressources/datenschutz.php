@@ -209,4 +209,15 @@ function user_needs_dse(){
     }
 }
 
+function needs_dse_mv_update(){
+    if(user_needs_dse()){
+        header("Location: ./renew_dse_mv.php?mode=dse");
+        die();
+    }
+    if(user_needs_mv()) {
+        header("Location: ./renew_dse_mv.php?mode=mv");
+        die();
+    }
+}
+
 ?>

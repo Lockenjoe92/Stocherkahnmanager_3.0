@@ -8,6 +8,7 @@
 
 include_once "./ressources/ressourcen.php";
 session_manager();
+needs_dse_mv_update();
 $Header = "Reservierungen - " . lade_db_einstellung('site_name');
 
 #Generate content

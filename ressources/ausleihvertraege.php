@@ -62,7 +62,7 @@ function user_needs_mv(){
 
     $link = connect_db();
     $UserID = lade_user_id();
-    $AktDSEid = aktuelle_ds_id_laden();
+    $AktDSEid = aktuellen_mietvertrag_id_laden();
 
     $Anfrage = "SELECT id FROM ausleihvertrag_unterzeichnungen WHERE vertrag = ".$AktDSEid." AND user_id = ".$UserID."";
     $Abfrage = mysqli_query($link, $Anfrage);

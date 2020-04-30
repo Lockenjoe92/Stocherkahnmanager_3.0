@@ -231,19 +231,6 @@ function session_manager($Necessary_User_Role = NULL){
         die();
 
     } else {
-
-        if(user_needs_dse()){
-            //Redirect
-            header("Location: ./renew_dse_mv.php?mode=dse");
-            die();
-        }
-
-        if(user_needs_mv()){
-            //Redirect
-            header("Location: ./renew_dse_mv.php?mode=mv");
-            die();
-        }
-
         $_SESSION['timestamp'] = timestamp();
         return true;
     }

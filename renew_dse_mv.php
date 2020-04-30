@@ -14,7 +14,7 @@ if($Mode == 'dse'){
 } elseif ($Mode == 'mv'){
     $Erklaerungheader = 'Ausleihvertrag';
 } else {
-    header('.index.php');
+    header('Location: ./index.php');
     die();
 }
 
@@ -23,8 +23,13 @@ $Header = $Erklaerungheader." erneuert- " . lade_db_einstellung('site_name');
 
 #Generate content
 # Page Title
-$PageTitle = '<h1 class="hide-on-med-and-down">Die '.$Erklaerungheader.' hat sich erneuert</h1>';
-$PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
+if($Mode == 'dse'){
+    $PageTitle = '<h1 class="hide-on-med-and-down">Die '.$Erklaerungheader.' hat sich erneuert</h1>';
+    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
+} elseif ($Mode == 'mv'){
+    $PageTitle = '<h1 class="hide-on-med-and-down">Der '.$Erklaerungheader.' hat sich erneuert</h1>';
+    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
+}
 $HTML .= section_builder($PageTitle);
 
 if($Mode == 'dse'){
