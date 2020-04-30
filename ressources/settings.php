@@ -170,10 +170,19 @@ function user_settings_parser($SettingsArray){
         for($x=0;$x<sizeof($SettingsArray);$x++){
 
             $Setting = $SettingsArray[$x];
-            $SettingValue = $_POST[$Setting];
 
-            update_user_meta(lade_user_id(), $Setting, $SettingValue);
-
+            if($Setting=='nutzergruppe'){
+                if($_POST[$Setting] != ''){
+                    $NutzergruppeMeta = lade_nutzergruppe_infos($_POST[$Setting]);
+                    $Setting = 'ist_nutzergruppe';
+                    $SettingValue = $NutzergruppeMeta['name'];
+                    update_user_meta(lade_user_id(), $Setting, $SettingValue);
+                    nutzergruppen_verifications_user_loeschen(lade_user_id(), $_POST[$Setting]);
+                }
+            } else {
+                $SettingValue = $_POST[$Setting];
+                update_user_meta(lade_user_id(), $Setting, $SettingValue);
+            }
         }
 
         #return toast('Einstellungen erfolgreich gespeichert.');

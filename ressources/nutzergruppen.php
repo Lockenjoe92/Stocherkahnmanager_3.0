@@ -325,17 +325,29 @@ function load_nutzergruppe_current_user_stats($IDNutzergruppe){
     }
 }
 
-function lade_nutzergruppe_infos($ID){
+function lade_nutzergruppe_infos($ID, $Mode = 'id'){
 
     $link = connect_db();
-    if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE id = ?"))) {
-        $Antwort = false;
-        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    if($Mode == 'id'){
+        if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE id = ?"))) {
+            $Antwort = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("i", $ID)) {
+            $Antwort = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    } elseif ($Mode == 'name'){
+        if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE name = ?"))) {
+            $Antwort = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("s", $ID)) {
+            $Antwort = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
     }
-    if (!$stmt->bind_param("i", $ID)) {
-        $Antwort = false;
-        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-    }
+
     if (!$stmt->execute()) {
         $Antwort = false;
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
@@ -521,4 +533,47 @@ function form_nutzergruppe_verification_mode_select($ItemName, $StartValue, $Dis
     $HTML .= "</div>";
 
     return $HTML;
+}
+
+function load_last_nutzergruppe_verification_user($NutzergruppeID, $UserID){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT * FROM nutzergruppe_verification WHERE user = ? AND nutzergruppe = ? AND delete_user = 0 ORDER BY timestamp DESC"))) {
+        $Antwort = false;
+        var_dump("Prepare failed: (" . $link->errno . ") " . $link->error);
+    }
+    if (!$stmt->bind_param("ii", $UserID, $NutzergruppeID)) {
+        $Antwort = false;
+        var_dump("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        var_dump("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+    } else {
+        $res = $stmt->get_result();
+        $Antwort = mysqli_fetch_assoc($res);
+    }
+
+    return $Antwort;
+
+}
+
+function nutzergruppen_verifications_user_loeschen($UserID, $NutzergruppeID){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("UPDATE nutzergruppe_verification SET delete_user = ? AND delete_time = ? WHERE user = ? AND nutzergruppe = ?"))) {
+        $Antwort = false;
+        var_dump("Prepare failed: (" . $link->errno . ") " . $link->error);
+    }
+    if (!$stmt->bind_param("isii", lade_user_id(), timestamp(), $UserID, $NutzergruppeID)) {
+        $Antwort = false;
+        var_dump("Binding parameters nutzergruppen_verifications_user_loeschen failed: (" . $stmt->errno . ") " . $stmt->error);
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        var_dump("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+    } else {
+        $Antwort = true;
+    }
+    return $Antwort;
 }
