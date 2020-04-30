@@ -388,7 +388,7 @@ function register_parser(){
         } else {
 
             $LadeNutzergruppe = lade_nutzergruppe_infos($_POST['nutzergruppe']);
-            $Rollen[$LadeNutzergruppe['name']] = 'true';
+            $Rollen['ist_nutzergruppe'] = $LadeNutzergruppe['name'];
 
             $Antwort = add_new_user($_POST['vorname_'.$arg.''], $_POST['nachname_'.$arg.''],
                 $_POST['strasse_'.$arg.''], $_POST['hausnummer_'.$arg.''],

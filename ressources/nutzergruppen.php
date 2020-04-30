@@ -284,13 +284,14 @@ function add_nutzergruppe_meta($NutzergruppeID, $Schluessel, $Wert){
 function load_nutzergruppe_current_user_stats($IDNutzergruppe){
 
     $link = connect_db();
+    $NutzergruppeInfos = lade_nutzergruppe_infos($IDNutzergruppe);
     $Antwort = null;
 
     if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ?"))) {
         $Antwort = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
-    if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+    if (!$stmt->bind_param("s", $NutzergruppeInfos['name'])) {
         $Antwort = false;
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
