@@ -127,6 +127,31 @@ function aktuelle_ds_id_laden(){
     return $Ergebnis['id'];
 }
 
+function lade_ds($ID){
+
+    $link = connect_db();
+
+    if (!($stmt = $link->prepare("SELECT * FROM datenschutzerklaerungen WHERE archivar = '0' AND id = ? ORDER BY create_time DESC"))) {
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        return $Antwort['erfolg'] = false;
+    }
+
+    if (!$stmt->bind_param("i",$ID)) {
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        return $Antwort['erfolg'] = false;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        return $Antwort['erfolg'] = false;
+    } else {
+        $res = $stmt->get_result();
+        $num_results = mysqli_fetch_assoc($res);
+
+        return $num_results;
+    }
+}
+
 function ds_unterschreiben($User, $DSid){
 
     $link = connect_db();
@@ -165,6 +190,23 @@ function ds_unterschreiben_formular_parts(){
 
     return $HTML;
 
+}
+
+function user_needs_dse(){
+
+    $link = connect_db();
+    $UserID = lade_user_id();
+    $AktDSEid = aktuelle_ds_id_laden();
+
+    $Anfrage = "SELECT id FROM ds_unterzeichnungen WHERE ds_id = ".$AktDSEid." AND user_id = ".$UserID."";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl == 1){
+        return false;
+    } else {
+        return true;
+    }
 }
 
 ?>

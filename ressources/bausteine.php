@@ -134,12 +134,12 @@ function collapsible_builder($ListElements){
 
 }
 
-function collapsible_item_builder($Title, $Content, $Icon, $IconColor=''){
+function collapsible_item_builder($Title, $Content, $Icon, $IconColor='', $Selected=''){
 
     if($Icon == ''){$IconHTML = '';} else {$IconHTML = "<i class='material-icons ".$IconColor."'>".$Icon."</i>";}
 
     $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'>".$IconHTML."".$Title."</div>";
+    $HTML .= "<div class='collapsible-header' ".$Selected.">".$IconHTML."".$Title."</div>";
     $HTML .= "<div class='collapsible-body'><span>".$Content."</span></div>";
     $HTML .= "</li>";
 
