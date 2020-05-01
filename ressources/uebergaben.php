@@ -343,41 +343,27 @@ function uebergabe_durchfuehren($IDuebergabe, $Schluessel, $GezahlterBetrag, $An
                         if(verify_nutzergruppe($Reservierung['user'], lade_user_id())){
                             $Antwort['success'] = TRUE;
                             $Antwort['error'] = $DAUerror;
-                            var_dump($Antwort);
                         } else {
                             $Antwort['success'] = FALSE;
                             $Antwort['error'] = 'Fehler beim Festhalten der Nutzergruppenverifizierung!!';
-                            var_dump($Antwort);
-
                         }
                     } else {
                         $Antwort['success'] = TRUE;
                         $Antwort['error'] = $DAUerror;
-                        var_dump($Antwort);
-
                     }
                 } else {
                     $Antwort['success'] = FALSE;
                     $Antwort['error'] = 'Fehler beim Festhalten der Einnahme!!';
-                    var_dump($Antwort);
-
                 }
             } else {
                 $Antwort['success'] = FALSE;
                 $Antwort['error'] = 'Fehler beim Ausgeben des Schlüssels!';
-                var_dump($Antwort);
-
             }
         } else {
             $Antwort['success'] = FALSE;
             $Antwort['error'] = 'Fehler beim Festhalten der Übergabe!';
-            var_dump($Antwort);
-
         }
-
     }
-
-    var_dump($Antwort);
 
     return $Antwort;
 }
