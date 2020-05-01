@@ -1,97 +1,59 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: marc
+ * Date: 03.06.19
+ * Time: 13:59
+ */
 
-include_once "./ressourcen/ressourcen.php";
-
+include_once "./ressources/ressourcen.php";
 session_manager();
-$link = connect_db();
+needs_dse_mv_update();
+$Header = "Übergabeinfos - " . lade_db_einstellung('site_name');
 
-$Benutzerrollen = benutzerrollen_laden('');
-$UebergabeID = $_GET['id'];
-$Uebergabe = lade_uebergabe($UebergabeID);
-$Terminangebot = lade_terminangebot($Uebergabe['terminangebot']);
-$WartMeta = lade_user_meta($Uebergabe['wart']);
+#Generate content
+# Page Title
+$PageTitle = '<h1 class="hide-on-med-and-down">Informationen zur Übergabe</h1>';
+$PageTitle .= '<h1 class="hide-on-large-only">Übergabeinfos</h1>';
+$HTML .= section_builder($PageTitle);
 
-//Warteinstellungen bezgl. pers Daten laden
-if(1==1){
-    $Wartinfos = "".$WartMeta['vorname']." ".$WartMeta['nachname']."";
-}
+# Eigene Reservierungen Normalo-user
+$HTML .= seiteninhalt_uebergabe_infos_generieren();
 
-zeitformat();
+$HTML = container_builder($HTML);
 
-//SEITE Initiieren
-echo "<html>";
-header_generieren("Deine Schl&uuml;ssel&uuml;bergabe");
-echo "<body>";
-navbar_generieren($Benutzerrollen, TRUE, 'schluesseluebergabe_info_user');
-echo "<main>";
+# Output site
+echo site_header($Header);
+echo site_body($HTML);
 
-$Parser = parser_uebergabe_infos_ueser($UebergabeID);
 
-echo "<div class='section'><h3 class='center-align'>Deine Schl&uuml;ssel&uuml;bergabe</h3></div>";
 
-echo "<div class='container'>";
-echo "<div class='row'>";
-echo "<div class='col s12 m9 l12'>";
+function seiteninhalt_uebergabe_infos_generieren(){
 
-echo "<div class='card-panel " .lade_einstellung('kalender-hintergrund'). " z-depth-3'>";
-echo "<h5 class='center-align'>Informationen</h5>";
-echo "<div class='container'>";
-    echo "<table>";
-        echo "<tr><th><i class='material-icons tiny'>today</i> Datum:</th><td> ".strftime("%A, %d. %B %G", strtotime($Uebergabe['beginn']))."</td></tr>";
-        echo "<tr><th><i class='material-icons tiny'>alarm_on</i> Beginn:</th><td> ".strftime("%H:%M Uhr", strtotime($Uebergabe['beginn']))."</td></tr>";
-        echo "<tr><th><i class='material-icons tiny'>schedule</i> Dauer:</th><td> ca. ".lade_einstellung('dauer-uebergabe-minuten')." Minuten</td></tr>";
-        echo "<tr><th><i class='material-icons tiny'>room</i> Treffpunkt:</th><td> ".$Terminangebot['ort']."</td></tr>";
-        echo "<tr><th><i class='material-icons tiny'>toll</i> Kosten deiner Reservierung:</th><td> ".kosten_reservierung($Uebergabe['res'])."&euro;</td></tr>";
-        echo "<tr><th><i class='material-icons tiny'>android</i> Zust&auml;ndiger Wart:</th><td> ".$Wartinfos."</td></tr>";
-echo "</table>";
-    echo "<div class='section'>";
-        echo "<div class='input-field'><a href='eigene_reservierungen.php' class='btn waves-effect waves-light'>Zur&uuml;ck</a></div>";
-        echo "<div class='input-field'><a href='neue_uebergabe_ausmachen.php?res=".$Uebergabe['res']."' class='btn waves-effect waves-light'>Andere &Uuml;bergabe ausmachen</a></div>";
-        echo "<div class='input-field'><a href='uebergabe_stornieren_user.php?id=".$UebergabeID."' class='btn waves-effect waves-light'>L&ouml;schen</a></div>";
-    echo "</div>";
-echo "</div>";
-echo "</div>";
+    zeitformat();
+    $UebergabeID = $_GET['id'];
+    $Uebergabe = lade_uebergabe($UebergabeID);
+    $Terminangebot = lade_terminangebot($Uebergabe['terminangebot']);
+    $WartMeta = lade_user_meta($Uebergabe['wart']);
+    if(1==1){
+        $Wartinfos = "".$WartMeta['vorname']." ".$WartMeta['nachname']."";
+    }
 
-echo "<div class='section'>";
-echo "<ul class='collapsible popout' data-collapsible='accordion'>";
-    echo "<li>";
-    echo "<div class='collapsible-header'><i class='large material-icons'>info</i>Was muss ich dabei haben?</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<div class='container'>";
-        echo html_entity_decode(lade_einstellung('text-info-uebergabe-dabei-haben'));
-    echo "</div>";
-    echo "</div>";
-    echo "</li>";
-    echo "<li>";
-    echo "<div class='collapsible-header'><i class='large material-icons'>info</i>Ablauf?</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<div class='container'>";
-        echo html_entity_decode(lade_einstellung('text-info-uebergabe-ablauf'));
-    echo "</div>";
-    echo "</div>";
-    echo "</li>";
-    echo "<li>";
-    echo "<div class='collapsible-header'><i class='large material-icons'>info</i>Einweisung?</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<div class='container'>";
-        echo html_entity_decode(lade_einstellung('text-info-uebergabe-einweisung'));
-    echo "</div>";
-    echo "</div>";
-    echo "</li>";
-echo "</ul>";
-echo "</div>";
+    $TableHTML = table_row_builder(table_header_builder("<i class='material-icons tiny'>today</i> Datum:").table_data_builder(strftime("%A, %d. %B %G", strtotime($Uebergabe['beginn']))));
+    $TableHTML .= table_row_builder(table_header_builder("<i class='material-icons tiny'>alarm_on</i> Beginn:").table_data_builder(strftime("%H:%M Uhr", strtotime($Uebergabe['beginn']))));
+    $TableHTML .= table_row_builder(table_header_builder("<i class='material-icons tiny'>schedule</i> Dauer:").table_data_builder("ca. ".lade_xml_einstellung('dauer-uebergabe-minuten')." Minuten"));
+    $TableHTML .= table_row_builder(table_header_builder("<i class='material-icons tiny'>room</i> Treffpunkt:").table_data_builder($Terminangebot['ort']));
+    $TableHTML .= table_row_builder(table_header_builder("<i class='material-icons tiny'>toll</i> Kosten deiner Reservierung:").table_data_builder("".kosten_reservierung($Uebergabe['res'])."&euro;"));
+    $TableHTML .= table_row_builder(table_header_builder("<i class='material-icons tiny'>android</i> Zust&auml;ndiger Wart:").table_data_builder($Wartinfos));
+    $TableHTML .= table_row_builder(table_header_builder(button_link_creator('Zurück', 'my_reservations.php', 'arrow_back', '')).table_data_builder(button_link_creator('Andere &Uuml;bergabe', "neue_uebergabe_ausmachen.php?res=".$Uebergabe['res']."", '', '')."&nbsp;".button_link_creator('Löschen', "uebergabe_stornieren_user.php?id=".$UebergabeID."", '', '')));
+    $HTML = section_builder(table_builder($TableHTML));
 
-echo "</div>";
-echo "</div>";
-echo "</div>";
+    $CollapsibleItems = collapsible_item_builder('Was muss ich dabei haben?', lade_xml_einstellung('text-info-uebergabe-dabei-haben'), 'info', '', '');
+    $CollapsibleItems .= collapsible_item_builder('Ablauf?', lade_xml_einstellung('text-info-uebergabe-ablauf'), 'info', '', '');
+    $CollapsibleItems .= collapsible_item_builder('Einweisung?', lade_xml_einstellung('text-info-uebergabe-einweisung'), 'info', '', '');
+    $HTML .= section_builder(collapsible_builder($CollapsibleItems));
 
-echo "</main>";
-footer_generieren();
-echo "</body>";
-echo "</html>";
-
-function parser_uebergabe_infos_ueser($UebergabeID){
-    return null;
+    return $HTML;
 }
 
 ?>
