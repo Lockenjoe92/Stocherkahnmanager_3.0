@@ -1,7 +1,4 @@
 <?php
-
-use PHPMailer\PHPMailer\PHPMailer;
-
 /**
  * Created by PhpStorm.
  * User: marc
@@ -21,7 +18,7 @@ function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
     $mail = new PHPMailer\PHPMailer\PHPMailer();
 
     //Absenderadresse der E-Mail setzen
-    $mail->addReplyTo(lade_xml_einstellung('reply_mail'), lade_xml_einstellung('absender_name'));
+    $mail->addReplyTo(lade_xml_einstellung('reply_mail'), lade_xml_einstellung('site_name'));
     $mail->From = lade_xml_einstellung('absender_mail');
     $mail->Sender = lade_xml_einstellung('absender_mail');
 

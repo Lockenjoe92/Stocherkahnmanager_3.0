@@ -232,89 +232,8 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
         $AnfrageUebergabeEintragen = "INSERT INTO uebergaben (res, wart, terminangebot, beginn, durchfuehrung, schluessel, angelegt_am, kommentar, storno_time, storno_user, storno_kommentar) VALUES ('$Res', '$Wart', '$Termin', '$Beginn', '0000-00-00 00:00:00', '0', '$Timestamp', '$Kommentar', '0000-00-00 00:00:00', '0', '')";
         if (mysqli_query($link, $AnfrageUebergabeEintragen)){
 
-            //Daten für Mails und SMS laden
-            $Termindaten = lade_terminangebot($Termin);
-            $WartMeta = lade_user_meta($Wart);
-
-            $BausteineUser = array();
-            $BausteineUser['vorname_user'] = $UserMeta['vorname'];
-            $BausteineUser['datum_uebergabe'] = strftime("%A, den %d. %B %G", strtotime($Beginn));
-            $BausteineUser['uhrzeit_beginn'] = strftime("%R Uhr", strtotime($Beginn));
-            $BausteineUser['dauer_uebergabe'] = lade_xml_einstellung('dauer-uebergabe-minuten');
-            $BausteineUser['ort_uebergabe'] = $Termindaten['ort'];
-            $BausteineUser['reservierungsnummer'] = $Res;
-            $BausteineUser['kosten_reservierung'] = kosten_reservierung($Res);
-            $BausteineUser['kontakt_wart'] = generiere_kontaktinformation_fuer_usermail_wart($Wart);
-
-            $BausteineWart = array();
-            $BausteineWart['vorname_wart'] = $WartMeta['vorname'];
-            $BausteineWart['datum_uebergabe'] = strftime("%A, den %d. %B %G", strtotime($Beginn));
-            $BausteineWart['uhrzeit_beginn'] = strftime("%R Uhr", strtotime($Beginn));
-            $BausteineWart['ort_uebergabe'] = $Termindaten['ort'];
-            $BausteineWart['reservierungsnummer'] = $Res;
-            $BausteineWart['kosten_reservierung'] = kosten_reservierung($Res);
-            $BausteineWart['kontakt_user'] = "".$UserMeta['vorname']." ".$UserMeta['nachname']."";
-
-            if ($Kommentar != ""){
-                $BausteineWart['kommentar_user'] = "Kommentar: ".$Kommentar."";
-            } else {
-                $BausteineWart['kommentar_user'] = "User hat keinen Kommentar hinterlassen.";
-            }
-
-            $BausteineSMSWart = array();
-            $BausteineSMSWart['zeitpunkt_uebergabe'] = strftime("%a, %d. %b - %H:%M Uhr", strtotime($Beginn));
-            $BausteineSMSWart['ort_uebergabe'] = $Termindaten['ort'];
-            $BausteineSMSWart['name_user'] = "".$UserMeta['vorname']." ".$UserMeta['nachname']."";
-            $BausteineSMSWart['tel_user'] = $UserMeta['telefon'];
-
-            if ($Kommentar != ""){
-                $BausteineSMSWart['kommentar_user'] = "Kommentar: ".$Kommentar."";
-            } else {
-                $BausteineSMSWart['kommentar_user'] = "";
-            }
-
-            if ($Reservierung['user'] == $Creator){
-
-                //Bestätigungsmail an User
-                if (mail_senden('uebergabe-angelegt-selbst', $UserMeta['mail'], $BausteineUser)){
-                    $Antwort['success'] = TRUE;
-                    $Antwort['meldung'] = "Die &Uuml;bergabe wurde erfolgreich eingetragen!<br>Du erh&auml;ltst in K&uuml;rze eine Best&auml;tigungsmail:)";
-                } else {
-                    $Antwort['success'] = FALSE;
-                    $Antwort['meldung'] = "Die &Uuml;bergabe wurde erfolgreich eingetragen!<br>Beim Senden der Best&auml;tigungsmail trat jedoch ein Fehler auf - bitte &uuml;berpr&uuml;fe deine Mailadresse in deinen Kontoeinstellungen!";
-                }
-
-                //Benachrichtigung des Wartes
-
-                //Nach eigenen Einstellungen
-                $Usersettings = lade_user_meta($Wart);
-
-                //Email
-                if ($Usersettings['mail-wart-neue-uebergabe'] == "true"){
-                    mail_senden('uebergabe-bekommen-wart', $WartMeta['mail'], $BausteineWart);
-                }
-
-                //SMS
-                if ($Usersettings['sms-wart-neue-uebergabe'] == "true"){
-                    if (lade_xml_einstellung('sms-active') == "true"){
-                        sms_senden('neue-uebergabe-wart', $BausteineSMSWart, $Wart, NULL);
-                    }
-                }
-
-            } else {
-
-                //Von Wart erzeugt - andere Mail
-                if (mail_senden('uebergabe-angelegt-wart', $UserMeta['mail'], $BausteineUser)){
-                    $Antwort['success'] = TRUE;
-                    $Antwort['meldung'] = "Die &Uuml;bergabe wurde erfolgreich eingetragen!<br>Der User erh&auml;lt in K&uuml;rze eine Best&auml;tigungsmail:)";
-                } else {
-                    $Antwort['success'] = FALSE;
-                    $Antwort['meldung'] = "Die &Uuml;bergabe wurde erfolgreich eingetragen!<br>Beim Senden der Best&auml;tigungsmail trat jedoch ein Fehler auf - bitte &uuml;berpr&uuml;fe die Mailadresse des Users!";
-                }
-
-                //Wart wird nicht benachrichtigt
-
-            }
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "Übergabe erfolgreich eingetragen!";
 
         } else {
             $Antwort['success'] = FALSE;
@@ -1188,7 +1107,7 @@ function schluesseluebergabe_ausmachen_moeglichkeiten_anzeigen($IDres){
                 //Hat der Wart noch Schlüssel?
                 if(wart_verfuegbare_schluessel($Terminangebot['wart']) > 0){
                     $Counter++;
-                    $HTMLcollapsible .= terminangebot_listenelement_buchbar_generieren($Terminangebot['id']);
+                    $HTMLcollapsible .= terminangebot_listenelement_buchbar_generieren($Terminangebot['id'], $IDres);
                 }
             }
 
@@ -1259,7 +1178,7 @@ function uebergabe_erfolgreich_eingetragen_user(){
 
 }
 
-function terminangebot_listenelement_buchbar_generieren($IDangebot){
+function terminangebot_listenelement_buchbar_generieren($IDangebot, $RESID){
 
     $link = connect_db();
     zeitformat();
@@ -1285,7 +1204,7 @@ function terminangebot_listenelement_buchbar_generieren($IDangebot){
     $ZeileMitBuchung .= table_form_string_item('Kommentar', 'kommentar_uebergabe_'.$IDangebot.'', $_POST['kommentar_uebergabe_'.$IDangebot.''], false);
     $ZeileMitBuchung .= table_row_builder(table_header_builder('').table_data_builder(form_button_builder('action_termin_'.$IDangebot.'', '&Uuml;bergabe ausmachen', 'action', 'send')));
     $TabelleMitBuchung = table_builder($ZeileMitBuchung);
-    $Formular = form_builder($TabelleMitBuchung, './uebergabe_ausmachen.php', 'post', '', '');
+    $Formular = form_builder($TabelleMitBuchung, './uebergabe_ausmachen.php?res='.$RESID.'', 'post', '', '');
     $FormularCollection = collection_item_builder($Formular);
 
     //Ausgabe

@@ -2,7 +2,7 @@
 
     function lade_mailvorlage($name){
 
-        $xml = simplexml_load_file("./ressourcen/mailvorlagen.xml");
+        $xml = simplexml_load_file("./ressources/mailvorlagen.xml");
         $Betreff = $xml->$name->betreff;
         $Text = $xml->$name->text;
 
