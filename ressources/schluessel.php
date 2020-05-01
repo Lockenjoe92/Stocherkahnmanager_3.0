@@ -375,7 +375,7 @@ function schluessel_an_user_ausgeben($UebergabeID, $Schluessel, $Wart){
     $DAUerror = "";
 
     if($DAUcounter > 0){
-
+        return false;
     } else if ($DAUcounter == 0) {
 
         $Anfrage = "INSERT INTO schluesselausgabe (uebergabe, wart, user, reservierung, schluessel, ausgabe, rueckgabe, storno_user, storno_time, storno_kommentar) VALUES ('$UebergabeID', '$Wart', '".$Reservierung['user']."', '".$Reservierung['id']."', '$Schluessel', '$Timestamp', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '')";
@@ -387,6 +387,7 @@ function schluessel_an_user_ausgeben($UebergabeID, $Schluessel, $Wart){
 
         add_protocol_entry(lade_user_id(), '&Uuml;bergabe '.$UebergabeID.' durch Wart '.$Wart.' durchgefuehrt. Schluessel '.$Schluessel.' ausgegeben.', 'schluessel');
 
+        return true;
     }
 
 

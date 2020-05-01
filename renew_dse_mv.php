@@ -43,7 +43,7 @@ if(($Parser == FALSE) OR ($Parser == NULL)){
     $HTML .= renew_dse_mv_form($Mode, $Erklaerungheader, $Infos);
 
 } elseif ($Parser == TRUE){
-    $HTML .= section_builder(zurueck_karte_generieren(true, 'Dein Eintrag wurde erfolgreich festgehalten!', './wartwesen.php'));
+    $HTML .= section_builder(zurueck_karte_generieren(true, 'Dein Eintrag wurde erfolgreich festgehalten!', './my_reservations.php'));
 }
 
 $HTML = container_builder($HTML);

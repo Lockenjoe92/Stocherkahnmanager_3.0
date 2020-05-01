@@ -227,3 +227,18 @@ function update_kontostand($KontoID, $KontostandNeu){
 
     return $Abfrage;
 }
+
+function einnahme_uebergabe_festhalten($UebergabeID, $GezahlterBetrag, $Empfaenger){
+
+    $Uebergabe = lade_uebergabe($UebergabeID);
+    $Reservierung = lade_reservierung($Uebergabe['res']);
+    $Forderung = lade_forderung_res($Reservierung['id']);
+    $Konto = lade_konto_user($Empfaenger);
+
+    if (einnahme_festhalten($Forderung['id'], $Konto['id'], $GezahlterBetrag, 19)){
+        return true;
+    } else {
+        return false;
+    }
+}
+

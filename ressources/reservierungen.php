@@ -1201,7 +1201,7 @@ function kosten_reservierung($ReservierungID){
             $GratisCounter = 0;
             $FreifahrtenCounter = 0;
             foreach ($Nutzergruppen as $Nutzergruppe){
-                if($UserRes[$Nutzergruppe['name']] == "true"){
+                if($UserRes['ist_nutzergruppe'] == $Nutzergruppe['name']){
                     if($Nutzergruppe['alle_res_gratis'] == "true"){
                         $GratisCounter++;
                     } elseif ($Nutzergruppe['hat_freifahrten_pro_jahr'] > 0){
@@ -1392,4 +1392,47 @@ function reservierung_preis_aendern($IDreservierung, $NeuerPreis){
             }
         }
     }
+}
+
+function reservierung_listenelement_generieren($IDreservierung){
+
+    $Reservierung = lade_reservierung($IDreservierung);
+    $User = lade_user_meta($Reservierung['user']);
+    zeitformat();
+
+    if (anschlussfahrt($IDreservierung)){
+
+        //Lade mögliche Übernahmen
+        $link = connect_db();
+
+        $Anfrage = "SELECT id FROM uebernahmen WHERE reservierung_davor = '$IDreservierung' AND storno_user = '0'";
+        $Abfrage = mysqli_query($link, $Anfrage);
+        $Anzahl = mysqli_num_rows($Abfrage);
+
+        if ($Anzahl > 0){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            $Anschlussfahrt = "Ja <br> ACHTUNG: Anschlie&szlig;ende Schl&uuml;ssel&uuml;bernahme!!!";
+        } else {
+            $Anschlussfahrt = "Ja";
+        }
+
+    } else {
+        $Anschlussfahrt = "keine";
+    }
+
+    $HTML =  "<li>";
+    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>label_outline</i>Reservierung: #".$IDreservierung."</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<ul class='collection'>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>today</i> Datum: ".strftime("%A, %d. %B %G", strtotime($Reservierung['beginn']))."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> Abfahrt: ".strftime("%H:00 Uhr", strtotime($Reservierung['beginn']))."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>restore</i> R&uuml;ckgabe: ".strftime("%H:00 Uhr", strtotime($Reservierung['ende']))."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>toll</i> Kosten: ".kosten_reservierung($IDreservierung)."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>settings_ethernet</i> Anschlussfahrt: ".$Anschlussfahrt."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> <a href='user_informationen.php?user=".$Reservierung['user']."'>".$User['vorname']." ".$User['nachname']."</a><br><i class='tiny material-icons'>phone</i> ".$User['telefon']."";
+    $HTML .= "</ul>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+
+    return $HTML;
 }

@@ -577,3 +577,28 @@ function nutzergruppen_verifications_user_loeschen($UserID, $NutzergruppeID){
     }
     return $Antwort;
 }
+
+function verify_nutzergruppe($User, $Eintragender){
+
+    $link = connect_db();
+    $UserMeta = lade_user_meta($User);
+    $NutzergruppeMeta = lade_nutzergruppe_infos($UserMeta['ist_nutzergruppe'], 'name');
+
+    if (!($stmt = $link->prepare("INSERT INTO nutzergruppe_verification (nutzergruppe, user, erfolg, kommentar, ueberpruefer, timestamp, delete_user, delete_time) VALUES (?,?,?,?,?,?,?,?)"))) {
+        $Antwort = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        return false;
+    }
+    if (!$stmt->bind_param("iisssis", $NutzergruppeMeta['id'], $User, 'true', '', $Eintragender, timestamp(), 0, '0000-00-00 00:00:00')) {
+        $Antwort = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        return false;
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        return false;
+    } else {
+        return true;
+    }
+}

@@ -325,12 +325,13 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
     return $Antwort;
 }
 
-function uebergabe_durchfuehren($IDuebergabe, $Schluessel, $GezahlterBetrag, $AndererPreis, $Gratisfahrt, $Vertrag){
+function uebergabe_durchfuehren($IDuebergabe, $Schluessel, $GezahlterBetrag, $AndererPreis, $Gratisfahrt, $StatusVerified){
 
     $link = connect_db();
     $Antwort = array();
     $Uebergabe = lade_uebergabe($IDuebergabe);
     $Reservierung = lade_reservierung($Uebergabe['res']);
+    $UserMeta = lade_user_meta($Reservierung['user']);
 
     //DAU
 
@@ -384,14 +385,14 @@ function uebergabe_durchfuehren($IDuebergabe, $Schluessel, $GezahlterBetrag, $An
     }
 
     //Zu viel gezahlt -> Betrag unrealistisch
-    $Grenze = intval(lade_einstellung('stunde-18-nicht-student')) + 25;
+    $Grenze = intval(lade_xml_einstellung('max-kosten-einer-reservierung'));
     if (($GezahlterBetrag > $Grenze) OR ($AndererPreis > $Grenze)){
         $DAUcounter++;
         $DAUerror .= "Der von dir eingenommene Betrag &uuml;bersteigt die H&ouml;chsteinnahmegrenze von ".$Grenze."&euro;!<br>";
     }
 
     //User inzwischen gesperrt - keine Übergabe durchführen!
-    if (user_gesperrt($Reservierung['user']) == TRUE){
+    if ($UserMeta['ist_gesperrt'] == 'true'){
         $DAUcounter++;
         $DAUerror .= "Der User ist inzwischen gesperrt! Bitte &uuml;berpr&uuml;fen!<br>";
     }
@@ -416,19 +417,48 @@ function uebergabe_durchfuehren($IDuebergabe, $Schluessel, $GezahlterBetrag, $An
             reservierung_preis_aendern($Uebergabe['res'], $AndererPreis);
         }
 
-        uebergabe_durchfuehrung_festhalten($IDuebergabe, $Schluessel);
-        schluessel_an_user_ausgeben($IDuebergabe, $Schluessel, lade_user_id());
-        einnahme_uebergabe_festhalten($IDuebergabe, $GezahlterBetrag, lade_user_id());
+        if(uebergabe_durchfuehrung_festhalten($IDuebergabe, $Schluessel)){
+            if(schluessel_an_user_ausgeben($IDuebergabe, $Schluessel, lade_user_id())){
+                if(einnahme_uebergabe_festhalten($IDuebergabe, $GezahlterBetrag, lade_user_id())){
+                    if ($StatusVerified == TRUE){
+                        if(verify_nutzergruppe($Reservierung['user'], lade_user_id())){
+                            $Antwort['success'] = TRUE;
+                            $Antwort['error'] = $DAUerror;
+                            var_dump($Antwort);
+                        } else {
+                            $Antwort['success'] = FALSE;
+                            $Antwort['error'] = 'Fehler beim Festhalten der Nutzergruppenverifizierung!!';
+                            var_dump($Antwort);
 
-        //Vertragswesen
-        if ($Vertrag == TRUE){
-            vertragsunterzeichnung_festhalten($Reservierung['user'], lade_user_id());
+                        }
+                    } else {
+                        $Antwort['success'] = TRUE;
+                        $Antwort['error'] = $DAUerror;
+                        var_dump($Antwort);
+
+                    }
+                } else {
+                    $Antwort['success'] = FALSE;
+                    $Antwort['error'] = 'Fehler beim Festhalten der Einnahme!!';
+                    var_dump($Antwort);
+
+                }
+            } else {
+                $Antwort['success'] = FALSE;
+                $Antwort['error'] = 'Fehler beim Ausgeben des Schlüssels!';
+                var_dump($Antwort);
+
+            }
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['error'] = 'Fehler beim Festhalten der Übergabe!';
+            var_dump($Antwort);
+
         }
 
-        $Antwort['success'] = TRUE;
-        $Antwort['error'] = $DAUerror;
-
     }
+
+    var_dump($Antwort);
 
     return $Antwort;
 }
@@ -722,7 +752,7 @@ function uebergabe_listenelement_generieren($IDuebergabe, $Action){
 
     //Ausgabe
     $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header hide-on-med-and-down'><i class='large material-icons'>today</i>Schl&uuml;ssel&uuml;bergabe: ".$Zeitraum."</div>";
+    $HTML .= "<div class='collapsible-header hide-on-med-and-down'><i class='large material-icons'>today</i>Schl&uuml;ssel&uuml;bergabe:&nbsp;".$Zeitraum."</div>";
     $HTML .= "<div class='collapsible-body'>";
     $HTML .= "<ul class='collection'>";
     $HTML .= "<li class='collection-item'><i class='tiny material-icons'>room</i> ".$Terminangebot['ort']."";
@@ -731,7 +761,7 @@ function uebergabe_listenelement_generieren($IDuebergabe, $Action){
         $HTML .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Uebergabe['kommentar']."";
     }
     if($Action == TRUE){
-        $HTML .= "<li class='collection-item'> <a href='uebergabe_durchfuehren.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>play_circle_filled</i> durchf&uuml;hren</a> <a href='uebergabe_loeschen_wart.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>delete</i> absagen</a>";
+        $HTML .= collection_item_builder(button_link_creator('Durchführen', 'uebergabe_durchfuehren.php?id='.$IDuebergabe.'', 'play_circle_filled', '')."&nbsp;".button_link_creator('Absagen', 'uebergabe_loeschen_wart.php?id='.$IDuebergabe.'', 'delete', ''));
     }
     $HTML .= "</ul>";
     $HTML .= "</div>";
@@ -746,8 +776,7 @@ function uebergabe_listenelement_generieren($IDuebergabe, $Action){
         $HTML .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> ".$Uebergabe['kommentar']."";
     }
     if($Action == TRUE){
-        $HTML .= "<li class='collection-item'> <a href='uebergabe_durchfuehren.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>play_circle_filled</i> durchf&uuml;hren</a>";
-        $HTML .= "<li class='collection-item'><a href='uebergabe_loeschen_wart.php?id=".$IDuebergabe."' class='btn waves-effect waves-light'><i class='tiny material-icons'>delete</i> absagen</a>";
+        $HTML .= collection_item_builder(button_link_creator('Durchführen', 'uebergabe_durchfuehren.php?id='.$IDuebergabe.'', 'play_circle_filled', '')."&nbsp;".button_link_creator('Absagen', 'uebergabe_loeschen_wart.php?id='.$IDuebergabe.'', 'delete', ''));
     }
 
     $HTML .= "</ul>";
