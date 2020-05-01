@@ -95,7 +95,10 @@ function renew_dse_mv_form($Mode, $Erklaerungheader, $Infos){
         $TableHTML = table_form_swich_item('Ich stimme dem Nutzungsvertrag, sowie der Haftungs- und Sicherungsvereinbarung zu', 'vertrag', 'Nein', 'Ja', $Checkedvertrag, false);
     }
 
-    $CollapsibleItems = collapsible_item_builder($Erklaerungheader, $Infos['inhalt'], $Icon, '');
+    $Inhalt = "<h5>".$Infos['erklaerung']."</h5>";
+    $Inhalt .= section_builder($Infos['inhalt']);
+
+    $CollapsibleItems = collapsible_item_builder($Erklaerungheader, $Inhalt, $Icon, '');
     $HTML = collapsible_builder($CollapsibleItems);
     $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_'.$Mode.'', 'Absenden', 'action', 'send', '')).table_data_builder(''));
     $HTML .= table_builder($TableHTML);

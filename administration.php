@@ -20,6 +20,8 @@ $Links = row_builder(button_link_creator('Startseite editieren', './admin_edit_s
 $Links .= row_builder(button_link_creator('Admineinstellungen', './admin_settings.php','edit', ''));
 $Links .= row_builder(button_link_creator('Dateimanager', './datenmanager.php','folder_open', ''));
 $Links .= row_builder(button_link_creator('Nutzergruppen', './admin_nutzergruppen.php','group', ''));
+$Links .= row_builder(button_link_creator('Ausleihverträge', './ausleihvertraege_admin.php','assignment', ''));
+$Links .= row_builder(button_link_creator('Datenschutzerklärungen', './datenschutzerklaerungen.php','security', ''));
 $HTML .= section_builder($Links);
 
 # Put it all into a container
