@@ -276,7 +276,7 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
             if ($Reservierung['user'] == $Creator){
 
                 //Bestätigungsmail an User
-                if (mail_senden('uebergabe-angelegt-selbst', $UserMeta['mail'], $Reservierung['user'], $BausteineUser, '')){
+                if (mail_senden('uebergabe-angelegt-selbst', $UserMeta['mail'], $BausteineUser)){
                     $Antwort['success'] = TRUE;
                     $Antwort['meldung'] = "Die &Uuml;bergabe wurde erfolgreich eingetragen!<br>Du erh&auml;ltst in K&uuml;rze eine Best&auml;tigungsmail:)";
                 } else {
@@ -287,16 +287,16 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
                 //Benachrichtigung des Wartes
 
                 //Nach eigenen Einstellungen
-                $Usersettings = lade_user_settings($Wart);
+                $Usersettings = lade_user_meta($Wart);
 
                 //Email
-                if ($Usersettings['mail-wart-neue-uebergabe'] == "1"){
-                    mail_senden('uebergabe-bekommen-wart', $WartMeta['mail'], $Wart, $BausteineWart, '');
+                if ($Usersettings['mail-wart-neue-uebergabe'] == "true"){
+                    mail_senden('uebergabe-bekommen-wart', $WartMeta['mail'], $BausteineWart);
                 }
 
                 //SMS
-                if ($Usersettings['sms-wart-neue-uebergabe'] == "1"){
-                    if (lade_einstellung('sms-active') == "TRUE"){
+                if ($Usersettings['sms-wart-neue-uebergabe'] == "true"){
+                    if (lade_xml_einstellung('sms-active') == "true"){
                         sms_senden('neue-uebergabe-wart', $BausteineSMSWart, $Wart, NULL);
                     }
                 }
@@ -304,7 +304,7 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
             } else {
 
                 //Von Wart erzeugt - andere Mail
-                if (mail_senden('uebergabe-angelegt-wart', $UserMeta['mail'], $Reservierung['user'], $BausteineUser, '')){
+                if (mail_senden('uebergabe-angelegt-wart', $UserMeta['mail'], $BausteineUser)){
                     $Antwort['success'] = TRUE;
                     $Antwort['meldung'] = "Die &Uuml;bergabe wurde erfolgreich eingetragen!<br>Der User erh&auml;lt in K&uuml;rze eine Best&auml;tigungsmail:)";
                 } else {

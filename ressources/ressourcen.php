@@ -29,3 +29,5 @@ include_once "schluessel.php";
 include_once "pausen.php";
 include_once "sperrungen.php";
 include_once "ausleihvertraege.php";
+include_once "sms_senden.php";
+include_once "smsvorlagen.php";

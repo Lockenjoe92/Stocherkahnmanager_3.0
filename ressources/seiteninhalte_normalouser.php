@@ -248,9 +248,9 @@ function seiteninhalt_reservierung_hinzufuegen(){
     //Parser
     $Parser = reservierung_hinzufuegen_parser();
     if($Parser['success'] === FALSE){
-        $HTML .= section_builder("<p class='center-align'>".error_button_creator($Parser['meldung'], '', 'materialize-'.lade_db_einstellung('site_error_buttons_color').'')."</p>");
+        $HTML .= section_builder("<h5 class='center-align'>".$Parser['meldung']."</h5>");
     } elseif ($Parser['success'] === TRUE){
-        $HTML .= section_builder("<p class='center-align'>".error_button_creator('Anlegen erfolgreich', '', 'materialize-green darken-1')."</p>");
+        $HTML .= section_builder("<h5 class='center-align'>".$Parser['meldung']."</h5>");
     }
 
     //Kalender

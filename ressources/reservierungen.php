@@ -303,7 +303,6 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
         }
     }
 
-    var_dump($Antwort['meldung']);
     return $Antwort;
 }
 
