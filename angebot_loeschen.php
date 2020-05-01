@@ -75,40 +75,6 @@ function parser_angebot_loeschen($IDangebot){
 
     return $Antwort;
 }
-function prompt_karte_generieren($NameActionButton, $TextJA, $URIzurueck, $TextZurueck, $TextPrompt, $KommentarFeld, $NameKommentarfeld){
 
-    $HTML = "<div class='card-panel " .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
-    $HTML .= "<p>".$TextPrompt."</p>";
-
-    $HTML .= "<form method='post'>";
-
-    if ($KommentarFeld == TRUE){
-
-        $HTML .= "<div class='input-field'>";
-        $HTML .= "<textarea name='".$NameKommentarfeld."' id='".$NameKommentarfeld."' data-length='500'></textarea><label for='".$NameKommentarfeld."'>Platz f&uuml;r Kommentar</label>";
-        $HTML .= "</div>";
-
-        $HTML .= divider_builder();
-    }
-
-    $HTML .= "<div class='section'>";
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<button class='btn waves-effect waves-light' type='submit' name='".$NameActionButton."'>".$TextJA."</button>";
-    $HTML .= "</div>";
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<a class='btn waves-effect waves-light' href='".$URIzurueck."'>".$TextZurueck."</a>";
-    $HTML .= "</div>";
-
-    $HTML .= "</div>";
-
-
-    $HTML .= "</form>";
-
-    $HTML .= "</div>";
-
-    return $HTML;
-
-}
 
 ?>

@@ -45,7 +45,7 @@ function uebergabe_stornieren($ID, $Begruendung){
             if (mysqli_query($link, $Anfrage)){
 
                 //User informieren
-                mail_senden('uebergabe-storniert-user', $UserReservierung['mail'], $UserReservierung['id'], $BausteineUsermails, '');
+                mail_senden('uebergabe-storniert-user', $UserReservierung['mail'], $BausteineUsermails);
 
                 //Übernahmen informieren
                 $AnfrageLadeUebernahmen = "SELECT id FROM uebernahmen WHERE reservierung_davor = '".$Uebergabe['res']."' AND storno_user = '0'";
@@ -72,7 +72,7 @@ function uebergabe_stornieren($ID, $Begruendung){
                     $BausteineWartmails['kommentar_loeschender_wart'] = $Begruendung;
                     $BausteineWartmails['zeitpunkt_uebergabe'] = strftime("%A, %d. %B %G - Beginn: %H:%M Uhr", strtotime($Uebergabe['beginn']));
 
-                    mail_senden('uebergabe-storniert-anderer-wart', $WartUebergabe['mail'], $WartUebergabe['id'], $BausteineWartmails, '');
+                    mail_senden('uebergabe-storniert-anderer-wart', $WartUebergabe['mail'], $BausteineWartmails);
                     sms_senden('uebergabe-storniert', $BausteineWartmails, $Uebergabe['wart'], NULL);
 
                 }
@@ -113,16 +113,16 @@ function uebergabe_stornieren($ID, $Begruendung){
                 $BausteineWartmails['zeitpunkt_uebergabe'] = strftime("%A, %d. %B %G - Beginn: %H:%M Uhr", strtotime($Uebergabe['beginn']));
 
                 //Nach eigenen Einstellungen
-                $Usersettings = lade_user_settings($Uebergabe['wart']);
+                $Usersettings = lade_user_meta($Uebergabe['wart']);
 
                 //Email
-                if ($Usersettings['mail_uebergabe_storno'] == "1"){
-                    mail_senden('uebergabe-storniert-wart', $WartUebergabe['mail'], $WartUebergabe['id'], $BausteineWartmails, '');
+                if ($Usersettings['mail_uebergabe_storno'] == "true"){
+                    mail_senden('uebergabe-storniert-wart', $WartUebergabe['mail'], $BausteineWartmails);
                 }
 
                 //SMS
                 if ($Usersettings['sms_uebergabe_storno'] == "1"){
-                    if (lade_einstellung('sms-active') == "TRUE"){
+                    if (lade_xml_einstellung('sms-active') == "true"){
                         sms_senden('uebergabe-storniert', $BausteineWartmails, $Uebergabe['wart'], NULL);
                     }
                 }
