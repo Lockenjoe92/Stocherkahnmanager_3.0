@@ -1,49 +1,43 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: marc
+ * Date: 03.06.19
+ * Time: 13:59
+ */
 
-include_once "./ressourcen/ressourcen.php";
-
+include_once "./ressources/ressourcen.php";
 session_manager();
-$link = connect_db();
+$Header = "Schl&uuml;ssel&uuml;bergabe absagen - " . lade_db_einstellung('site_name');
 
-$Benutzerrollen = benutzerrollen_laden('');
+#Generate content
+# Page Title
+$PageTitle = '<h1 class="center-align hide-on-med-and-down">Schl&uuml;ssel&uuml;bergabe absagen</h1>';
+$PageTitle .= '<h1 class="center-align hide-on-large-only">&Uuml;bergabe absagen</h1>';
+$HTML = section_builder($PageTitle);
+
 $UebergabeID = $_GET['id'];
-
-//SEITE Initiieren
-echo "<html>";
-header_generieren("Schl&uuml;ssel&uuml;bergabe absagen");
-echo "<body>";
-navbar_generieren($Benutzerrollen, TRUE, 'schluesseluebergabe_absagen');
-echo "<main>";
-
 $Parser = parser_uebergabe_absagen_user($UebergabeID);
 
-echo "<div class='section'><h3 class='center-align'>Schl&uuml;ssel&uuml;bergabe absagen</h3></div>";
+if ($Parser == NULL){
+    $PromptText = "M&ouml;chtest du wirklich die Schl&uuml;ssel&uuml;bergabe f&uuml;r deine Reservierung l&ouml;schen?";
+    $HTML .= prompt_karte_generieren('uebergabe_absagen', 'Absagen', 'uebergabe_infos_user.php?id='.$UebergabeID.'', 'Zur&uuml;ck', $PromptText, TRUE, 'kommentar_absage');
+} else if ($Parser == TRUE){
+    $HTML .= zurueck_karte_generieren(TRUE, '', 'my_reservations.php');
+} else if ($Parser == FALSE){
+    $HTML .= zurueck_karte_generieren(FALSE, '', 'my_reservations.php');
+}
 
-echo "<div class='container'>";
-echo "<div class='row'>";
-echo "<div class='col s12 m9 l12'>";
+$HTML = container_builder($HTML);
 
-    if ($Parser == NULL){
-        $PromptText = "M&ouml;chtest du wirklich die Schl&uuml;ssel&uuml;bergabe f&uuml;r deine Reservierung l&ouml;schen?";
-        prompt_karte_generieren('uebergabe_absagen', 'Absagen', 'uebergabe_infos_user.php?id=".."', 'Zur&uuml;ck', $PromptText, TRUE, 'kommentar_absage');
-    } else if ($Parser == TRUE){
-        zurueck_karte_generieren(TRUE, '', 'eigene_reservierungen.php');
-    } else if ($Parser == FALSE){
-        zurueck_karte_generieren(FALSE, '', 'eigene_reservierungen.php');
-    }
+# Output site
+echo site_header($Header);
+echo site_body($HTML);
 
-echo "</div>";
-echo "</div>";
-echo "</div>";
 
-echo "</main>";
-footer_generieren();
-echo "</body>";
-echo "</html>";
+
 
 function parser_uebergabe_absagen_user($UebergabeID){
-
-    $link = connect_db();
 
     if (isset($_POST['uebergabe_absagen'])){
 
@@ -53,7 +47,6 @@ function parser_uebergabe_absagen_user($UebergabeID){
         if (lade_user_id() != $Reservierung['user']){
             return false;
         } else {
-
             $Ergebnis = uebergabe_stornieren($UebergabeID, $_POST['kommentar_absage']);
             return $Ergebnis['success'];
         }
