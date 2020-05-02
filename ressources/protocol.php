@@ -6,7 +6,7 @@
  * Time: 20:58
  */
 
-include_once "./ressourcen.php";
+#include_once "./ressourcen.php";
 
 function add_protocol_entry($UserID, $message, $protocol_type){
 

@@ -24,8 +24,9 @@ if(($UebernahmeID == "") OR ($UebernahmeID == "0")){
     $Uebernahme = lade_uebernahme($UebernahmeID);
     $Reservierung = lade_reservierung($Uebernahme['reservierung']);
     $ReservierungDavor = lade_reservierung($Uebernahme['reservierung_davor']);
+    $Benutzerrollen = lade_user_meta($UserID);
 
-    if(($UserID != $Reservierung['user']) AND ($UserID != $ReservierungDavor['user']) AND ($Benutzerrollen['wart'] != TRUE)){
+    if(($UserID != $Reservierung['user']) AND ($UserID != $ReservierungDavor['user']) AND ($Benutzerrollen['ist_wart'] != 'true')){
         header("Location: ./wartwesen.php");
         die();
     }
@@ -34,7 +35,7 @@ if(($UebernahmeID == "") OR ($UebernahmeID == "0")){
         $Mode = "selbst";
     } else if ($UserID == $ReservierungDavor['user']){
         $Mode = "vorfahrer";
-    } else if ($Benutzerrollen['wart'] == TRUE){
+    } else if ($Benutzerrollen['ist_wart'] == 'true'){
         $Mode = "wart";
     }
 }

@@ -1218,55 +1218,6 @@ function terminangebot_listenelement_buchbar_generieren($IDangebot, $RESID, $Mod
     return $HTML;
 }
 
-function uebernahme_planen_listenelement_generieren(){
-
-    //Ausgabe
-    $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>sync</i>&Uuml;bernahme vorplanen</div>";
-    $HTML .= "<div class='collapsible-body'>";
-    $HTML .= "<div class='container'>";
-    $HTML .= "<form method='post'>";
-
-    //Reservierung und deren modifizierung
-    $HTML .= "<h4>Reservierung w&auml;hlen</h4>";
-
-    $Parser = uebernahme_planen_listenelement_parser();
-    if(isset($Parser)){
-        $HTML .= "<h5>".$Parser."</h5>";
-    }
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= "<i class='material-icons prefix'>today</i>";
-    $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung_uebernahme_vorplanen');
-    $HTML .= "</div>";
-
-    $HTML .= "<div class='input-field'>";
-    $HTML .= form_button_builder('action_uebernahme_vorplanen_durchfuehren', 'Vorplanen', 'submit', 'send');
-    $HTML .= "</div>";
-    $HTML .= "</form>";
-    $HTML .= "</div>";
-    $HTML .= "</div>";
-    $HTML .= "</li>";
-
-    return $HTML;
-}
-
-function uebernahme_planen_listenelement_parser(){
-
-    if (isset($_POST['action_uebernahme_vorplanen_durchfuehren'])){
-
-        if (intval($_POST['reservierung_uebernahme_vorplanen']) > 0){
-            $header = "Location: ./uebernahme_vorplanen.php?res=".$_POST['reservierung_uebernahme_vorplanen']."";
-            header($header);
-            die();
-
-        } else {
-            $Antwort = 'Du hast keine Reservierung ausgew&auml;hlt!';
-            return $Antwort;
-        }
-    }
-}
-
 function spontanuebergabe_listenelement_generieren(){
 
     $HTML = "";
@@ -1289,45 +1240,5 @@ function spontanuebergabe_listenelement_generieren(){
 
     return $HTML;
 }
-
-function uebernahme_stornieren($UebernahmeID, $Begruendung){
-
-    $link = connect_db();
-    zeitformat();
-
-    $Uebernahme = lade_uebernahme($UebernahmeID);
-    $ResUebernahme = lade_reservierung($Uebernahme['reservierung']);
-    $UserResUebernahme = lade_user_meta($ResUebernahme['user']);
-    $ResUebernahmeDavor = lade_reservierung($Uebernahme['reservierung_davor']);
-    $UserResUebernahmeDavor = lade_user_meta($ResUebernahmeDavor['user']);
-
-    $AnfrageStorno = "UPDATE uebernahmen SET storno_user = '".lade_user_id()."', storno_time = '".timestamp()."' WHERE id = '$UebernahmeID'";
-    if (mysqli_query($link, $AnfrageStorno)){
-        if ($Begruendung != ""){
-            //Nur wenns was zu erzählen gibt
-            $BausteineUebernahmeMails = array();
-            $BausteineUebernahmeMails['vorname_user'] = $UserResUebernahme['vorname'];
-            $BausteineUebernahmeMails['datum_resevierung'] = strftime("%A, %d. %B %G", strtotime($ResUebernahme['beginn']));
-            $BausteineUebernahmeMails['begruendung'] = htmlentities($Begruendung);
-            mail_senden('uebernahme-storniert-user', $UserResUebernahme['mail'], $BausteineUebernahmeMails);
-            mail_senden('uebernahme-storniert-user-davor', $UserResUebernahmeDavor['mail'], $BausteineUebernahmeMails);
-        }
-        return true;
-    } else {
-        return false;
-    }
-}
-
-function lade_uebernahme($UebernahmeID){
-
-    $link = connect_db();
-
-    $Anfrage = "SELECT * FROM uebernahmen WHERE id = '$UebernahmeID'";
-    $Abfrage = mysqli_query($link, $Anfrage);
-    $Ergebnis = mysqli_fetch_assoc($Abfrage);
-
-    return $Ergebnis;
-}
-
 
 ?>

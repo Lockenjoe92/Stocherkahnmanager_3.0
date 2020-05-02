@@ -18,7 +18,7 @@ $HTML = section_builder($PageTitle);
 
 $ReservierungID = $_GET['id'];
 $HTML .= card_resinfos_generieren($ReservierungID);
-$HTML .= seiteninhalt_generieren($ReservierungID);
+#$HTML .= seiteninhalt_generieren($ReservierungID);
 
 $HTML = container_builder($HTML);
 

@@ -6,7 +6,7 @@
  * Time: 20:27
  */
 
-include_once "./ressourcen.php";
+#include_once "./ressources/ressourcen.php";
 
 function site_header($PageTitle, $LoginCheckActive=Null){
 

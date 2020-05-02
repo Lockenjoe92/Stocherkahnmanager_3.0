@@ -55,8 +55,8 @@ function uebernahme_stornieren($UebernahmeID, $Begruendung){
             $BausteineUebernahmeMails['vorname_user'] = $UserResUebernahme['vorname'];
             $BausteineUebernahmeMails['datum_resevierung'] = strftime("%A, %d. %B %G", strtotime($ResUebernahme['beginn']));
             $BausteineUebernahmeMails['begruendung'] = htmlentities($Begruendung);
-            mail_senden('uebernahme-storniert-user', $UserResUebernahme['mail'], $UserResUebernahme['id'], $BausteineUebernahmeMails, '');
-            mail_senden('uebernahme-storniert-user-davor', $UserResUebernahmeDavor['mail'], $UserResUebernahmeDavor['id'], $BausteineUebernahmeMails, '');
+            mail_senden('uebernahme-storniert-user', $UserResUebernahme['mail'], $BausteineUebernahmeMails);
+            mail_senden('uebernahme-storniert-user-davor', $UserResUebernahmeDavor['mail'], $BausteineUebernahmeMails);
         }
         return true;
     } else {
@@ -257,27 +257,34 @@ function lade_uebernahme($UebernahmeID){
 function uebernahme_planen_listenelement_generieren(){
 
     //Ausgabe
-    echo "<li>";
-    echo "<div class='collapsible-header'><i class='large material-icons'>sync</i>&Uuml;bernahme vorplanen</div>";
-    echo "<div class='collapsible-body'>";
-    echo "<div class='container'>";
-    echo "<form method='post'>";
+    $HTML = "<li>";
+    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>sync</i>&Uuml;bernahme vorplanen</div>";
+    $HTML .= "<div class='collapsible-body'>";
+    $HTML .= "<div class='container'>";
+    $HTML .= "<form method='post'>";
 
     //Reservierung und deren modifizierung
-    echo "<h5>Reservierung w&auml;hlen</h5>";
-    echo "<div class='input-field'>";
-    echo "<i class='material-icons prefix'>today</i>";
-    echo dropdown_aktive_res_spontanuebergabe('reservierung_uebernahme_vorplanen');
-    echo "</div>";
+    $HTML .= "<h4>Reservierung w&auml;hlen</h4>";
 
-    echo "<div class='input-field'>";
-    echo "<button type='submit' name='action_uebernahme_vorplanen_durchfuehren' class='btn waves-effect waves-light'>Vorplanen</button>";
-    echo "</div>";
-    echo "</form>";
-    echo "</div>";
-    echo "</div>";
-    echo "</li>";
+    $Parser = uebernahme_planen_listenelement_parser();
+    if(isset($Parser)){
+        $HTML .= "<h5>".$Parser."</h5>";
+    }
 
+    $HTML .= "<div class='input-field'>";
+    $HTML .= "<i class='material-icons prefix'>today</i>";
+    $HTML .= dropdown_aktive_res_spontanuebergabe('reservierung_uebernahme_vorplanen');
+    $HTML .= "</div>";
+
+    $HTML .= "<div class='input-field'>";
+    $HTML .= form_button_builder('action_uebernahme_vorplanen_durchfuehren', 'Vorplanen', 'submit', 'send');
+    $HTML .= "</div>";
+    $HTML .= "</form>";
+    $HTML .= "</div>";
+    $HTML .= "</div>";
+    $HTML .= "</li>";
+
+    return $HTML;
 }
 
 function uebernahme_planen_listenelement_parser(){
@@ -294,17 +301,6 @@ function uebernahme_planen_listenelement_parser(){
             return $Antwort;
         }
     }
-}
-
-function lade_uebernahme_res($IDres){
-
-    $link = connect_db();
-
-    $Anfrage = "SELECT * FROM uebernahmen WHERE reservierung = '$IDres' AND storno_user = '0'";
-    $Abfrage = mysqli_query($link, $Anfrage);
-    $Ergebnis = mysqli_fetch_assoc($Abfrage);
-
-    return $Ergebnis;
 }
 
 ?>
