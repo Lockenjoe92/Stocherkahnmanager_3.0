@@ -1,45 +1,37 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: Marc Haefeker
- * Date: 07.08.17
- * Time: 17:05
+ * User: marc
+ * Date: 03.06.19
+ * Time: 13:59
  */
 
-include_once "./ressourcen/ressourcen.php";
-
-//Housekeeping
+include_once "./ressources/ressourcen.php";
 session_manager();
+$Header = "Schl&uuml;ssel&uuml;bernahme vorplanen - " . lade_db_einstellung('site_name');
 
-//URL auslesen:
-$Reservierung = $_GET['res'];
+#Generate content
+# Page Title
+$PageTitle = '<h1 class="center-align hide-on-med-and-down">Schl&uuml;ssel&uuml;bernahme vorplanen</h1>';
+$PageTitle .= '<h1 class="center-align hide-on-large-only">&Uuml;bernahme vorplanen</h1>';
+$HTML = section_builder($PageTitle);
 
-//Überprüfen ob der User auch das recht hat auf die Seite zuzugreifen
-$Benutzerrollen = benutzerrollen_laden('');
-$UebergabeID = $_GET['id'];
-$Uebergabe = lade_uebergabe($UebergabeID);
+$ReservierungID = $_GET['id'];
+$HTML .= card_resinfos_generieren($ReservierungID);
+$HTML .= seiteninhalt_generieren($ReservierungID);
 
-if ($Benutzerrollen['wart'] != true){
-    header("Location: ./wartwesen.php");
-    die();
-}
+$HTML = container_builder($HTML);
+
+# Output site
+echo site_header($Header);
+echo site_body($HTML);
 
 
-//SEITE Initiieren
-echo "<html>";
-header_generieren("&Uuml;bernahme vorplanen");
-echo "<body>";
-navbar_generieren($Benutzerrollen, TRUE, 'uebernahme_vorplanen');
-echo "<main>";
 
-echo "<div class='section'><h3 class='center-align'>&Uuml;bernahme vorplanen</h3></div>";
 
-seiteninhalt_generieren($Reservierung);
 
-echo "</main>";
-footer_generieren();
-echo "</body>";
-echo "</html>";
+
+
 
 
 
@@ -66,33 +58,20 @@ function seiteninhalt_generieren($Reservierung){
 
         //Reservierung inzwischen abgelaufen/storniert
         $ReservierungInfo = lade_reservierung($Reservierung);
-        if(($ReservierungInfo['storno_user'] == "0") OR (time() > strtotime())){
+        if(($ReservierungInfo['storno_user'] != "0") OR (time() > strtotime($ReservierungInfo['bis']))){
             $DAUcounter++;
-            $DAUerror .= "<br>";
-        } else {
-            //Reservierung bereits mit Übernahme/Übergabe versorgt
-            if(){
-                $DAUcounter++;
-                $DAUerror .= "<br>";
-            }
-
-            if(){
-                $DAUcounter++;
-                $DAUerror .= "<br>";
-            }
+            $DAUerror .= "Reservierung ist bereits abgelaufen/storniert!<br>";
         }
     }
 
     //DAU auswerten
         if($DAUcounter > 0){
-
-            zurueck_karte_generieren(FALSE, $DAUerror, 'wartwesen.php');
-
+            $HTML = zurueck_karte_generieren(FALSE, $DAUerror, 'wartwesen.php');
         } else {
 
             //Vollkommen egal von welcher Reservierung übernommen wird - hauptsache sie ist noch nicht abgeschlossen und hat entweder ne Übernahme oder Übergabe gebucht:)
-            echo "Vollkommen egal von welcher Reservierung übernommen wird - hauptsache sie ist noch nicht abgeschlossen und hat entweder ne Übernahme oder Übergabe gebucht:)";
-            echo "<br>Suche nach passenden Reservierungen:";
+            $HTML = "Vollkommen egal von welcher Reservierung übernommen wird - hauptsache sie ist noch nicht abgeschlossen und hat entweder ne Übernahme oder Übergabe gebucht:)";
+            $HTML .= "<br>Suche nach passenden Reservierungen:";
 
             $ReservierungInfos = lade_reservierung($Reservierung);
             $Anfrage = "SELECT * FROM reservierungen WHERE beginn > '01-01-".date('Y')." 00:00:01' AND ende <= '".$ReservierungInfos['beginn']."' AND storno_user = '0' ORDER BY beginn ASC";
@@ -100,9 +79,9 @@ function seiteninhalt_generieren($Reservierung){
             $Anzahl = mysqli_num_rows($Abfrage);
 
             if ($Anzahl == 0){
-                echo "Keine passenden Reservierungen!";
+                $HTML .= "Keine passenden Reservierungen!";
             } else if ($Anzahl > 0){
-                echo "".$Anzahl." unabgeschlossene/aktive reservierungen vor der gewählten Reservierung<br>";
+                $HTML .= "".$Anzahl." unabgeschlossene/aktive reservierungen vor der gewählten Reservierung<br>";
 
                 for ($a = 1; $a <= $Anzahl; $a++){
                     //Hat Res eine Schlüsselausgabe die bereits zurückgegeben wurde? -> Reservierung ist abgeschlossen:
@@ -115,10 +94,10 @@ function seiteninhalt_generieren($Reservierung){
 
                         //Kein Schlüssel bislang ausgegeben -> Prüfen ob Übergabe/Übernahme geplant
                         if(res_hat_uebergabe($GefundeneReservierung['id'])){
-                            echo "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übergabe gebucht<br>";
+                            $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übergabe gebucht<br>";
                         }
                         if(res_hat_uebernahme($GefundeneReservierung['id'])){
-                            echo "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übernahme gebucht<br>";
+                            $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übernahme gebucht<br>";
                         }
 
                     } else if ($AnzahlZwei == 1){
@@ -126,7 +105,7 @@ function seiteninhalt_generieren($Reservierung){
                         $ErgebnisZwei = mysqli_fetch_assoc($AbfrageZwei);
                         if ($ErgebnisZwei['rueckgabe'] == "0000-00-00 00:00:00"){
 
-                            echo "Reservierung ".$GefundeneReservierung['id']." kommt in Frage<br>";
+                            $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage<br>";
 
                         }
                     }

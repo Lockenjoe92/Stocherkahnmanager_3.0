@@ -52,7 +52,7 @@
     <max-dauer-einer-reservierung>6</max-dauer-einer-reservierung>
     <max-stunden-vor-abfahrt-buchbar>6</max-stunden-vor-abfahrt-buchbar>
     <dauer-uebergabe-minuten>15</dauer-uebergabe-minuten>
-    <uebernahmefunktion-globel-aktiv>true</uebernahmefunktion-globel-aktiv>
+    <uebernahmefunktion-global-aktiv>true</uebernahmefunktion-global-aktiv>
     <max-tage-vor-abfahrt-uebergabe>5</max-tage-vor-abfahrt-uebergabe>
     <max-minuten-vor-abfahrt-uebergabe>5</max-minuten-vor-abfahrt-uebergabe>
     <zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>4</zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>
@@ -60,6 +60,7 @@
     <tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>3</tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>
     <erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>2</erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>
     <moegliche_schluesselorte>rueckgabekasten,vermisst,verloren</moegliche_schluesselorte>
+    <kritischer-abstand-storno-vor-beginn>60</kritischer-abstand-storno-vor-beginn>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>

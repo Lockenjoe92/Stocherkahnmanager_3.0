@@ -1,13 +1,22 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: marc
+ * Date: 03.06.19
+ * Time: 13:59
+ */
 
-include_once "./ressourcen/ressourcen.php";
-
+include_once "./ressources/ressourcen.php";
 session_manager();
-$link = connect_db();
-$Benutzerrollen = benutzerrollen_laden('');
+$Header = "Schl&uuml;ssel&uuml;bernahme absagen - " . lade_db_einstellung('site_name');
+
+#Generate content
+# Page Title
+$PageTitle = '<h1 class="center-align hide-on-med-and-down">Schl&uuml;ssel&uuml;bernahme absagen</h1>';
+$PageTitle .= '<h1 class="center-align hide-on-large-only">&Uuml;bernahme absagen</h1>';
+$HTML = section_builder($PageTitle);
 $UebernahmeID = $_GET['uebernahme'];
 $UserID = lade_user_id();
-
 if(($UebernahmeID == "") OR ($UebernahmeID == "0")){
     header("Location: ./wartwesen.php");
     die();
@@ -29,60 +38,43 @@ if(($UebernahmeID == "") OR ($UebernahmeID == "0")){
         $Mode = "wart";
     }
 }
-
-//PARSER
 $Parser = parse_uebernahme_absagen($UebernahmeID, $Mode);
-
-//SEITE Initiieren
-echo "<html>";
-header_generieren("Schl&uuml;ssel&uuml;bernahme ausmachen");
-echo "<body>";
-navbar_generieren($Benutzerrollen, TRUE, 'schluesseluebenahme_ausmachen');
-echo "<main>";
-
-echo "<div class='section'><h3 class='center-align'>Schl&uuml;ssel&uuml;bernahme absagen</h3></div>";
-
-echo "<div class='container'>";
-echo "<div class='row'>";
-echo "<div class='col s12 m9 l12'>";
 
 if($Parser['success'] === NULL){
     if($Mode == "wart"){
         $ReservierungUserMeta = lade_user_meta($Reservierung['user']);
         $PromptTextWart = "Du bist im Begriff die &Uuml;bernahme von <a href='benutzermanagement_wart.php?user=".$Reservierung['user']."'>".$ReservierungUserMeta['vorname']." ".$ReservierungUserMeta['nachname']."</a> abzusagen. Es w&auml;re gut, wenn du schon eine Alternative dazu h&auml;ttest und ein Kommentar eintragen k&ouml;nntest;)<br>M&ouml;chtest du die &Uuml;bernahme absagen?";
-        prompt_karte_generieren('absagen_wart', 'Absagen', 'wartwesen.php', 'Abbrechen', $PromptTextWart, TRUE, 'kommentar_wart');
+        $HTML .= prompt_karte_generieren('absagen_wart', 'Absagen', 'wartwesen.php', 'Abbrechen', $PromptTextWart, TRUE, 'kommentar_wart');
 
     } else if ($Mode == "selbst"){
 
         $PromptTextSelbst = "Du bist im Begriff die von dir ausgemachte Schl&uuml;ssel&uuml;bernahme abzusagen. Wir k&ouml;nnen dir nicht garantieren, dass du danach noch eine Gelegenheit hast an einen Schl&uuml;ssel zu kommen! <br>M&ouml;chtest du die &Uuml;bernahme trotzdem absagen?";
-        prompt_karte_generieren('absagen_selbst', 'Absagen', 'eigene_reservierungen.php', 'Abbrechen', $PromptTextSelbst, TRUE, 'kommentar_selbst');
+        $HTML .= prompt_karte_generieren('absagen_selbst', 'Absagen', 'my_reservations.php', 'Abbrechen', $PromptTextSelbst, TRUE, 'kommentar_selbst');
 
     } else if ($Mode == "vorfahrer"){
 
         $ReservierungUserMeta = lade_user_meta($Reservierung['user']);
         $PromptTextVorfahrer = "Du bist im Begriff die &Uuml;bernahme des Kahnschl&uuml;ssels nach deiner Fahrt durch ".$ReservierungUserMeta['vorname']." ".$ReservierungUserMeta['nachname']." abzusagen. Wir respektieren dies nat&uuml;rlich und werden versuchen die Fahrt f&uuml;r die Gruppe trotzdem noch m&ouml;glich zu machen, auch wenn wir es nicht garantieren k&ouml;nnen.<br>M&ouml;chtest du die &Uuml;bernahme sicher absagen?";
-        prompt_karte_generieren('absagen_vorfahrer', 'Absagen', 'eigene_reservierungen.php', 'Abbrechen', $PromptTextVorfahrer, TRUE, 'kommentar_vorfahrer');
+        $HTML .= prompt_karte_generieren('absagen_vorfahrer', 'Absagen', 'my_reservations.php', 'Abbrechen', $PromptTextVorfahrer, TRUE, 'kommentar_vorfahrer');
     }
 
 } else if (($Parser['success'] === FALSE) OR ($Parser['success'] === TRUE)) {
     if($Mode == "wart"){
-        zurueck_karte_generieren($Parser['success'], $Parser['meldung'], 'wartwesen.php');
+        $HTML .= zurueck_karte_generieren($Parser['success'], $Parser['meldung'], 'wartwesen.php');
     } else if ($Mode == "selbst"){
-        zurueck_karte_generieren($Parser['success'], $Parser['meldung'], 'eigene_reservierungen.php');
+        $HTML .= zurueck_karte_generieren($Parser['success'], $Parser['meldung'], 'my_reservations.php');
     } else if ($Mode == "vorfahrer"){
-        zurueck_karte_generieren($Parser['success'], $Parser['meldung'], 'eigene_reservierungen.php');
+        $HTML .= zurueck_karte_generieren($Parser['success'], $Parser['meldung'], 'my_reservations.php');
     }
 
 }
 
-echo "</div>";
-echo "</div>";
-echo "</div>";
+$HTML = container_builder($HTML);
 
-echo "</main>";
-footer_generieren();
-echo "</body>";
-echo "</html>";
+# Output site
+echo site_header($Header);
+echo site_body($HTML);
+
 
 function parse_uebernahme_absagen($UebernahmeID, $Mode){
 
@@ -124,7 +116,7 @@ function parse_uebernahme_absagen($UebernahmeID, $Mode){
             if (uebernahme_stornieren($UebernahmeID, $Kommentar)){
 
                 //Solle Übernahme innerhalb eines gewissen zeitfensters vor Resbeginn abgesagt worden sein, benachrichtigung an warte sofern nicht wartmode
-                $Zeitgrenze = lade_einstellung('kritischer-abstand-storno-vor-beginn');
+                $Zeitgrenze = lade_xml_einstellung('kritischer-abstand-storno-vor-beginn');
                 $BefehlZeit = "+ ".$Zeitgrenze." hours";
                 $Befehltime = strtotime($BefehlZeit);
 
@@ -138,9 +130,8 @@ function parse_uebernahme_absagen($UebernahmeID, $Mode){
 
                             $Wart = mysqli_fetch_assoc($AbfrageLadeAlleWaerte);
                             $WartMeta = lade_user_meta($Wart['user']);
-                            $Benutzersettings = lade_user_settings($Wart['user']);
 
-                            if($Benutzersettings['mail-kurzfristig-uebernahme-abgesagt'] == "1"){
+                            if($WartMeta['mail-kurzfristig-uebernahme-abgesagt'] == "1"){
 
                                 $Vorlage = "warnung-wart-uebernahme-kurzfristig-abgesagt";
                                 $TypAngabe = "".$Vorlage."-".$UebernahmeID."";
@@ -165,7 +156,7 @@ function parse_uebernahme_absagen($UebernahmeID, $Mode){
                                     $Bausteine['kommentar'] = "Kein Kommentar des Stornierenden!";
                                 }
 
-                                mail_senden($Vorlage, $WartMeta['mail'], $Wart['user'], $Bausteine, $TypAngabe);
+                                mail_senden($Vorlage, $WartMeta['mail'], $Bausteine);
 
                             }
                         }

@@ -1,63 +1,59 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: marc
+ * Date: 03.06.19
+ * Time: 13:59
+ */
 
-    include_once "./ressourcen/ressourcen.php";
+include_once "./ressources/ressourcen.php";
+session_manager();
+$Header = "Schl&uuml;ssel&uuml;bernahme ausmachen - " . lade_db_einstellung('site_name');
 
-    session_manager();
-    $link = connect_db();
+#Generate content
+# Page Title
+$PageTitle = '<h1 class="center-align hide-on-med-and-down">Schl&uuml;ssel&uuml;bernahme ausmachen</h1>';
+$PageTitle .= '<h1 class="center-align hide-on-large-only">Schl&uuml;ssel&uuml;bernahme ausmachen</h1>';
+$HTML = section_builder($PageTitle);
 
-    $Benutzerrollen = benutzerrollen_laden('');
-    $ReservierungID = $_GET['res'];
+$ReservierungID = $_GET['res'];
+$Parser = parse_uebernahme_ausmachen($ReservierungID);
+$HTML .= card_resinfos_generieren($ReservierungID);
 
-    //PARSER
-    $Parser = parse_uebernahme_ausmachen($ReservierungID);
+if ($Parser['success'] === NULL){
 
-    //SEITE Initiieren
-    echo "<html>";
-        header_generieren("Schl&uuml;ssel&uuml;bernahme ausmachen");
-        echo "<body>";
-        navbar_generieren($Benutzerrollen, TRUE, 'schluesseluebenahme_ausmachen');
-        echo "<main>";
+    //Normale Erklärungsseite anzeigen!
+    $HTML .= erklaerung_schluesseluebernahme_element();
+    $HTML .= promt_schluesseluebernahme_element($Parser);
 
-        echo "<div class='section'><h3 class='center-align'>Schl&uuml;ssel&uuml;bernahme ausmachen</h3></div>";
+} else if ($Parser['success'] === TRUE){
 
-        echo "<div class='container'>";
-        echo "<div class='row'>";
-        echo "<div class='col s12 m9 l12'>";
+    //Erfolgsmeldung anzeigen!
+    if ($Parser['wartmode'] == TRUE){
+        $HTML .= zurueck_karte_generieren(TRUE, 'Die Schl&uuml;ssel&uuml;bergabe wurde erfolgreich eingetragen und die Gruppe davor, als auch der User informiert.', './reservierungsmanagement.php');
+    } else if ($Parser['wartmode'] == FALSE){
+        $HTML .= zurueck_karte_generieren(TRUE, 'Deine Schl&uuml;ssel&uuml;bergabe wurde erfolgreich eingetragen und die Gruppe vor dir informiert. Bitte schaue ab jetzt &ouml;fters in deine Mail falls sich doch etwas &auml;ndern sollte und sei bitte p&uuml;nktlich an der Anlegestelle!:) Wir w&uuml;nschen eine gute Fahrt!:)', './my_reservations.php');
+    }
 
-            if ($Parser['success'] === NULL){
+} else if ($Parser['success'] === FALSE){
 
-                //Normale Erklärungsseite anzeigen!
-                erklaerung_schluesseluebernahme_element();
-                promt_schluesseluebernahme_element($Parser);
+    //Fehlermeldung anzeigen!
+    if ($Parser['wartmode'] == TRUE){
+        $HTML .= zurueck_karte_generieren(FALSE, $Parser['meldung'], './reservierungsmanagement.php');
+    } else if ($Parser['wartmode'] == FALSE){
+        $HTML .= zurueck_karte_generieren(FALSE, $Parser['meldung'], './my_reservations.php');
+    }
 
-            } else if ($Parser['success'] === TRUE){
+}
 
-                //Erfolgsmeldung anzeigen!
-                if ($Parser['wartmode'] == TRUE){
-                    zurueck_karte_generieren(TRUE, 'Die Schl&uuml;ssel&uuml;bergabe wurde erfolgreich eingetragen und die Gruppe davor, als auch der User informiert.', './reservierungsmanagement.php');
-                } else if ($Parser['wartmode'] == FALSE){
-                    zurueck_karte_generieren(TRUE, 'Deine Schl&uuml;ssel&uuml;bergabe wurde erfolgreich eingetragen und die Gruppe vor dir informiert. Bitte schaue ab jetzt &ouml;fters in deine Mail falls sich doch etwas &auml;ndern sollte und sei bitte p&uuml;nktlich an der Anlegestelle!:) Wir w&uuml;nschen eine gute Fahrt!:)', './eigene_reservierungen.php');
-                }
+$HTML = container_builder($HTML);
 
-            } else if ($Parser['success'] === FALSE){
+# Output site
+echo site_header($Header);
+echo site_body($HTML);
 
-                //Fehlermeldung anzeigen!
-                if ($Parser['wartmode'] == TRUE){
-                    zurueck_karte_generieren(FALSE, $Parser['meldung'], './reservierungsmanagement.php');
-                } else if ($Parser['wartmode'] == FALSE){
-                    zurueck_karte_generieren(FALSE, $Parser['meldung'], './eigene_reservierungen.php');
-                }
 
-            }
 
-        echo "</div>";
-        echo "</div>";
-        echo "</div>";
-
-        echo "</main>";
-        footer_generieren();
-        echo "</body>";
-    echo "</html>";
 
 function parse_uebernahme_ausmachen($ReservierungID){
 
@@ -80,12 +76,11 @@ function parse_uebernahme_ausmachen($ReservierungID){
             if (lade_user_id() != intval($Reservierung['user'])){
 
                 $UserAktuell = lade_user_meta(lade_user_id());
-                $Benutzerrollen = benutzerrollen_laden($UserAktuell['username']);
 
-                if ($Benutzerrollen['wart'] != TRUE){
+                if ($UserAktuell['ist_wart'] != 'true'){
                     $DAUcounter++;
                     $DAUerror .= "Du hast nicht die n&ouml;tigen Rechte um diese Reservierung zu bearbeiten!<br>";
-                } else if ($Benutzerrollen['wart'] == TRUE){
+                } else if ($UserAktuell['ist_wart'] == 'true'){
                     $Wartmode = TRUE;
                 }
             }
@@ -99,18 +94,13 @@ function parse_uebernahme_ausmachen($ReservierungID){
         } else {
 
             //User darf noch keine Übernahme machen
-            $Benutzereinstellungen = benutzereinstellung_laden(lade_user_id());
+            $Benutzereinstellungen = lade_user_meta(lade_user_id());
 
-            if (intval($Benutzereinstellungen['uebernahme']) != 1){
-
-                //Bei StoKaWart egal
-                $UserAktuell = lade_user_meta(lade_user_id());
-                $Benutzerrollen = benutzerrollen_laden($UserAktuell['username']);
-
-                if ($Benutzerrollen['wart'] != TRUE){
+            if ($Benutzereinstellungen['darf_uebernahme'] != 'true'){
+                if ($Benutzereinstellungen['ist_wart'] != 'true'){
                     $DAUcounter++;
                     $DAUerror .= "Du hast nicht die n&ouml;tigen Einweisungen um eine Schl&uuml;ssel&uuml;bernahme auszumachen!<br>";
-                } else if ($Benutzerrollen['wart'] == TRUE){
+                } else if ($Benutzereinstellungen['ist_wart'] == 'true'){
                     $Wartmode = TRUE;
                 }
             }
@@ -158,7 +148,7 @@ function parse_uebernahme_ausmachen($ReservierungID){
                 if ($AnzahlUebergabestatus == 0){
 
                     //Hat die reservierung vielleicht eine Schlüsselübernahme gebucht? -> Wenn ja, einstellung Checken ob man Schlüssel über mehrere Reservierungen weitergeben darf:
-                    if (lade_einstellung('schluesseluebernahme-ueber-mehrere-res') == "TRUE"){
+                    if (lade_xml_einstellung('schluesseluebernahme-ueber-mehrere-res') == "true"){
 
                         $AnfrageHatVorfahrendeReservierungUebernahme = "SELECT id FROM uebernahmen WHERE reservierung_davor = '".$ReservierungVorher['id']."' AND storno_user = '0'";
                         $AbfrageHatVorfahrendeReservierungUebernahme = mysqli_query($link, $AnfrageHatVorfahrendeReservierungUebernahme);
@@ -200,32 +190,28 @@ function parse_uebernahme_ausmachen($ReservierungID){
         return $Antwort;
     }
 
-    function erklaerung_schluesseluebernahme_element(){
+function erklaerung_schluesseluebernahme_element(){
 
-        echo "<div class='section'>";
-            echo "<p><table><tr><th><i class='large material-icons'>new_releases</i> </th><td>Du bist im Begriff eine Schl&uuml;ssel&uuml;bernahme f&uuml;r deine Reservierung auszumachen. Damit kannst du dir und uns Stocherkahnw&auml;rten ein bisschen Arbeit ersparen, indem du den Schl&uuml;ssel nicht pers&ouml;nlich bei uns abholen kommst. Dennoch gibt es folgende Dinge zu beachten:</td></tr></table></p>";
-            echo "<p><ul class='collection'>";
-                echo "<li class='collection-item'><table><tr><th><i class='small material-icons'>schedule</i> </th><td>Eine Schl&uuml;ssel&uuml;bernahme h&auml;ngt sowohl von deiner P&uuml;nktlichkeit, als auch der der Gruppe vor dir ab. Sei daher bitte p&uuml;nktlich an der Anlegestelle zu Beginn deiner Reservierung damit die Gruppe vor dir nicht warten muss.<br>Im Gegenzug erh&auml;t die Gruppe vor dir von uns nochmal den Hinweis ebenfalls p&uuml;nktlich an die Anlegestelle zur&uuml;ckzukehren.</td></tr></table></li>";
-                echo "<li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Die Gruppe vor dir wird eine eMail erhalten, die sie &uuml;ber dein Vorhaben in Kenntnis setzt. Sollte die Gruppe dies nicht w&uuml;nschen (z.B. wenn sie den Kahn nicht bis ganz ans Ende der Fahrt nutzen m&ouml;chte), kann diese die geplante Schl&uuml;ssel&uuml;bernahme absagen und du erh&auml;ltst eine Mail.</td></tr></table></li>";
-                echo "<li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Wir Stocherkahnw&auml;rte k&ouml;nnen keine Garantie daf&uuml;r &Uuml;bernehmen, dass die &Uuml;bernahme klappt. Falls also kurzfristig sich doch etwas &auml;ndern sollte, kann es daher sein, dass du doch keinen Schl&uuml;ssel bekommst.</td></tr></table></li>";
-                echo "<li class='collection-item'><table><tr><th><i class='small material-icons'>loyalty</i> </th><td>Da du deine Fahrt nicht pers&ouml;hnlich bei einem unserer W&auml;rte bezahlen kannst, verlassen wir uns darauf, dass du die Ausleihgeb&uuml;hr und den Schl&uuml;ssel zuverl&auml;ssig direkt nach deiner Fahrt in den R&uuml;ckgabebriefkasten wirfst.</td></tr></table></li>";
-            echo "</ul></p>";
-        echo "</div>";
+    $HTML = "<p><table><tr><th><i class='large material-icons'>new_releases</i> </th><td>Du bist im Begriff eine Schl&uuml;ssel&uuml;bernahme f&uuml;r deine Reservierung auszumachen. Damit kannst du dir und uns Stocherkahnw&auml;rten ein bisschen Arbeit ersparen, indem du den Schl&uuml;ssel nicht pers&ouml;nlich bei uns abholen kommst. Dennoch gibt es folgende Dinge zu beachten:</td></tr></table></p>";
+    $HTML .= "<p><ul class='collection'>";
+    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>schedule</i> </th><td>Eine Schl&uuml;ssel&uuml;bernahme h&auml;ngt sowohl von deiner P&uuml;nktlichkeit, als auch der der Gruppe vor dir ab. Sei daher bitte p&uuml;nktlich an der Anlegestelle zu Beginn deiner Reservierung damit die Gruppe vor dir nicht warten muss.<br>Im Gegenzug erh&auml;t die Gruppe vor dir von uns nochmal den Hinweis ebenfalls p&uuml;nktlich an die Anlegestelle zur&uuml;ckzukehren.</td></tr></table></li>";
+    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Die Gruppe vor dir wird eine eMail erhalten, die sie &uuml;ber dein Vorhaben in Kenntnis setzt. Sollte die Gruppe dies nicht w&uuml;nschen (z.B. wenn sie den Kahn nicht bis ganz ans Ende der Fahrt nutzen m&ouml;chte), kann diese die geplante Schl&uuml;ssel&uuml;bernahme absagen und du erh&auml;ltst eine Mail.</td></tr></table></li>";
+    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Wir Stocherkahnw&auml;rte k&ouml;nnen keine Garantie daf&uuml;r &Uuml;bernehmen, dass die &Uuml;bernahme klappt. Falls also kurzfristig sich doch etwas &auml;ndern sollte, kann es daher sein, dass du doch keinen Schl&uuml;ssel bekommst.</td></tr></table></li>";
+    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>loyalty</i> </th><td>Da du deine Fahrt nicht pers&ouml;hnlich bei einem unserer W&auml;rte bezahlen kannst, verlassen wir uns darauf, dass du die Ausleihgeb&uuml;hr und den Schl&uuml;ssel zuverl&auml;ssig direkt nach deiner Fahrt in den R&uuml;ckgabebriefkasten wirfst.</td></tr></table></li>";
+    $HTML .= "</ul></p>";
 
+    return section_builder($HTML);
+}
+
+function promt_schluesseluebernahme_element($Parser){
+
+    if ($Parser['wartmode'] == TRUE){
+        $HTML = prompt_karte_generieren('eintragen', 'Eintragen', './reservierungsmanagement.php', 'Abbrechen', 'M&ouml;chtest du eine Schl&uuml;ssel&uuml;bernahme eintragen?', TRUE, 'kommentar');
+    } else if ($Parser['wartmode'] == FALSE) {
+        $HTML = prompt_karte_generieren('eintragen', 'Eintragen', './my_reservations.php', 'Abbrechen', 'M&ouml;chtest du eine Schl&uuml;ssel&uuml;bernahme eintragen?', TRUE, 'kommentar');
     }
 
-    function promt_schluesseluebernahme_element($Parser){
-
-        echo "<div class='section'>";
-
-        if ($Parser['wartmode'] == TRUE){
-            prompt_karte_generieren('eintragen', 'Eintragen', './reservierungsmanagement.php', 'Abbrechen', 'M&ouml;chtest du eine Schl&uuml;ssel&uuml;bernahme eintragen?', TRUE, 'kommentar');
-        } else if ($Parser['wartmode'] == FALSE) {
-            prompt_karte_generieren('eintragen', 'Eintragen', './eigene_reservierungen.php', 'Abbrechen', 'M&ouml;chtest du eine Schl&uuml;ssel&uuml;bernahme eintragen?', TRUE, 'kommentar');
-        }
-
-        echo "</div>";
-
-    }
+    return $HTML;
+}
 
 ?>

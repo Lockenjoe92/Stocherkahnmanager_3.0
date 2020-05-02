@@ -873,7 +873,7 @@ function uebergabewesen($ID, $Ansicht='user'){
                         $Antwort = "Nix ausgemacht!";
                     }
 
-                    if (lade_xml_einstellung('uebernahmefunktion-globel-aktiv') === "true"){
+                    if (lade_xml_einstellung('uebernahmefunktion-global-aktiv') === "true"){
                         if($Ansicht == 'user'){
                             $Antwort .= "<a href='uebernahme_ausmachen.php?res=".$ID."'>Du kannst auch einfach den Schl&uuml;ssel von der Gruppe vor dir &uuml;bernehmen.</a>";
                         } elseif ($Ansicht == 'wart'){
@@ -1015,17 +1015,6 @@ function schluesselwesen($ID, $Ansicht='user'){
     return $Antwort;
 }
 
-function lade_uebernahme_res($IDres){
-
-    $link = connect_db();
-
-    $Anfrage = "SELECT * FROM uebernahmen WHERE reservierung = '$IDres' AND storno_user = '0'";
-    $Abfrage = mysqli_query($link, $Anfrage);
-    $Ergebnis = mysqli_fetch_assoc($Abfrage);
-
-    return $Ergebnis;
-}
-
 function lade_uebergabe_res($IDres){
 
     $link = connect_db();
@@ -1140,42 +1129,6 @@ function lade_offene_ausgleiche_res($ResID){
     }
 
     return $Array;
-}
-
-function uebernahme_moeglich($ReservierungID){
-
-    $link = connect_db();
-
-    $AnfrageLaden = "SELECT * FROM reservierungen WHERE id = '$ReservierungID'";
-    $AbfrageLaden = mysqli_query($link, $AnfrageLaden);
-    $Reservierung = mysqli_fetch_assoc($AbfrageLaden);
-
-    $Benutzereinstellungen = lade_user_meta($Reservierung['user']);
-
-    if($Benutzereinstellungen['darf_uebernahme'] == 'true'){
-
-        $Anfrage = "SELECT id FROM reservierungen WHERE ende = '".$Reservierung['beginn']."' AND storno_user = '0'";
-        $Abfrage = mysqli_query($link, $Anfrage);
-        $Anzahl = mysqli_num_rows($Abfrage);
-
-        if ($Anzahl > 0){
-
-            $Vorgehende = mysqli_fetch_assoc($Abfrage);
-
-            //Überprüfen ob die vorhergehende res ne Übergabe hat
-            $AnfrageDrei = "SELECT id FROM uebergaben WHERE res = '".$Vorgehende['id']."' AND storno_user = '0'";
-            $AbfrageDrei = mysqli_query($link, $AnfrageDrei);
-            $AnzahlDrei = mysqli_num_rows($AbfrageDrei);
-
-            if ($AnzahlDrei > 0){
-                //Übernahme möglich
-                return true;
-            } else {
-                //Keine übernahme möglich
-                return false;
-            }
-        }
-    }
 }
 
 function kosten_reservierung($ReservierungID){

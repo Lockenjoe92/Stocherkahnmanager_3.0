@@ -89,10 +89,10 @@ function renew_dse_mv_form($Mode, $Erklaerungheader, $Infos){
 
     if($Mode == 'dse'){
         $Icon = 'security';
-        $TableHTML = table_form_swich_item('Ich stimme den Nutzungsbedingungen, sowie der Speicherung und Verarbeitung gem&auml;&szlig; der Datenschutzerkl&auml;rung zu', 'ds', 'Nein', 'Ja', $Checked, false);
+        $TableHTML = table_form_swich_item('Ich stimme den Nutzungsbedingungen, sowie der Speicherung und Verarbeitung gem&auml;&szlig; der Datenschutzerkl&auml;rung zu', 'ds', 'Nein', 'Ja', '', false);
     } else {
         $Icon = 'assignment';
-        $TableHTML = table_form_swich_item('Ich stimme dem Nutzungsvertrag, sowie der Haftungs- und Sicherungsvereinbarung zu', 'vertrag', 'Nein', 'Ja', $Checkedvertrag, false);
+        $TableHTML = table_form_swich_item('Ich stimme dem Nutzungsvertrag, sowie der Haftungs- und Sicherungsvereinbarung zu', 'vertrag', 'Nein', 'Ja', '', false);
     }
 
     $Inhalt = "<h5>".$Infos['erklaerung']."</h5>";
