@@ -65,6 +65,7 @@ function eigene_reservierungen_user(){
                     $CollpsibleHeader = "Reservierung #" . $Reservierung['id'] . " - " . $DatumHeader . "" . $SpanUebergabeNotwendig . "";
 
                     $TableRows = table_row_builder(table_header_builder('Fahrzeiten') . table_data_builder("Abfahrt: " . $UhrzeitBeginn . " Uhr<br>R&uuml;ckgabe: " . $UhrzeitEnde . " Uhr"));
+                    $TableRows .= table_row_builder(table_header_builder('Kosten') . table_data_builder("".kosten_reservierung($Reservierung['id'])."&euro;"));
                     $TableRows .= table_row_builder(table_header_builder('Bezahlung') . table_data_builder(zahlungswesen($Reservierung['id'])));
                     $TableRows .= table_row_builder(table_header_builder('Schlüsselübergabe') . table_data_builder(uebergabewesen($Reservierung['id'])));
                     $TableRows .= table_row_builder(table_header_builder('Schlüssel') . table_data_builder(schluesselwesen($Reservierung['id'])));
