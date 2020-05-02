@@ -3,9 +3,9 @@
 //STARTSEITE NORMALOUSER
 function seiteninhalt_normalouser_generieren(){
     $HTML = eigene_reservierungen_user();
-    #$HTML .= faellige_schluesselrueckgaben_user();
-    #$HTML .= faellige_zahlungen_user();
-    #$HTML .= moegliche_rueckzahlungen_user();
+    $HTML .= faellige_schluesselrueckgaben_user();
+    $HTML .= faellige_zahlungen_user();
+    $HTML .= moegliche_rueckzahlungen_user();
     return $HTML;
 }
 function eigene_reservierungen_user(){
@@ -103,7 +103,7 @@ function eigene_reservierungen_user(){
 
             }
 
-            $CollapsibleItems .= collapsible_item_builder("<a href='reservierung_hinzufuegen.php?typ=pause'>Hinzuf&uuml;gen</a>", '', 'note_add');
+            $CollapsibleItems .= collapsible_item_builder("<a href='../reservierung_hinzufuegen.php?typ=pause'>Hinzuf&uuml;gen</a>", '', 'note_add');
             $SectionHTML .= collapsible_builder($CollapsibleItems);
         }
     }
@@ -206,7 +206,9 @@ function faellige_schluesselrueckgaben_user(){
             }
 
             if ($a > 0) {
-                $HTML = collection_builder($ErforderlicheRueckgabenInhalt);
+                $HTML = '<h3 class="hide-on-med-and-down">Fällige Schlüsselrückaben!</h3>';
+                $HTML .= '<h3 class="hide-on-large-only">Schlüsselrückaben</h3>';
+                $HTML .= collection_builder($ErforderlicheRueckgabenInhalt);
             }
         }
 
