@@ -163,15 +163,15 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
         $DAUerror .= "Es muss eine Reservierungsnummer angegeben sein!<br>";
     }
 
-    //Hat die res schon ne gültige Übergabe?
-    $AnfrageResSchonVersorgt = "SELECT id FROM uebergaben WHERE res = '$Res' AND storno_user = '0'";
-    $AbfrageResSchonVersorgt = mysqli_query($link, $AnfrageResSchonVersorgt);
-    $AnzahlResSchonVersorgt = mysqli_num_rows($AbfrageResSchonVersorgt);
+        //Hat die res schon ne gültige Übergabe?
+        $AnfrageResSchonVersorgt = "SELECT id FROM uebergaben WHERE res = '$Res' AND storno_user = '0'";
+        $AbfrageResSchonVersorgt = mysqli_query($link, $AnfrageResSchonVersorgt);
+        $AnzahlResSchonVersorgt = mysqli_num_rows($AbfrageResSchonVersorgt);
 
-    if ($AnzahlResSchonVersorgt > 0){
-        $DAUcounter++;
-        $DAUerror .= "F&uuml;r diese Resevierung gibt es schon eine Schl&uuml;ssel&uuml;bergabe! Bitte tauschen oder stornieren!<br>";
-    }
+        if ($AnzahlResSchonVersorgt > 0){
+            $DAUcounter++;
+            $DAUerror .= "F&uuml;r diese Resevierung gibt es schon eine Schl&uuml;ssel&uuml;bergabe! Bitte tauschen oder stornieren!<br>";
+        }
 
     if ($Beginn == ""){
         $DAUcounter++;
@@ -1049,13 +1049,12 @@ function geplante_uebergabe_hinzufuegen($ResID, $Wart, $Gratis, $Verguenstigung,
 
 }
 
-function schluesseluebergabe_ausmachen_moeglichkeiten_anzeigen($IDres){
+function schluesseluebergabe_ausmachen_moeglichkeiten_anzeigen($IDres, $Mode){
 
     $link = connect_db();
     $Reservierung = lade_reservierung($IDres);
     $HTML = "";
-
-    if(res_hat_uebergabe($IDres)){
+    if((res_hat_uebergabe($IDres)) AND ($Mode!='change')){
 
         $HTML .= "<div class='card-panel materialize-" .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
         $HTML .= "<h5 class='center-align'>Fehler!</h5>";
@@ -1093,7 +1092,7 @@ function schluesseluebergabe_ausmachen_moeglichkeiten_anzeigen($IDres){
                 //Hat der Wart noch Schlüssel?
                 if(wart_verfuegbare_schluessel($Terminangebot['wart']) > 0){
                     $Counter++;
-                    $HTMLcollapsible .= terminangebot_listenelement_buchbar_generieren($Terminangebot['id'], $IDres);
+                    $HTMLcollapsible .= terminangebot_listenelement_buchbar_generieren($Terminangebot['id'], $IDres, $Mode);
                 }
             }
 
@@ -1110,10 +1109,10 @@ function schluesseluebergabe_ausmachen_moeglichkeiten_anzeigen($IDres){
     return $HTML;
 }
 
-function parser_uebergabe_hinzufuegen_ueser($ReservierungID){
+function parser_uebergabe_hinzufuegen_ueser($gebni, $Mode='fresh'){
 
     $link = connect_db();
-    $Reservierung = lade_reservierung($ReservierungID);
+    $Reservierung = lade_reservierung($gebni);
 
     $BefehlGrenz = "- ".lade_xml_einstellung('max-tage-vor-abfahrt-uebergabe')." days";
     $BefehlGrenzZwei = "- ".lade_xml_einstellung('max-minuten-vor-abfahrt-uebergabe')." minutes";
@@ -1141,7 +1140,18 @@ function parser_uebergabe_hinzufuegen_ueser($ReservierungID){
             $Kommentarfeld = "kommentar_uebergabe_".$Termin['id']."";
 
             if (isset($_POST[$Suchbefehl])){
-                $hinzufueger = uebergabe_hinzufuegen($ReservierungID, $Termin['wart'], $Termin['id'], $_POST[$Terminfeld], $_POST[$Kommentarfeld], lade_user_id());
+
+                if($Mode == 'change'){
+                    $AnfrageResSchonVersorgt = "SELECT id FROM uebergaben WHERE res = '$gebni' AND storno_user = '0'";
+                    $AbfrageResSchonVersorgt = mysqli_query($link, $AnfrageResSchonVersorgt);
+                    $AnzahlResSchonVersorgt = mysqli_num_rows($AbfrageResSchonVersorgt);
+                    if($AnzahlResSchonVersorgt == 1){
+                        $Ergebnis = mysqli_fetch_assoc($AbfrageResSchonVersorgt);
+                        uebergabe_stornieren($Ergebnis['id'], 'User hat auf eine andere Übergabe gewechselt!');
+                    }
+                }
+
+                $hinzufueger = uebergabe_hinzufuegen($gebni, $Termin['wart'], $Termin['id'], $_POST[$Terminfeld], $_POST[$Kommentarfeld], lade_user_id());
                 $Antwort = $hinzufueger;
             }
         }
@@ -1164,7 +1174,7 @@ function uebergabe_erfolgreich_eingetragen_user(){
 
 }
 
-function terminangebot_listenelement_buchbar_generieren($IDangebot, $RESID){
+function terminangebot_listenelement_buchbar_generieren($IDangebot, $RESID, $Mode){
 
     $link = connect_db();
     zeitformat();
@@ -1190,7 +1200,11 @@ function terminangebot_listenelement_buchbar_generieren($IDangebot, $RESID){
     $ZeileMitBuchung .= table_form_string_item('Kommentar', 'kommentar_uebergabe_'.$IDangebot.'', $_POST['kommentar_uebergabe_'.$IDangebot.''], false);
     $ZeileMitBuchung .= table_row_builder(table_header_builder('').table_data_builder(form_button_builder('action_termin_'.$IDangebot.'', '&Uuml;bergabe ausmachen', 'action', 'send')));
     $TabelleMitBuchung = table_builder($ZeileMitBuchung);
-    $Formular = form_builder($TabelleMitBuchung, './uebergabe_ausmachen.php?res='.$RESID.'', 'post', '', '');
+    if($Mode=='fresh'){
+        $Formular = form_builder($TabelleMitBuchung, './uebergabe_ausmachen.php?res='.$RESID.'', 'post', '', '');
+    } elseif($Mode=='change'){
+        $Formular = form_builder($TabelleMitBuchung, './neue_uebergabe_ausmachen.php?res='.$RESID.'', 'post', '', '');
+    }
     $FormularCollection = collection_item_builder($Formular);
 
     //Ausgabe

@@ -21,7 +21,7 @@ $Parser = parser_uebergabe_hinzufuegen_ueser($ReservierungID);
 $HTML .= card_resinfos_generieren($ReservierungID);
 
 if (($Parser['success'] == NULL) OR ($Parser['success'] == FALSE)){
-    $HTML .= schluesseluebergabe_ausmachen_moeglichkeiten_anzeigen($ReservierungID);
+    $HTML .= schluesseluebergabe_ausmachen_moeglichkeiten_anzeigen($ReservierungID, 'fresh');
 } else if ($Parser['success'] == TRUE){
     $HTML .= uebergabe_erfolgreich_eingetragen_user();
 }
