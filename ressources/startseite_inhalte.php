@@ -496,6 +496,25 @@ function website_item_info_table_generator($Item){
     return $Table;
 }
 
+function website_item_baustein_table_generator($Item){
+
+    $BausteinMeta = lade_baustein($Item);
+    $SeiteMeta = lade_seite($BausteinMeta['ort']);
+
+    $TableRowContent = table_header_builder('Subseite:');
+    $TableRowContent .= table_data_builder($SeiteMeta['menue_text']);
+    $TableRows = table_row_builder($TableRowContent);
+    $TableRowContent = table_header_builder('Subseite-URL:');
+    $TableRowContent .= table_data_builder("./index.php?tab=".$SeiteMeta['name']."");
+    $TableRows .= table_row_builder($TableRowContent);
+    $TableRowContent = table_header_builder('Baustein:');
+    $TableRowContent .= table_data_builder($BausteinMeta['name']);
+    $TableRows .= table_row_builder($TableRowContent);
+
+    $Table = table_builder($TableRows);
+    return $Table;
+}
+
 function generate_row_item_change_form($Item){
 
     $ItemMeta = lade_seiteninhalt($Item);
