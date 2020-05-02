@@ -57,7 +57,7 @@ function generiere_startseite_content($Baustein){
     } elseif($Baustein['typ'] == 'html_container'){
         $HTML .= html_container_generieren($Baustein['id']);
     } elseif($Baustein['typ'] == 'kalender_container'){
-        $HTML .= kalender_container_generieren('startseite');
+        $HTML .= kalender_container_generieren('startpage');
     }
 
     return $HTML;
@@ -472,5 +472,89 @@ function update_website_page_item($PageName, $Column, $Value){
         return true;
     }
 }
+
+function website_item_info_table_generator($Item){
+
+    $ItemMeta = lade_seiteninhalt($Item);
+    $BausteinMeta = lade_baustein($ItemMeta['id_baustein']);
+    $SeiteMeta = lade_seite($BausteinMeta['ort']);
+
+    $TableRowContent = table_header_builder('Subseite:');
+    $TableRowContent .= table_data_builder($SeiteMeta['menue_text']);
+    $TableRows = table_row_builder($TableRowContent);
+    $TableRowContent = table_header_builder('Subseite-URL:');
+    $TableRowContent .= table_data_builder("./index.php?tab=".$SeiteMeta['name']."");
+    $TableRows .= table_row_builder($TableRowContent);
+    $TableRowContent = table_header_builder('Baustein:');
+    $TableRowContent .= table_data_builder($BausteinMeta['name']);
+    $TableRows .= table_row_builder($TableRowContent);
+    $TableRowContent = table_header_builder('Element:');
+    $TableRowContent .= table_data_builder($ItemMeta['ueberschrift']);
+    $TableRows .= table_row_builder($TableRowContent);
+
+    $Table = table_builder($TableRows);
+    return $Table;
+}
+
+function generate_row_item_change_form($Item){
+
+    $ItemMeta = lade_seiteninhalt($Item);
+
+    $TableRows = table_form_string_item('Überschrift', 'item_title', $ItemMeta['ueberschrift'], '');
+    $TableRows .= table_form_string_item('Überschrift Farbe', 'item_title_color', $ItemMeta['ueberschrift_farbe'], '');
+    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $ItemMeta['html_content'], '');
+    $TableRows .= table_form_string_item('Icon', 'item_icon', $ItemMeta['icon'], '');
+    $TableRows .= table_form_string_item('Icon Farbe', 'item_icon_color', $ItemMeta['icon_farbe'], '');
+    $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));
+    $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    $TableRows .= table_row_builder($TableRowContent);
+    $Table = table_builder($TableRows);
+    $Form = form_builder($Table, '#', 'post', 'item_change_form');
+    $Section = section_builder($Form);
+
+    return $Section;
+
+}
+
+function generate_parallax_change_form($Item){
+
+    $ItemMeta = lade_seiteninhalt($Item);
+
+    $TableRows = table_form_string_item('Überschrift', 'item_title', $ItemMeta['ueberschrift'], '');
+    $TableRows .= table_form_string_item('Überschriftfarbe', 'item_title_color', $ItemMeta['ueberschrift_farbe'], '');
+    $TableRows .= table_form_string_item('Zweite Überschrift', 'second_item_title', $ItemMeta['zweite_ueberschrift'], '');
+    $TableRows .= table_form_string_item('Zweite Überschriftfarbe', 'second_item_title_color', $ItemMeta['zweite_ueberschrift_farbe'], '');
+    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $ItemMeta['html_content'], '');
+    $TableRows .= table_form_mediapicker_dropdown('URI Bild', 'item_pic_uri', $ItemMeta['uri_bild'], 'media/pictures', 'Wähle ein Bild aus', '');
+
+    $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));
+    $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    $TableRows .= table_row_builder($TableRowContent);
+    $Table = table_builder($TableRows);
+    $Form = form_builder($Table, '#', 'post', 'item_change_form');
+    $Section = section_builder($Form);
+
+    return $Section;
+}
+
+function generate_html_change_form($Item){
+
+    $ItemMeta = lade_seiteninhalt($Item);
+
+    $TableRows = table_form_string_item('Überschrift (wird nicht angezeigt)', 'item_title', $ItemMeta['ueberschrift'], '');
+    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $ItemMeta['html_content'], '');
+
+    $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));
+    $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    $TableRows .= table_row_builder($TableRowContent);
+    $Table = table_builder($TableRows);
+    $Form = form_builder($Table, '#', 'post', 'item_change_form');
+    $Section = section_builder($Form);
+
+    return $Section;
+}
+
+
+
 
 

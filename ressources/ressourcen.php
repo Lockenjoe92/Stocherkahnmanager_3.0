@@ -8,6 +8,7 @@
 
 include_once "website_skeleton.php";              //Enthält alle funktionen, die die Grundbausteine einer Seite generieren (Header, NavBar, Footer, etc.)
 include_once "startseite_inhalte.php";
+include_once "startseite_parser.php";
 include_once "bausteine.php";
 include_once "datenbank.php";
 include_once "settings.php";

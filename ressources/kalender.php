@@ -212,7 +212,7 @@ function parse_wochenwechseler_kalender(){
 
     //LADE WOCHENVERSCHIEBUNG
     if (isset($_POST['wochenverschiebung'])){
-        $WochenverschiebungAlt = $_POST['wochenverschiebung'];
+        $WochenverschiebungAlt = intval($_POST['wochenverschiebung']);
     } else {
         $WochenverschiebungAlt = 0;
     }
