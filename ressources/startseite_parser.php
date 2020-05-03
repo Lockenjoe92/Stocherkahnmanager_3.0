@@ -118,6 +118,47 @@ function parse_html_item_edit($Item){
     update_website_content_item($Item, 'html_content', $HTMLValue);
 
 }
+function parse_collection_item_edit($Item){
+
+    #Remove certain HTML Tags from HTML-Textarea-Input
+    $HTMLValue = $_POST['item_html'];
+    $HTMLValue = str_replace('<pre>','',$HTMLValue);
+    $HTMLValue = str_replace('<code>','',$HTMLValue);
+    $HTMLValue = str_replace('</code>','',$HTMLValue);
+    $HTMLValue = str_replace('</pre>','',$HTMLValue);
+
+    update_website_content_item($Item, 'ueberschrift', $_POST['item_title']);
+    update_website_content_item($Item, 'html_content', $HTMLValue);
+
+}
+function parse_collapsible_item_edit($Item){
+
+    #Remove certain HTML Tags from HTML-Textarea-Input
+    $HTMLValue = $_POST['item_html'];
+    $HTMLValue = str_replace('<pre>','',$HTMLValue);
+    $HTMLValue = str_replace('<code>','',$HTMLValue);
+    $HTMLValue = str_replace('</code>','',$HTMLValue);
+    $HTMLValue = str_replace('</pre>','',$HTMLValue);
+    update_website_content_item($Item, 'icon', $_POST['item_icon']);
+    update_website_content_item($Item, 'icon_farbe', $_POST['item_icon_color']);
+    update_website_content_item($Item, 'ueberschrift', $_POST['item_title']);
+    update_website_content_item($Item, 'html_content', $HTMLValue);
+
+}
+function parse_kostenstaffel_item_edit($Item){
+
+    #Remove certain HTML Tags from HTML-Textarea-Input
+    $HTMLValue = $_POST['item_html'];
+    $HTMLValue = str_replace('<pre>','',$HTMLValue);
+    $HTMLValue = str_replace('<code>','',$HTMLValue);
+    $HTMLValue = str_replace('</code>','',$HTMLValue);
+    $HTMLValue = str_replace('</pre>','',$HTMLValue);
+
+    update_website_content_item($Item, 'ueberschrift', $_POST['item_title']);
+    update_website_content_item($Item, 'zweite_ueberschrift_farbe', $_POST['item_panel_color']);
+    update_website_content_item($Item, 'html_content', $HTMLValue);
+
+}
 function parse_parallax_item_edit($Item){
 
     #Remove certain HTML Tags from HTML-Textarea-Input
@@ -147,6 +188,12 @@ function parse_edit_website_item_page($Item){
             parse_parallax_item_edit($Item);
         } elseif ($BausteinMeta['typ'] == 'html_container'){
             parse_html_item_edit($Item);
+        } elseif ($BausteinMeta['typ'] == 'collection_container'){
+            parse_collection_item_edit($Item);
+        } elseif ($BausteinMeta['typ'] == 'collapsible_container'){
+            parse_collapsible_item_edit($Item);
+        } elseif ($BausteinMeta['typ'] == 'kostenstaffel_container'){
+            parse_kostenstaffel_item_edit($Item);
         }
     }
 }

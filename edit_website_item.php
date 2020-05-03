@@ -33,6 +33,12 @@ if(intval($Item)>0){
         $HTML .= generate_parallax_change_form($Item);
     } elseif ($BausteinMeta['typ'] == 'html_container'){
         $HTML .= generate_html_change_form($Item);
+    } elseif ($BausteinMeta['typ'] == 'collection_container'){
+        $HTML .= generate_collection_change_form($Item);
+    } elseif ($BausteinMeta['typ'] == 'collapsible_container'){
+        $HTML .= generate_collapsible_change_form($Item);
+    } elseif ($BausteinMeta['typ'] == 'kostenstaffel_container'){
+        $HTML .= generate_kostenstaffel_change_form($Item);
     }
 
     # Output site

@@ -103,7 +103,7 @@ function generate_inhalte_views($BausteinID){
     $Anzahl = mysqli_num_rows($Abfrage);
 
     if ($Anzahl == 0){
-        if ($Baustein['typ'] == 'row_container') {
+        if (($Baustein['typ'] == 'row_container') OR ($Baustein['typ'] == 'collection_container') OR ($Baustein['typ'] == 'collapsible_container')) {
             $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
             $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
             $InhalteHTML .= collection_item_builder($Header);
@@ -130,13 +130,25 @@ function generate_inhalte_views($BausteinID){
                 $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
                 $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
                 $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'collection_container'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'collapsible_container'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'kostenstaffel_container'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
             }
 
             $InhalteHTML .= collection_item_builder($Header);
 
         }
 
-        if ($Baustein['typ'] == 'row_container') {
+        if (($Baustein['typ'] == 'row_container') OR ($Baustein['typ'] == 'collection_container') OR ($Baustein['typ'] == 'collapsible_container')) {
             if ($Anzahl < lade_db_einstellung('max_items_row_container')) {
                 $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
                 $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
@@ -158,7 +170,10 @@ function generate_bausteine_dropdown_menue($ItemName, $Label, $SpecialMode){
     $HTML .= "<option value='row_container'>row_container</option>";
     $HTML .= "<option value='parallax_mit_text'>parallax_mit_text</option>";
     $HTML .= "<option value='html_container'>html_container</option>";
+    $HTML .= "<option value='collapsible_container'>collapsible_container</option>";
+    $HTML .= "<option value='collection_container'>collection_container</option>";
     $HTML .= "<option value='kalender_container'>kalender_container</option>";
+    $HTML .= "<option value='kostenstaffel_container'>kostenstaffel_container</option>";
     $HTML .= "</select>";
 
     if ($Label!=''){
