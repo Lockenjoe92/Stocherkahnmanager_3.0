@@ -6,6 +6,7 @@
  * Time: 18:28
  */
 
+
 function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
 {
     //Vorlage laden
@@ -43,7 +44,6 @@ function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
         return true;
     }
 }
-
 
     function mail_schon_gesendet($User, $Typ){
 

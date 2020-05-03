@@ -33,3 +33,5 @@ include_once "ausleihvertraege.php";
 include_once "sms_senden.php";
 include_once "smsvorlagen.php";
 include_once "uebernahmen.php";
+include_once "./phpmailer/PHPMailer.php";
+include_once "./phpmailer/Exception.php";
