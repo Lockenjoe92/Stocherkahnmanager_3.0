@@ -181,7 +181,6 @@ function increase_baustein_rank_parse($Baustein, $Site){
 
         #Load the other item
         $Anfrage = "SELECT * FROM homepage_bausteine WHERE ort = '".$Site."' AND rang = ".$NewRang." AND storno_user = 0";
-        echo $Anfrage;
         $Abfrage = mysqli_query($link, $Anfrage);
         $Ergebnis = mysqli_fetch_assoc($Abfrage);
 

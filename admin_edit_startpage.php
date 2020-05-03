@@ -32,6 +32,8 @@ for($x=1;$x<=$Anzahl;$x++){
 
     #Build Title Content
     $TitleHTML = $Ergebnis['menue_text'];
+    parse_change_page_rang($TitleHTML, $Ergebnis['menue_rang']);
+    parse_change_bausteine_rang($Ergebnis['name']);
 
     #Build Card Content
     $ContentHTML = generate_bausteine_view($Ergebnis['name']);
@@ -73,9 +75,10 @@ function generate_bausteine_view($Seite){
         for ($x = 1; $x <= $Anzahl; $x++) {
 
             $Ergebnis = mysqli_fetch_assoc($Abfrage);
-            $ReferenceDelete = "./delete_website_baustein.php?baustein=".$Ergebnis['id']."";
-            $Operators = "<a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
-            $Operators .= generate_move_buttons_baustein_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Seite);
+            parse_change_items_rang($Ergebnis['id']);
+            $ReferenceDelete = "delete_website_baustein_".$Ergebnis['id']."";
+            $Operators = form_button_builder($ReferenceDelete, 'Löschen', 'action', 'delete_forever', '');
+            $Operators .= " ".generate_move_buttons_baustein_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Seite);
 
             $Header = "" . $Ergebnis['rang'] . " - " . $Ergebnis['typ'] . " - " . $Ergebnis['name'] . " ".$Operators."";
             $Items = generate_inhalte_views($Ergebnis['id']);
@@ -203,22 +206,22 @@ function generate_move_buttons_page_level($AnzahlGesamtSeiten, $ZeroRangCounter,
             $Output = row_builder(divider_builder());
             $Output .= row_builder('<h4>Rang verschieben</h4>');
             $HTML = '';
-            $ButtonDownName = "./decrease_page_rank.php?name=".$AktuellerName."&rang=".$AktuellerRang."";
-            $ButtonUpName = "./increase_page_rank.php?name=".$AktuellerName."&rang=".$AktuellerRang."";
+            $ButtonDownName = "./decrease_page_rank_".$AktuellerName."";
+            $ButtonUpName = "./increase_page_rank_".$AktuellerName."";
             $DownToo = false;
 
             #Can be moved down
             if($AktuellerRang < $NumberRankedSites){
-                $HTML .= button_link_creator('Rang senken', $ButtonDownName, 'arrow_downward', "col s5 ".lade_db_einstellung('site_buttons_color')."");
+                $HTML .= form_button_builder($ButtonDownName, 'Rang senken', 'action', 'arrow_downward', 'col s5');
                 $DownToo = True;
             }
 
             #Can be moved up
             if($AktuellerRang > 1){
                 if($DownToo){
-                    $HTML .= button_link_creator('Rang erhöhen', $ButtonUpName, 'arrow_upward', "col s5 offset-s1 ".lade_db_einstellung('site_buttons_color')."");
+                    $HTML .= form_button_builder($ButtonUpName, 'Rang erhöhen', 'action', 'arrow_upward', 'col s5 offset-s1');
                     } else {
-                    $HTML .= button_link_creator('Rang erhöhen', $ButtonUpName, 'arrow_upward', "col s5 ".lade_db_einstellung('site_buttons_color')."");
+                    $HTML .= form_button_builder($ButtonUpName, 'Rang erhöhen', 'action', 'arrow_upward', 'col s5');
                 }
             }
 
@@ -241,14 +244,15 @@ function generate_move_buttons_baustein_level($AnzahlGesamtBausteine, $Aktueller
 
         #Can be moved down
         if($AktuellerBausteinRang < $AnzahlGesamtBausteine){
-            $ButtonDownName = "./parsers/increase_baustein_rank.php?baustein=".$AktuellerBausteinID."&site=".$AktuelleSeiteName."";
-            $HTML .= "<a href='".$ButtonDownName."'><i class='tiny material-icons'>arrow_downward</i></a> ";
+            $ButtonDownName = "increase_baustein_".$AktuellerBausteinID."";
+            $HTML .= form_button_builder($ButtonDownName, 'Nach unten', 'action', 'arrow_downward', '');
+
         }
 
         #Can be moved up
         if($AktuellerBausteinRang > 1){
-            $ButtonDownName = "./parsers/decrease_baustein_rank.php?baustein=".$AktuellerBausteinID."&site=".$AktuelleSeiteName."";
-            $HTML .= "<a href='".$ButtonDownName."'><i class='tiny material-icons'>arrow_upward</i></a> ";
+            $ButtonUpName = "decrease_baustein_".$AktuellerBausteinID."";
+            $HTML .= form_button_builder($ButtonUpName, 'Nach oben', 'action', 'arrow_upward', '');
         }
 
         return $HTML;
@@ -267,14 +271,14 @@ function generate_move_buttons_item_level($AnzahlGesamtItems, $AktuellerItemID, 
 
         #Can be moved down
         if($AktuellerItemRang < $AnzahlGesamtItems){
-            $ButtonDownName = "./parsers/increase_item_rank.php?item=".$AktuellerItemID."&baustein=".$AktuellerBaustein."";
-            $HTML .= "<a href='".$ButtonDownName."'><i class='tiny material-icons'>arrow_downward</i></a> ";
+            $ButtonDownName = "increase_item_rank_item_".$AktuellerItemID."";
+            $HTML .= form_button_builder($ButtonDownName, 'Nach unten', 'action', 'arrow_downward', '');
         }
 
         #Can be moved up
         if($AktuellerItemRang > 1){
-            $ButtonUpName = "./parsers/decrease_item_rank.php?item=".$AktuellerItemID."&baustein=".$AktuellerBaustein."";
-            $HTML .= "<a href='".$ButtonUpName."'><i class='tiny material-icons'>arrow_upward</i></a> ";
+            $ButtonUpName = "decrease_item_rank_item_".$AktuellerItemID."";
+            $HTML .= form_button_builder($ButtonUpName, 'Nach oben', 'action', 'arrow_upward', '');
         }
 
         return $HTML;
@@ -326,4 +330,63 @@ function add_website_bausteine_parser(){
     return $Action;
 }
 
+function parse_change_page_rang($PageName, $Rang){
+
+    $ButtonDownName = "./decrease_page_rank_".$PageName."";
+    $ButtonUpName = "./increase_page_rank_".$PageName."";
+
+    if(isset($_POST[$ButtonDownName])){
+        return decrease_page_rank_parser($Rang, $PageName);
+    }
+    if(isset($_POST[$ButtonUpName])){
+        return increase_page_rank_parse($Rang, $PageName);
+    }
+
+}
+
+function parse_change_bausteine_rang($PageName){
+
+    $link = connect_db();
+    $Anfrage = "SELECT id FROM homepage_bausteine";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    for($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        $Baustein = $Ergebnis['id'];
+        $ButtonDownName = "increase_baustein_".$Baustein."";
+        $ButtonUpName = "decrease_baustein_".$Baustein."";
+        $ReferenceDelete = "delete_website_baustein_".$Baustein."";
+
+        if(isset($_POST[$ButtonDownName])){
+            return increase_baustein_rank_parse($Baustein, $PageName);
+        }
+        if(isset($_POST[$ButtonUpName])){
+            return decrease_baustein_rank_parser($Baustein, $PageName);
+        }
+        if(isset($_POST[$ReferenceDelete])){
+            return delete_website_baustein_parser($Baustein);
+        }
+    }
+}
+
+function parse_change_items_rang($Baustein){
+
+    $link = connect_db();
+    $Anfrage = "SELECT id FROM homepage_content";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    for($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        $Item = $Ergebnis['id'];
+        $ButtonDownName = "decrease_item_rank_item_".$Item."";
+        $ButtonUpName = "increase_item_rank_item_".$Item."";
+        if(isset($_POST[$ButtonDownName])){
+            return decrease_item_rank_parser($Baustein, $Item);
+        }
+        if(isset($_POST[$ButtonUpName])){
+            return increase_item_rank_parse($Baustein, $Item);
+        }
+    }
+}
 ?>
