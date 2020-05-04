@@ -11,6 +11,7 @@ session_manager('ist_admin');
 $link = connect_db();
 #Parse Input
 add_website_bausteine_parser();
+parse_change_items_rang();
 
 #Generate content
 # Page Title
@@ -75,7 +76,6 @@ function generate_bausteine_view($Seite){
         for ($x = 1; $x <= $Anzahl; $x++) {
 
             $Ergebnis = mysqli_fetch_assoc($Abfrage);
-            parse_change_items_rang($Ergebnis['id']);
             $ReferenceDelete = "delete_website_baustein_".$Ergebnis['id']."";
             $Operators = form_button_builder($ReferenceDelete, 'Löschen', 'action', 'delete_forever', '');
             $Operators .= " ".generate_move_buttons_baustein_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Seite);
@@ -385,8 +385,7 @@ function parse_change_bausteine_rang($PageName){
     }
 }
 
-function parse_change_items_rang($Baustein){
-
+function parse_change_items_rang(){
     $link = connect_db();
     $Anfrage = "SELECT id FROM homepage_content";
     $Abfrage = mysqli_query($link, $Anfrage);
@@ -394,13 +393,13 @@ function parse_change_items_rang($Baustein){
     for($a=1;$a<=$Anzahl;$a++){
         $Ergebnis = mysqli_fetch_assoc($Abfrage);
         $Item = $Ergebnis['id'];
-        $ButtonDownName = "decrease_item_rank_item_".$Item."";
-        $ButtonUpName = "increase_item_rank_item_".$Item."";
-        if(isset($_POST[$ButtonDownName])){
-            return decrease_item_rank_parser($Baustein, $Item);
-        }
+        $ButtonUpName = "decrease_item_rank_item_".$Item."";
+        $ButtonDownName = "increase_item_rank_item_".$Item."";
         if(isset($_POST[$ButtonUpName])){
-            return increase_item_rank_parse($Baustein, $Item);
+            return decrease_item_rank_parser($Item);
+        }
+        if(isset($_POST[$ButtonDownName])){
+            return increase_item_rank_parse($Item);
         }
     }
 }

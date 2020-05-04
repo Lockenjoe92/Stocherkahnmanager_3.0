@@ -494,6 +494,7 @@ function startseitenelement_loeschen($IDbaustein){
 function startseiteninhalt_loeschen($IDElement){
 
     $UserID = intval(lade_user_id());
+    $OldElement = lade_seiteninhalt($IDElement);
     $Timestamp = timestamp();
     $link = connect_db();
 
@@ -509,6 +510,25 @@ function startseiteninhalt_loeschen($IDElement){
         echo "Execute 3 failed: (" . $stmt->errno . ") " . $stmt->error;
     }
 
+    //Update all following items
+    if (!($stmt = $link->prepare("SELECT id FROM homepage_content WHERE id_baustein = ? AND rang > ? AND storno_user = 0"))) {
+        echo "Prepare 3 failed: (" . $link->errno . ") " . $link->error;
+    }
+
+    if (!$stmt->bind_param("ii",$OldElement['id_baustein'], $OldElement['rang'])) {
+        echo "Binding 3 parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute 3 failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Anzahl = mysqli_num_rows($res);
+    for($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($res);
+        decrease_item_rank_parser($OldElement['id_baustein'], $Ergebnis['id']);
+    }
 }
 
 function lade_seitenelement($ID){

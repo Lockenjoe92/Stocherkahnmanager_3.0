@@ -36,11 +36,11 @@ function add_website_item_parser($Baustein){
         return false;
     }
 }
-function decrease_item_rank_parser($Baustein, $Item){
+function decrease_item_rank_parser($Item){
 
     $link = connect_db();
 
-    if((intval($Baustein)>0) and (intval($Item)>0)){
+    if(intval($Item)>0){
 
         $ItemMeta = lade_seiteninhalt($Item);
         $ItemRang = $ItemMeta['rang'];
@@ -49,7 +49,7 @@ function decrease_item_rank_parser($Baustein, $Item){
         $NewRang = $ItemRang - 1;
 
         #Load the other item
-        $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = ".$Baustein." AND rang = ".$NewRang." AND storno_user = 0";
+        $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = ".$ItemMeta['id_baustein']." AND rang = ".$NewRang." AND storno_user = 0";
         $Abfrage = mysqli_query($link, $Anfrage);
         $Ergebnis = mysqli_fetch_assoc($Abfrage);
 
@@ -278,11 +278,11 @@ function increase_baustein_rank_parse($Baustein, $Site){
     }
 
 }
-function increase_item_rank_parse($Baustein, $Item){
+function increase_item_rank_parse($Item){
 
     $link = connect_db();
 
-    if((intval($Baustein)>0) and (intval($Item)>0)){
+    if(intval($Item)>0){
 
         $ItemMeta = lade_seiteninhalt($Item);
         $ItemRang = $ItemMeta['rang'];
@@ -291,7 +291,7 @@ function increase_item_rank_parse($Baustein, $Item){
         $NewRang = $ItemRang + 1;
 
         #Load the other item
-        $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = ".$Baustein." AND rang = ".$NewRang." AND storno_user = 0";
+        $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = ".$ItemMeta['id_baustein']." AND rang = ".$NewRang." AND storno_user = 0";
         $Abfrage = mysqli_query($link, $Anfrage);
         $Ergebnis = mysqli_fetch_assoc($Abfrage);
 

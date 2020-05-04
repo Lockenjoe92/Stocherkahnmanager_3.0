@@ -165,6 +165,7 @@ function spalte_schluessel_verwalten(){
 
     $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
 
+    $HTML .= schluessel_aktueller_status_listenelement_generieren();
     $HTML .= schluessel_umbuchen_listenelement_generieren();
     $HTML .= schluessel_bearbeiten_listenelement_generieren();
     $HTML .= schluessel_hinzufuegen_listenelement_generieren();
@@ -177,7 +178,9 @@ function spalte_schluessel_verwalten(){
     return $HTML;
 }
 
+function schluessel_aktueller_status_listenelement_generieren(){
 
+}
 function schluessel_umbuchen_listenelement_generieren(){
 
     $FormTable = table_row_builder(table_header_builder('Schlüssel auswählen').table_data_builder(dropdown_aktive_schluessel('id_schluessel_umbuchen')));
