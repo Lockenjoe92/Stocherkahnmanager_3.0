@@ -13,13 +13,15 @@ if($Mode == 'dse'){
     $Erklaerungheader = 'Datenschutzerklärung';
 } elseif ($Mode == 'mv'){
     $Erklaerungheader = 'Ausleihvertrag';
+} elseif ($Mode == 'pswd'){
+    $Erklaerungheader = 'Passwort';
 } else {
     header('Location: ./index.php');
     die();
 }
 
 $Parser = renew_dse_mv_parser($Mode);
-$Header = $Erklaerungheader." erneuert- " . lade_db_einstellung('site_name');
+$Header = $Erklaerungheader." erneuern - " . lade_db_einstellung('site_name');
 
 #Generate content
 # Page Title
@@ -29,6 +31,10 @@ if($Mode == 'dse'){
 } elseif ($Mode == 'mv'){
     $PageTitle = '<h1 class="hide-on-med-and-down">Der '.$Erklaerungheader.' hat sich erneuert</h1>';
     $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
+} elseif ($Mode == 'pswd'){
+    $PageTitle = '<h1 class="hide-on-med-and-down">'.$Erklaerungheader.' ändern</h1>';
+    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' ändern</h1>';
+    $Erklaerungheader = "Nachdem dein Passwort zurückgesetzt wurde, musst du nun ein eigenes neues wählen!";
 }
 $HTML .= section_builder($PageTitle);
 
@@ -36,6 +42,8 @@ if($Mode == 'dse'){
     $Infos = lade_ds(aktuelle_ds_id_laden());
 } elseif ($Mode == 'mv'){
     $Infos = lade_mietvertrag(aktuellen_mietvertrag_id_laden());
+} elseif ($Mode == 'pswd'){
+    $Infos = lade_user_id();
 }
 
 if(($Parser == FALSE) OR ($Parser == NULL)){
@@ -55,10 +63,14 @@ echo site_body($HTML);
 
 function renew_dse_mv_parser($Mode){
 
+    $UserID = lade_user_id();
+
     if($Mode == 'dse'){
         $Continiue = user_needs_dse();
     } elseif($Mode == 'mv'){
         $Continiue = user_needs_mv();
+    } elseif($Mode == 'pswd'){
+        $Continiue = user_needs_pswd_change($UserID);
     } else {
         $Continiue = false;
     }
@@ -81,6 +93,10 @@ function renew_dse_mv_parser($Mode){
             }
         }
 
+        if(isset($_POST['action_pswd'])){
+            $Antwort = change_pswd_user($UserID, $_POST['change_pswd']);
+        }
+
         return $Antwort;
     }
 }
@@ -90,16 +106,22 @@ function renew_dse_mv_form($Mode, $Erklaerungheader, $Infos){
     if($Mode == 'dse'){
         $Icon = 'security';
         $TableHTML = table_form_swich_item('Ich stimme den Nutzungsbedingungen, sowie der Speicherung und Verarbeitung gem&auml;&szlig; der Datenschutzerkl&auml;rung zu', 'ds', 'Nein', 'Ja', '', false);
-    } else {
+    } elseif($Mode == 'mv') {
         $Icon = 'assignment';
         $TableHTML = table_form_swich_item('Ich stimme dem Nutzungsvertrag, sowie der Haftungs- und Sicherungsvereinbarung zu', 'vertrag', 'Nein', 'Ja', '', false);
+    } elseif($Mode == 'pswd') {
+        $Icon = 'vpn_key';
+        $TableHTML = table_form_password_item('Neues Passwort wählen', 'change_pswd', 'Passwort', false);
+        $TableHTML .= table_form_password_item('Passwort wiederholen', 'change_pswd_verify', 'Passwort', false);
     }
 
-    $Inhalt = "<h5>".$Infos['erklaerung']."</h5>";
-    $Inhalt .= section_builder($Infos['inhalt']);
+    $HTML = "";
 
-    $CollapsibleItems = collapsible_item_builder($Erklaerungheader, $Inhalt, $Icon, '');
-    $HTML = collapsible_builder($CollapsibleItems);
+        $Inhalt = "<h5>".$Infos['erklaerung']."</h5>";
+        $Inhalt .= section_builder($Infos['inhalt']);
+        $CollapsibleItems = collapsible_item_builder($Erklaerungheader, $Inhalt, $Icon, '');
+        $HTML .= collapsible_builder($CollapsibleItems);
+
     $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_'.$Mode.'', 'Absenden', 'action', 'send', '')).table_data_builder(''));
     $HTML .= table_builder($TableHTML);
     $HTML = form_builder($HTML, '#', 'post');

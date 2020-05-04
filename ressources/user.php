@@ -113,6 +113,11 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
             add_user_meta($Ergebnis['id'], $Rolle, $Wert);
         }
 
+        $MailArray = array();
+        $MailArray['vorname_empfaenger'] = $Vorname;
+        $MailArray['verify_link'] = lade_xml_einstellung('site_url')."/login.php?register_code=".$ID_hash."";
+        mail_senden('registrierung_user', $Mail, $MailArray);
+
         $Antwort['erfolg'] = True;
         $Antwort['meldung'] = "Dein Useraccount wurde erfolgreich angelegt!<br>Du erh&auml;ltst noch eine EMail, die den Vorgang best&auml;tigt!<br>Bitte best&auml;tige die Anmeldung indem du auf den Link in der Mail klickst!:)";
     }
@@ -158,6 +163,13 @@ function update_user_meta($UserID, $Key, $Value){
         } else {
             return true;
         }
+}
+function verify_user_mail($UserID){
+
+    $link = connect_db();
+    $Anfrage = "UPDATE users SET mail_verified = '".date("Y-m-d")."' WHERE id = ".$UserID."";
+    return mysqli_query($link, $Anfrage);
+
 }
 function check_password($PSWD) {
 
@@ -297,5 +309,135 @@ function get_sorted_user_array_with_user_meta_fields($orderBy='nachname'){
 
     return $ReturnArray;
 }
+function reset_user_pswd($Mail){
 
+    $link = connect_db();
+
+    #echo "selecting user id";
+    if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
+        $Antwort['erfolg'] = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("s", $Mail)) {
+        $Antwort['erfolg'] = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['erfolg'] = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    $res = $stmt->get_result();
+    $Anzahl = mysqli_num_rows($res);
+
+    if($Anzahl == 1){
+        $Ergebnis = mysqli_fetch_assoc($res);
+        $UserMeta = lade_user_meta($Ergebnis['id']);
+        if($UserMeta['ist_gesperrt'] == 'true'){
+            return false;
+        } else {
+            $ID_hash = generateRandomString(32);
+            $PSWD_hash = generateRandomString(32);
+            $PSWD_hashed = password_hash($PSWD_hash, PASSWORD_DEFAULT);
+            if($PSWD_hashed == false){
+                var_dump('Hashing Fail');
+                return false;
+            } else {
+                $Anfrage = "UPDATE users SET register_secret = '".$ID_hash."', secret = '".$PSWD_hashed."', pswd_needs_change = 1 WHERE id = ".$Ergebnis['id']."";
+                $Abfrage = mysqli_query($link, $Anfrage);
+                if($Abfrage){
+                    $MailInfos = array();
+                    $MailInfos['[vorname_user]']=$UserMeta['vorname'];
+                    $MailInfos['[passwort]']=$PSWD_hash;
+                    $MailInfos['[register_code]']=lade_xml_einstellung('site_url')."/login.php?register_code=".$ID_hash."";
+                    if(mail_senden('passwort-zurueckgesetzt-selbst', $Mail, $MailInfos)){
+                        return true;
+                    }else{
+                        var_dump('MAIL fail');
+                        return false;
+                    }
+                } else {
+                    var_dump($Anfrage);
+                    var_dump('UPDATE fail');
+                    return false;
+                }
+            }
+        }
+    } else {
+        var_dump('too many users');
+        return false;
+    }
+}
+function user_needs_pswd_change($UserID){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT pswd_needs_change FROM users WHERE id = ?"))) {
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+
+    if (!$stmt->bind_param("i",$UserID)) {
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Ergebnis = mysqli_fetch_assoc($res);
+
+    if($Ergebnis['pswd_needs_change'] == 1){
+        return true;
+    } else {
+        return false;
+    }
+
+}
+function change_pswd_user($UserID, $PSWD){
+
+    $link = connect_db();
+    ## DAU CHECKS BEFORE LOGIN ATTEMPT ##
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    if(empty($_POST['change_pswd'])){
+        $DAUcounter ++;
+        $DAUerror .= "Gib bitte ein Passwort an!<br>";
+    } else {
+
+        $PSWDcheck = check_password($_POST['change_pswd']);
+        if($_POST['change_pswd'] != $_POST['change_pswd_verify']){
+            $DAUcounter ++;
+            $DAUerror .= "Die eingegebenen Passw&ouml;rter sind nicht identisch!<br>";
+        }
+
+        if($PSWDcheck != 'OK') {
+            $DAUcounter++;
+            $DAUerror .= $PSWDcheck;
+        }
+    }
+
+    ## DAU auswerten
+    if ($DAUcounter > 0){
+        $Antwort['meldung'] = $DAUerror;
+        $Antwort['success'] = false;
+        return $Antwort;
+    } else {
+        $PSWD_hashed = password_hash($PSWD, PASSWORD_DEFAULT);
+        if (!($stmt = $link->prepare("UPDATE users SET secret = ?, pswd_needs_change = ? WHERE id = ?"))) {
+            $Antwort['erfolg'] = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("sii", $PSWD_hashed, intval(0), $UserID)) {
+            $Antwort['erfolg'] = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort['erfolg'] = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            return false;
+        } else {
+            return true;
+        }
+    }
+}
 ?>

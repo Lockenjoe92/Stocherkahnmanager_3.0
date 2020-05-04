@@ -23,6 +23,9 @@ function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
     $mail->From = lade_xml_einstellung('absender_mail');
     $mail->Sender = lade_xml_einstellung('absender_mail');
 
+    //HTML-Format setzen
+    $mail->IsHTML(true);
+
     //Name des Abenders setzen
     $mail->FromName = lade_xml_einstellung('site_name');
 
@@ -34,9 +37,6 @@ function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
 
     //Text der E-Mail setzen
     $mail->Body = html_entity_decode($Mailtext);
-
-    //HTML-Format setzen
-    $mail->IsHTML(true);
 
     //E-Mail senden
     if($mail->Send())

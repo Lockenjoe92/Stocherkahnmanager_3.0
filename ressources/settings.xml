@@ -26,6 +26,7 @@
     <absender_mail>buchungstool@stocherkahn.fachschaftmedizin.de</absender_mail>
     <absender_name>Buchungstool Stocherkahn Medizin e.V.</absender_name>
     <reply_mail>info@stocherkahn.fachschaftmedizin.de</reply_mail>
+    <site_url>https://www.stocherkahn.marcsprojects.de</site_url>
 
     <!--- GENERAL -->
     <max_items_row_container>4</max_items_row_container>

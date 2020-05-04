@@ -248,6 +248,10 @@ function needs_dse_mv_update(){
         header("Location: ./renew_dse_mv.php?mode=mv");
         die();
     }
+    if(user_needs_pswd_change(lade_user_id())){
+        header("Location: ./renew_dse_mv.php?mode=pswd");
+        die();
+    }
 }
 
 ?>

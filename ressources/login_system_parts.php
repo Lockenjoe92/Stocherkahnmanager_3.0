@@ -22,12 +22,12 @@ function login_formular($Parser, $SessionMessage){
 
     $HTMLBigscreenButtons = form_button_builder('submit', 'Einloggen', 'submit', 'send', 'col s3');
     $HTMLBigscreenButtons .= button_link_creator('Registrieren', './register.php', 'person_add', 'col s3 offset-s1');
-    $HTMLBigscreenButtons .= button_link_creator('Passwort vergessen', './iforgot.php', 'loop', 'col s3 offset-s1');
+    $HTMLBigscreenButtons .= button_link_creator('Passwort vergessen', './forgot_password.php', 'loop', 'col s3 offset-s1');
     $HTMLBigscreenButtons = row_builder($HTMLBigscreenButtons);
 
     $HTMLMobileButtons = row_builder(form_button_builder('submit', 'Einloggen', 'submit', 'send'));
     $HTMLMobileButtons .= row_builder(button_link_creator('Registrieren', './register.php', 'person_add', ''));
-    $HTMLMobileButtons .= row_builder(button_link_creator('Passwort vergessen', './iforgot.php', 'loop', ''));
+    $HTMLMobileButtons .= row_builder(button_link_creator('Passwort vergessen', './forgot_password.php', 'loop', ''));
 
     $FormSections = section_builder($HTMLform);
     $FormSections .= section_builder($HTMLBigscreenButtons, '', 'hide-on-small-and-down');
@@ -49,7 +49,7 @@ function login_formular($Parser, $SessionMessage){
     return $Container;
 }
 
-function login_parser(){
+function login_parser($MailVerificationSecret){
 
     if(isset($_POST['submit'])){
 
@@ -82,7 +82,7 @@ function login_parser(){
 
             protect_brute_force();
             $link = connect_db();
-            if (!($stmt = $link->prepare("SELECT id, secret, register_secret FROM users WHERE mail = ?"))) {
+            if (!($stmt = $link->prepare("SELECT * FROM users WHERE mail = ?"))) {
                 echo "Prepare failed: (" . $link->errno . ") " . $link->error;
             }
 
@@ -102,35 +102,47 @@ function login_parser(){
             } else {
 
                 $Vals = $res->fetch_assoc();
-                $StoredSecret = $Vals['secret'];
 
-                if (password_verify($_POST['pass'], $StoredSecret)){
-
-                    $Antwort['meldung'] = "Einloggen erfolgreich!!";
-
-                    //Session initiieren
-                    session_start();
-                    $_SESSION['user_id'] = $Vals['id'];
-                    $_SESSION['timestamp'] = timestamp();
-                    $_SESSION['sess_id'] = md5($Vals['register_secret']);
-
-                    //Redirect
-                    $UserMeta = lade_user_meta($Vals['id']);
-                    
-                    if ($UserMeta['ist_wart'] == 'true'){
-                        header("Location: ./wartwesen.php");
+                #Muss die UserMail noch verifiziert werden?
+                if($Vals['mail_verified'] == '0000-00-00'){
+                    if($MailVerificationSecret == $Vals['register_secret']){
+                        $MailVerified = verify_user_mail($Vals['id']);
                     } else {
-                        header("Location: ./my_reservations.php");
+                        $MailVerified = false;
                     }
-                    die();
-
                 } else {
-                    $Antwort['meldung'] = "Userkonto oder Passwort falsch!";
+                    $MailVerified = true;
                 }
 
+                if($MailVerified){$StoredSecret = $Vals['secret'];
+
+                    if (password_verify($_POST['pass'], $StoredSecret)){
+
+                        $Antwort['meldung'] = "Einloggen erfolgreich!!";
+
+                        //Session initiieren
+                        session_start();
+                        $_SESSION['user_id'] = $Vals['id'];
+                        $_SESSION['timestamp'] = timestamp();
+                        $_SESSION['sess_id'] = md5($Vals['register_secret']);
+
+                        //Redirect
+                        $UserMeta = lade_user_meta($Vals['id']);
+
+                        if ($UserMeta['ist_wart'] == 'true'){
+                            header("Location: ./wartwesen.php");
+                        } else {
+                            header("Location: ./my_reservations.php");
+                        }
+                        die();
+
+                    } else {
+                        $Antwort['meldung'] = "Userkonto oder Passwort falsch!";
+                    }
+                } else {
+                    $Antwort['meldung'] = "Deine EMail wurde noch nicht verifiziert! Bitte klicke auf den Link in deiner Registrierungsmail! Solltest du keine erhalten haben, schreibe uns bitte eine Nachricht!";
+                }
             }
-
-
             return $Antwort;
         }
 
@@ -149,10 +161,8 @@ function session_manager($Necessary_User_Role = NULL){
      */
 
     session_start();
-    $Timestamp = timestamp();
-
     $User_login = $_SESSION['user_id'];
-    $LetzterSeitenaufruf = $_SESSION['timestamp'];
+    $Timestamp = $_SESSION['timestamp'];
     $Ergebnis = true;
     $SessionOvertime = false;
 
@@ -477,4 +487,34 @@ function ds_und_vertrag_unterschreiben_formular_parts(){
 
     return $HTML;
 
+}
+
+function pswd_reset_parser(){
+    $Mail = $_POST['pswd_reset_mail'];
+    if(isset($_POST['reset_pswd_user'])){
+        return reset_user_pswd($Mail);
+    }
+}
+
+function pswd_reset_formular($Parser){
+
+    $HTML = "<h1>Passwort zurücksetzen</h1>";
+
+    if($Parser == NULL){
+        $HTML .= generate_reset_pswd_form();
+    } else {
+        $HTML .= zurueck_karte_generieren(true, 'Deine Anfrage wurde erfasst, du solltest gleich eine Mail mit einem neuen Passwort und einem Verifizierungslink erhalten!', 'login.php');
+    }
+
+    return $HTML;
+}
+
+function generate_reset_pswd_form(){
+
+    $HTMLtable = table_form_email_item('EMail mit der du dich registriert hast', 'pswd_reset_mail', 'EMail', false);
+    $HTMLtable .= table_row_builder(table_header_builder(button_link_creator('Zurück', './login.php', 'arrow_back', '')."&nbsp;".form_button_builder('reset_pswd_user', 'Zurücksetzen', 'action', 'send', '')).table_data_builder(''));
+    $HTMLtable = table_builder($HTMLtable);
+    $HTML = form_builder($HTMLtable, '#', 'post');
+    $HTML = section_builder($HTML);
+    return $HTML;
 }
