@@ -180,6 +180,43 @@ function spalte_schluessel_verwalten(){
 
 function schluessel_aktueller_status_listenelement_generieren(){
 
+    $link = connect_db();
+    $Anfrage = 'SELECT * FROM schluessel WHERE delete_user = 0';
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $HTMLcollapsible = '';
+    if($Anzahl > 0){
+        for($a=1;$a<=$Anzahl;$a++){
+            $Schluessel = mysqli_fetch_assoc($Abfrage);
+            $SchluesselInfos = '#'.$Schluessel['id'].' '.$Schluessel['farbe'].'';
+            if(intval($Schluessel['akt_user'])>0){
+                $UserMeta = lade_user_meta($Schluessel['akt_user']);
+                if($UserMeta['ist_wart']){
+                    $Content = '<b>Aktueller User:</b> '.$UserMeta['vorname'].' '.$UserMeta['nachname'].' (Wart:in)';
+                } else {
+                    $Anfrage = 'SELECT * FROM schluesselausgabe WHERE storno_user = 0 AND user = '.$Schluessel['akt_user'].' AND rueckgabe = 0000-00-00 00:00:00';
+                    $Abfrage = mysqli_query($link, $Anfrage);
+                    $Ausgabe = mysqli_fetch_assoc($Abfrage);
+                    $AusgabeWart = lade_user_meta($Ausgabe['wart']);
+                    $Content = '<b>Aktueller User:</b> '.$UserMeta['vorname'].' '.$UserMeta['nachname'].'<br>';
+                    $Content .= '<b>Ausgabe:</b> '.strftime("%A, %d. %B %G", strtotime($AusgabeWart['ausgabe'])).' durch '.$AusgabeWart['vorname'].' '.$AusgabeWart['nachname'].'';
+                }
+            } elseif ($Schluessel['akt_ort'] != '') {
+                if($Schluessel['akt_ort'] == 'rueckgabekasten'){
+                    $Content = '<b>Aktueller Ort:</b> Rückgabekasten';
+                } else {
+                    $Content = '<b>Aktueller Ort:</b> '.$Schluessel['akt_ort'];
+                }
+            }
+
+            $HTMLcollapsible .= collapsible_item_builder($SchluesselInfos, $Content, 'vpn_key', $Schluessel['farbe_materialize']);
+        }
+        $HTMLcollapsible = collapsible_builder($HTMLcollapsible);
+    } else {
+        $HTMLcollapsible .= 'Aktuell keine Schlüssel angelegt!';
+    }
+    $HTML = collapsible_item_builder('Schlüsselübersicht', $HTMLcollapsible, 'location_on');
+    return $HTML;
 }
 function schluessel_umbuchen_listenelement_generieren(){
 
