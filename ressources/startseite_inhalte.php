@@ -168,7 +168,7 @@ function collapsible_container_generieren($BausteinID){
     $link = connect_db();
 
     #Lade den content
-    $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = '".$BausteinID."' AND storno_user = '0'";
+    $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = '".$BausteinID."' AND storno_user = '0' ORDER BY rang ASC";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
 
@@ -199,7 +199,7 @@ function collection_container_generieren($BausteinID){
     $link = connect_db();
 
     #Lade den content
-    $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = '".$BausteinID."' AND storno_user = '0'";
+    $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = '".$BausteinID."' AND storno_user = '0' ORDER BY rang ASC";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
 
@@ -649,17 +649,40 @@ function website_item_baustein_table_generator($Item){
     return $Table;
 }
 
-function generate_row_item_change_form($Item){
+function generate_row_item_change_form($Item, $Mode='change'){
 
-    $ItemMeta = lade_seiteninhalt($Item);
+    if($Mode=='change'){
+        $ItemMeta = lade_seiteninhalt($Item);
+        $Ueberschrift = $ItemMeta['ueberschrift'];
+        $UeberschriftFarbe = $ItemMeta['item_title_color'];
+        $InhaltHTML = $ItemMeta['html_content'];
+        $Icon = $ItemMeta['icon'];
+        $IconFarbe = $ItemMeta['icon_farbe'];
+    } elseif ($Mode=='create'){
+        $Ueberschrift = $_POST['item_title'];
+        $UeberschriftFarbe = $_POST['item_title_color'];
+        #Remove certain HTML Tags from HTML-Textarea-Input
+        $HTMLValue = $_POST['item_html'];
+        $HTMLValue = str_replace('<pre>','',$HTMLValue);
+        $HTMLValue = str_replace('<code>','',$HTMLValue);
+        $HTMLValue = str_replace('</code>','',$HTMLValue);
+        $HTMLValue = str_replace('</pre>','',$HTMLValue);
+        $InhaltHTML = $HTMLValue;
+        $Icon = $_POST['item_icon'];
+        $IconFarbe = $_POST['item_icon_color'];
+    }
 
-    $TableRows = table_form_string_item('Überschrift', 'item_title', $ItemMeta['ueberschrift'], '');
-    $TableRows .= table_form_string_item('Überschrift Farbe', 'item_title_color', $ItemMeta['ueberschrift_farbe'], '');
-    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $ItemMeta['html_content'], '');
-    $TableRows .= table_form_string_item('Icon', 'item_icon', $ItemMeta['icon'], '');
-    $TableRows .= table_form_string_item('Icon Farbe', 'item_icon_color', $ItemMeta['icon_farbe'], '');
+    $TableRows = table_form_string_item('Überschrift', 'item_title', $Ueberschrift, '');
+    $TableRows .= table_form_string_item('Überschrift Farbe', 'item_title_color', $UeberschriftFarbe, '');
+    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $InhaltHTML, '');
+    $TableRows .= table_form_string_item('Icon', 'item_icon', $Icon, '');
+    $TableRows .= table_form_string_item('Icon Farbe', 'item_icon_color', $IconFarbe, '');
     $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));
-    $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    if($Mode=='change') {
+        $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    } elseif ($Mode=='create'){
+        $TableRowContent .= table_header_builder(form_button_builder('action_add_site_item', 'Anlegen', 'action', 'send', ''));
+    }
     $TableRows .= table_row_builder($TableRowContent);
     $Table = table_builder($TableRows);
     $Form = form_builder($Table, '#', 'post', 'item_change_form');
@@ -725,18 +748,38 @@ function generate_kostenstaffel_change_form($Item){
     return $Section;
 }
 
-function generate_collapsible_change_form($Item){
+function generate_collapsible_change_form($Item, $Mode='change'){
 
-    $ItemMeta = lade_seiteninhalt($Item);
+    if($Mode=='change'){
+        $ItemMeta = lade_seiteninhalt($Item);
+        $Ueberschrift = $ItemMeta['ueberschrift'];
+        $InhaltHTML = $ItemMeta['html_content'];
+        $Icon = $ItemMeta['icon'];
+        $IconFarbe = $ItemMeta['icon_farbe'];
+    } elseif ($Mode=='create'){
+        $Ueberschrift = $_POST['item_title'];
+        #Remove certain HTML Tags from HTML-Textarea-Input
+        $HTMLValue = $_POST['item_html'];
+        $HTMLValue = str_replace('<pre>','',$HTMLValue);
+        $HTMLValue = str_replace('<code>','',$HTMLValue);
+        $HTMLValue = str_replace('</code>','',$HTMLValue);
+        $HTMLValue = str_replace('</pre>','',$HTMLValue);
+        $InhaltHTML = $HTMLValue;
+        $Icon = $_POST['item_icon'];
+        $IconFarbe = $_POST['item_icon_color'];
+    }
 
-    $TableRows = table_form_string_item('Überschrift', 'item_title', $ItemMeta['ueberschrift'], '');
-    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $ItemMeta['html_content'], '');
-    $TableRows .= table_form_string_item('Icon', 'item_icon', $ItemMeta['icon'], '');
-    $TableRows .= table_form_string_item('Icon Farbe', 'item_icon_color', $ItemMeta['icon_farbe'], '');
+    $TableRows = table_form_string_item('Überschrift', 'item_title', $Ueberschrift, '');
+    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $InhaltHTML, '');
+    $TableRows .= table_form_string_item('Icon', 'item_icon', $Icon, '');
+    $TableRows .= table_form_string_item('Icon Farbe', 'item_icon_color', $IconFarbe, '');
 
     $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));
-    $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
-    $TableRows .= table_row_builder($TableRowContent);
+    if($Mode=='change') {
+        $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    } elseif ($Mode=='create'){
+        $TableRowContent .= table_header_builder(form_button_builder('action_add_site_item', 'Anlegen', 'action', 'send', ''));
+    }    $TableRows .= table_row_builder($TableRowContent);
     $Table = table_builder($TableRows);
     $Form = form_builder($Table, '#', 'post', 'item_change_form');
     $Section = section_builder($Form);
@@ -744,16 +787,32 @@ function generate_collapsible_change_form($Item){
     return $Section;
 }
 
-function generate_collection_change_form($Item){
+function generate_collection_change_form($Item, $Mode='change'){
 
-    $ItemMeta = lade_seiteninhalt($Item);
+    if($Mode=='change'){
+        $ItemMeta = lade_seiteninhalt($Item);
+        $Ueberschrift = $ItemMeta['ueberschrift'];
+        $InhaltHTML = $ItemMeta['html_content'];
+    } elseif ($Mode=='create'){
+        $Ueberschrift = $_POST['item_title'];
+        #Remove certain HTML Tags from HTML-Textarea-Input
+        $HTMLValue = $_POST['item_html'];
+        $HTMLValue = str_replace('<pre>','',$HTMLValue);
+        $HTMLValue = str_replace('<code>','',$HTMLValue);
+        $HTMLValue = str_replace('</code>','',$HTMLValue);
+        $HTMLValue = str_replace('</pre>','',$HTMLValue);
+        $InhaltHTML = $HTMLValue;
+    }
 
-    $TableRows = table_form_string_item('Überschrift (wird nicht angezeigt)', 'item_title', $ItemMeta['ueberschrift'], '');
-    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $ItemMeta['html_content'], '');
+    $TableRows = table_form_string_item('Überschrift (wird nicht angezeigt)', 'item_title', $Ueberschrift, '');
+    $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $InhaltHTML, '');
 
     $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));
-    $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
-    $TableRows .= table_row_builder($TableRowContent);
+    if($Mode=='change') {
+        $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    } elseif ($Mode=='create'){
+        $TableRowContent .= table_header_builder(form_button_builder('action_add_site_item', 'Anlegen', 'action', 'send', ''));
+    }    $TableRows .= table_row_builder($TableRowContent);
     $Table = table_builder($TableRows);
     $Form = form_builder($Table, '#', 'post', 'item_change_form');
     $Section = section_builder($Form);

@@ -212,6 +212,41 @@ function parse_row_item_edit($Item){
     update_website_content_item($Item, 'icon', $_POST['item_icon']);
     update_website_content_item($Item, 'icon_farbe', $_POST['item_icon_color']);
 
+}
+function parse_add_collapsible_item($Baustein){
+
+    #Remove certain HTML Tags from HTML-Textarea-Input
+    $HTMLValue = $_POST['item_html'];
+    $HTMLValue = str_replace('<pre>','',$HTMLValue);
+    $HTMLValue = str_replace('<code>','',$HTMLValue);
+    $HTMLValue = str_replace('</code>','',$HTMLValue);
+    $HTMLValue = str_replace('</pre>','',$HTMLValue);
+
+    return startseiteninhalt_einfuegen($Baustein, $_POST['item_title'], '', '', '', $HTMLValue, '', $_POST['item_icon'], $_POST['item_icon_color']);
+
+}
+function parse_add_collection_item($Baustein){
+
+    #Remove certain HTML Tags from HTML-Textarea-Input
+    $HTMLValue = $_POST['item_html'];
+    $HTMLValue = str_replace('<pre>','',$HTMLValue);
+    $HTMLValue = str_replace('<code>','',$HTMLValue);
+    $HTMLValue = str_replace('</code>','',$HTMLValue);
+    $HTMLValue = str_replace('</pre>','',$HTMLValue);
+
+    return startseiteninhalt_einfuegen($Baustein, $_POST['item_title'], '', '', '', $HTMLValue, '', '', '');
+
+}
+function parse_add_row_item($Baustein){
+
+    #Remove certain HTML Tags from HTML-Textarea-Input
+    $HTMLValue = $_POST['item_html'];
+    $HTMLValue = str_replace('<pre>','',$HTMLValue);
+    $HTMLValue = str_replace('<code>','',$HTMLValue);
+    $HTMLValue = str_replace('</code>','',$HTMLValue);
+    $HTMLValue = str_replace('</pre>','',$HTMLValue);
+
+    return startseiteninhalt_einfuegen($Baustein, $_POST['item_title'], '', $_POST['item_title_color'], '', $HTMLValue, '', $_POST['item_icon'], $_POST['item_icon_color']);
 
 }
 function increase_baustein_rank_parse($Baustein, $Site){
