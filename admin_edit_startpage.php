@@ -362,7 +362,7 @@ function parse_change_page_rang($PageName, $Rang){
 function parse_change_bausteine_rang($PageName){
 
     $link = connect_db();
-    $Anfrage = "SELECT id FROM homepage_bausteine";
+    $Anfrage = "SELECT id,ort FROM homepage_bausteine";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
 
@@ -372,15 +372,16 @@ function parse_change_bausteine_rang($PageName){
         $ButtonDownName = "increase_baustein_".$Baustein."";
         $ButtonUpName = "decrease_baustein_".$Baustein."";
         $ReferenceDelete = "delete_website_baustein_".$Baustein."";
-
-        if(isset($_POST[$ButtonDownName])){
-            return increase_baustein_rank_parse($Baustein, $PageName);
-        }
-        if(isset($_POST[$ButtonUpName])){
-            return decrease_baustein_rank_parser($Baustein, $PageName);
-        }
-        if(isset($_POST[$ReferenceDelete])){
-            return delete_website_baustein_parser($Baustein);
+        if($Ergebnis['ort']==$PageName){
+            if(isset($_POST[$ButtonDownName])){
+                return increase_baustein_rank_parse($Baustein, $PageName);
+            }
+            if(isset($_POST[$ButtonUpName])){
+                return decrease_baustein_rank_parser($Baustein, $PageName);
+            }
+            if(isset($_POST[$ReferenceDelete])){
+                return delete_website_baustein_parser($Baustein);
+            }
         }
     }
 }
