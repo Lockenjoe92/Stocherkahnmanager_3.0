@@ -145,6 +145,26 @@ function add_user_meta($UserID, $Key, $Value){
     }
 
 }
+function delete_user_meta($UserID, $Key, $Value){
+
+    $link = connect_db();
+
+    if (!($stmt = $link->prepare("DELETE FROM user_meta WHERE user = ? AND schluessel = ? AND wert = ?"))) {
+        $Antwort['erfolg'] = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("iss", $UserID, $Key, $Value)) {
+        $Antwort['erfolg'] = false;
+        echo  "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['erfolg'] = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    } else {
+        return true;
+    }
+
+}
 function update_user_meta($UserID, $Key, $Value){
 
     $link = connect_db();

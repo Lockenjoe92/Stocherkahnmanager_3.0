@@ -241,4 +241,13 @@ function einnahme_uebergabe_festhalten($UebergabeID, $GezahlterBetrag, $Empfaeng
         return false;
     }
 }
+function wartkonto_anlegen($User){
+
+    $link = connect_db();
+
+    $Anfrage = "INSERT INTO finanz_konten (name, wert_start, wert_aktuell, typ, ersteller, erstellt, verstecker, versteckt) VALUES ('$User', 0, 0, 'wartkonto', '".lade_user_id()."', '".timestamp()."', 0, '0000-00-00 00:00:00')";
+    $Abfrage = mysqli_query($link, $Anfrage);
+
+    return $Abfrage;
+}
 

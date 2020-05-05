@@ -958,13 +958,15 @@ function dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Mode='user'){
         $UserVisible = $Nutzergruppe['visible_for_user'];
 
         if($UserVisible == 'true'){
-            if($ID == $Selected){
-                $Ausgabe .= "<option value='".$ID."' selected>".$Name."</option>";
-            } else {
-                $Ausgabe .= "<option value='".$ID."'>".$Name."</option>";
+            if(($Mode=='wart_visibles') OR ($Mode=='user')){
+                if($ID == $Selected){
+                    $Ausgabe .= "<option value='".$ID."' selected>".$Name."</option>";
+                } else {
+                    $Ausgabe .= "<option value='".$ID."'>".$Name."</option>";
+                }
             }
         } elseif ($UserVisible == 'false'){
-            if($Mode=='wart'){
+            if($Mode=='wart_unvisibles'){
                 if($ID == $Selected){
                     $Ausgabe .= "<option value='".$ID."' selected>".$Name."</option>";
                 } else {

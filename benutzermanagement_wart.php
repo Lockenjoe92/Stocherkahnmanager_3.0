@@ -38,16 +38,34 @@ function seiteninhalt_liste_user($Sortierung){
 
     $AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);
     benutzermanagement_parser($AllUsers);
+
+    //Update Changes
+    $AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);
     $ListHTML = "";
+    $Counter = 0;
+    $GesperrtListHTML = "";
+    $GesperrtCounter = "";
     foreach ($AllUsers as $User){
         if($User['ist_gesperrt']!='true'){
+            $Counter++;
             $ListHTML .= listenobjekt_user_generieren($User, $UserIDchosen);
+        } elseif ($User['ist_gesperrt']=='true') {
+            $GesperrtCounter++;
+            $GesperrtListHTML .= listenobjekt_user_generieren($User, $UserIDchosen);
         }
     }
 
-    $HTML .= "<h5 class='header hide-on-med-and-down center-align'>".count($AllUsers)." Aktive Nutzeraccounts</h5>";
-    $HTML .= "<h5 class='header hide-on-large-only center-align'>".count($AllUsers)." Nutzeraccounts</h5>";
-    $HTML .= form_builder(collapsible_builder($ListHTML), '#', 'post');
+    $HTML .= "<h5 class='header hide-on-med-and-down center-align'>".$Counter." Aktive Nutzeraccounts</h5>";
+    $HTML .= "<h5 class='header hide-on-large-only center-align'>".$Counter." Nutzeraccounts</h5>";
+    $HTML .= collapsible_builder($ListHTML);
+
+    if($GesperrtCounter>0){
+        $HTML .= "<h5 class='header hide-on-med-and-down center-align'>".$GesperrtCounter." gesperrte Nutzeraccounts</h5>";
+        $HTML .= "<h5 class='header hide-on-large-only center-align'>".$GesperrtCounter." gesperrte Nutzeraccounts</h5>";
+        $HTML .= collapsible_builder($GesperrtListHTML);
+    }
+
+    $HTML = form_builder($HTML, '#', 'post');
 
     return $HTML;
 }
@@ -68,19 +86,61 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen){
     $Registrierungsdatum = strftime("%A, %d. %B %G", strtotime($UserMeta['registrierung']));
     //Suche nach weiter möglichen Nutzergruppen
     $Nebennutzergruppen = "";
+    $VerificationResult = "";
+    $ShowVerifyButton = false;
     $NebennutzergruppenCounter = 0;
     $Nutzergruppen = lade_alle_nutzgruppen();
     foreach ($Nutzergruppen as $Nutzergruppe){
-        if($UserMeta['ist_nutzergruppe'] == $Nutzergruppe['name']){
+        if($UserMeta[$Nutzergruppe['name']] == 'true'){
             if($Nutzergruppe['visible_for_user'] == "false"){
                 $NebennutzergruppenCounter++;
                 $Nebennutzergruppen .= "- ".$Nutzergruppe['name']."  <a href='./delete_buchungstool_rolle.php?rolle=".$Nutzergruppe['name']."&user=".$UserID."'><i class=\"tiny material-icons\">delete_forever</i></a><br>";
             }
+        }elseif($UserMeta['ist_nutzergruppe']==$Nutzergruppe['name']) {
+            $HauptnutzergruppeID = $Nutzergruppe['id'];
+            $LetzteVerifizierung = load_last_nutzergruppe_verification_user($HauptnutzergruppeID, $UserID);
+            if($Nutzergruppe['req_verify'] != 'false'){
+                if($Nutzergruppe['req_verify'] == 'once'){
+                    $VerificationResult .= "Einmalig notwendig!<br>";
+                    if(date('Y') <= date('Y', strtotime($LetzteVerifizierung['timestamp']))){
+                        if($LetzteVerifizierung['erfolg'] == 'true'){
+                            $VerificationResult .= "<b>Erfolgreich verifiziert!</b>";
+                        } else {
+                            $VerificationResult .= "<b>Verfizierung wurde abgelehnt!</b><br>";
+                            $ShowVerifyButton = true;
+                        }
+                    } else {
+                        $VerificationResult .= "<b>Noch nicht verifiziert!</b><br>";
+                        $ShowVerifyButton = true;
+                    }
+                } elseif ($Nutzergruppe['req_verify'] == 'yearly'){
+                    $VerificationResult .= "Jährlich notwendig!<br>";
+                    if(date('Y') == date('Y', strtotime($LetzteVerifizierung['timestamp']))){
+                        if($LetzteVerifizierung['erfolg'] == 'true'){
+                            $VerificationResult .= "<b>Erfolgreich verifiziert!</b>";
+                        } else {
+                            $VerificationResult .= "<b>Verfizierung wurde abgelehnt!</b><br>";
+                            $ShowVerifyButton = true;
+                        }
+                    } else {
+                        $VerificationResult .= "<b>Noch nicht verifiziert!</b><br>";
+                        $ShowVerifyButton = true;
+                    }
+                }
+            } else {
+                $VerificationResult .= "Nicht notwendig!";
+            }
         }
     }
+
+    if($ShowVerifyButton){
+        $VerificationResult .= form_button_builder('verify_nutzergruppe_user_'.$UserID.'', 'Verifizieren', 'action', 'check');
+    }
+
     if($NebennutzergruppenCounter==0){
         $Nebennutzergruppen .= "keine";
     }
+
     $BuchungstoolRollen = '';
     $BuchungstoolCounter = 0;
     if($UserMeta['ist_wart'] == 'true'){
@@ -157,12 +217,17 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen){
                     $HTML .= divider_builder();
                     $HTML .= "<h5>Nutzergruppe(n)</h5>";
                         $TableHTML = table_row_builder(table_header_builder('Hauptnutzergruppe').table_data_builder($UserMeta['ist_nutzergruppe']));
-                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], 'user');
+                        $TableHTML .= table_row_builder(table_header_builder('Verifizierung').table_data_builder($VerificationResult));
+                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], 'wart_visibles');
                         $TableHTML .= table_row_builder(table_header_builder('Zusätzliche Nutzergruppen').table_data_builder($Nebennutzergruppen));
-                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], 'wart');
+                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], 'wart_unvisibles');
                         $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrollen').table_data_builder($BuchungstoolRollen));
                         $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrolle hinzufügen').table_data_builder(dropdown_buchungstoolgruppe_waehlen('neue_buchungstoolrolle_'.$UserID.'', $_POST['neue_buchungstoolrolle_'.$UserID.''])));
-                        $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_suspend_user_'.$UserID.'', 'Sperren', 'action', 'block', '')));
+                        if($UserMeta['ist_gesperrt']=='true'){
+                            $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_unsuspend_user_'.$UserID.'', 'Sperre aufheben', 'action', 'check', '')));
+                        } else {
+                            $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_suspend_user_'.$UserID.'', 'Sperren', 'action', 'block', '')));
+                        }
                     $HTML .= table_builder($TableHTML);
             $HTML .= "</div>";
         $HTML .= "</div>";
@@ -178,7 +243,9 @@ function benutzermanagement_parser($AllUsers){
 
     foreach ($AllUsers as $User){
         $EditLink = 'action_edit_user_'.$User['id'].'';
+        $VerifyLink = 'verify_nutzergruppe_user_'.$User['id'].'';
         $SperrenLink = 'action_suspend_user_'.$User['id'].'';
+        $SperreAufhebenLink = 'action_unsuspend_user_'.$User['id'].'';
         $PswdRstLink = 'action_pswd_rst_user_'.$User['id'].'';
         if(isset($_POST[$EditLink])) {
             update_user_meta($User['id'], 'vorname', $_POST['vorname_user_' . $User['id'] . '']);
@@ -189,19 +256,18 @@ function benutzermanagement_parser($AllUsers){
             update_user_meta($User['id'], 'hausnummer', $_POST['hausnummer_user_' . $User['id'] . '']);
             update_user_meta($User['id'], 'stadt', $_POST['stadt_user_' . $User['id'] . '']);
             update_user_meta($User['id'], 'plz', $_POST['plz_user_' . $User['id'] . '']);
-            if (isset($_POST['main_usergroup_' . $User['id'] . ''])) {
+            if ($_POST['main_usergroup_' . $User['id'] . '']!='') {
                 $NutzergruppeMeta = lade_nutzergruppe_infos($_POST['main_usergroup_' . $User['id'] . '']);
                 $Setting = 'ist_nutzergruppe';
                 $SettingValue = $NutzergruppeMeta['name'];
-                update_user_meta(lade_user_id(), $Setting, $SettingValue);
-                nutzergruppen_verifications_user_loeschen(lade_user_id(), $_POST[$Setting]);
+                update_user_meta($User['id'], $Setting, $SettingValue);
+                nutzergruppen_verifications_user_loeschen($User['id'], $_POST[$Setting]);
             }
             if($_POST['additional_usergroup_' . $User['id'] . '']!=''){
                 $NutzergruppeMeta = lade_nutzergruppe_infos($_POST['additional_usergroup_' . $User['id'] . '']);
-                $Setting = 'ist_nutzergruppe';
-                $SettingValue = $NutzergruppeMeta['name'];
-                $Anfrage = "SELECT id FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ".$SettingValue." AND user = ".$User['id']."";
-                var_dump($Anfrage);
+                $Setting = $NutzergruppeMeta['name'];
+                $SettingValue = 'true';
+                $Anfrage = "SELECT id FROM user_meta WHERE schluessel = '".$NutzergruppeMeta['name']."' AND wert = '".$SettingValue."' AND user = ".$User['id']."";
                 $Abfrage = mysqli_query($link, $Anfrage);
                 $Anzahl = mysqli_num_rows($Abfrage);
                 if($Anzahl==0){
@@ -211,11 +277,16 @@ function benutzermanagement_parser($AllUsers){
             if($_POST['neue_buchungstoolrolle_' . $User['id'] . '']!=''){
                 $Setting = $_POST['neue_buchungstoolrolle_' . $User['id'] . ''];
                 $SettingValue = 'true';
-                $Anfrage = "SELECT id FROM user_meta WHERE schluessel = ".$Setting." AND user = ".$User['id']."";
+                $Anfrage = "SELECT id FROM user_meta WHERE schluessel = '".$Setting."' AND user = ".$User['id']."";
                 $Abfrage = mysqli_query($link, $Anfrage);
                 $Anzahl = mysqli_num_rows($Abfrage);
                 if($Anzahl==0){
-                    add_user_meta($User['id'], $Setting, $SettingValue);
+                    if($Setting=='ist_wart'){
+                        wartkonto_anlegen($User['id']);
+                        add_user_meta($User['id'], $Setting, $SettingValue);
+                    } else {
+                        add_user_meta($User['id'], $Setting, $SettingValue);
+                    }
                 } elseif ($Anzahl==1){
                     update_user_meta($User['id'], $Setting, $SettingValue);
                 }
@@ -228,14 +299,22 @@ function benutzermanagement_parser($AllUsers){
             $Anfrage = "SELECT id FROM user_meta WHERE schluessel = '".$Setting."' AND user = ".$User['id']."";
             $Abfrage = mysqli_query($link, $Anfrage);
             $Anzahl = mysqli_num_rows($Abfrage);
-            if($Anzahl==17){
+            if($Anzahl==0){
                 return add_user_meta($User['id'], $Setting, $SettingValue);
-            } elseif ($Anzahl==16){
+            } elseif ($Anzahl==1){
                 return update_user_meta($User['id'], $Setting, $SettingValue);
             }
         }
+        if(isset($_POST[$SperreAufhebenLink])){
+            $Setting = 'ist_gesperrt';
+            $SettingValue = 'false';
+            return update_user_meta($User['id'], $Setting, $SettingValue);
+        }
         if(isset($_POST[$PswdRstLink])){
             return reset_user_pswd($User['mail']);
+        }
+        if(isset($_POST[$VerifyLink])){
+            return verify_nutzergruppe($User['id'], lade_user_id());
         }
     }
 }

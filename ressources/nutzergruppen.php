@@ -6,9 +6,6 @@ function active_nutzergruppen_form(){
     if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE delete_user = 0 ORDER BY name ASC"))) {
         $Antwort['erfolg'] = false;
     }
-    if (!$stmt->bind_param("s", $_POST['name_nutzergruppe'])) {
-        $Antwort['erfolg'] = false;
-    }
     if (!$stmt->execute()) {
         $Antwort['erfolg'] = false;
     } else {
@@ -49,7 +46,7 @@ function active_nutzergruppen_form(){
                 $NutzergruppeInfoInhalt .= divider_builder();
 
                 //Tabelle mit Knöpfen
-                $NutzergruppeInfoInhalt .= table_builder(table_row_builder(table_data_builder(button_link_creator('Bearbeiten', './admin_nutzergruppen.php?mode=edit_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'edit', ''))));
+                $NutzergruppeInfoInhalt .= table_builder(table_row_builder(table_data_builder(button_link_creator('Bearbeiten', './admin_nutzergruppen.php?mode=edit_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'edit', '')."&nbsp;".button_link_creator('Löschen', './admin_nutzergruppen.php?mode=delete_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'delete_forever', ''))));
 
                 $CollapsibleItems .= collapsible_item_builder($NutzergruppeInfo['name'], $NutzergruppeInfoInhalt, 'group');
             }
@@ -589,6 +586,52 @@ function verify_nutzergruppe($User, $Eintragender, $success='true'){
         return true;
     } else {
         return false;
+    }
+
+}
+
+function adminrolle_loeschen($User){
+    $Admins = get_sorted_user_array_with_user_meta_fields('ist_admin');
+    if(count($Admins)<=1){
+        return false;
+    } else {
+        return delete_user_meta($User, 'ist_admin', 'true');
+    }
+}
+
+function wartrolle_loeschen($User){
+    $Admins = get_sorted_user_array_with_user_meta_fields('ist_wart');
+    if(count($Admins)<=1){
+        return false;
+    } else {
+        return delete_user_meta($User, 'ist_wart', 'true');
+    }
+}
+
+function delete_nutzergruppe_parser($IDNutzergruppe){
+
+    if(isset($_POST['delete_nutzergruppe_'.$IDNutzergruppe.''])){
+        return nutzergruppe_loeschen($IDNutzergruppe);
+    } else {
+        return false;
+    }
+
+}
+
+function nutzergruppe_loeschen($IDNutzergruppe){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("UPDATE nutzergruppen SET delete_user = ?, delete_timestamp = ? WHERE id = ?"))) {
+        return false;
+    }
+
+    if (!$stmt->bind_param("isi", lade_user_id(),$IDNutzergruppe, $IDNutzergruppe)) {
+        return false;
+    }
+    if (!$stmt->execute()) {
+        return false;
+    } else {
+        return true;
     }
 
 }
