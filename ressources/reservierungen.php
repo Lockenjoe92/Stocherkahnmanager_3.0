@@ -1154,14 +1154,15 @@ function kosten_reservierung($ReservierungID){
             $GratisCounter = 0;
             $FreifahrtenCounter = 0;
             foreach ($Nutzergruppen as $Nutzergruppe){
-                if($UserRes['ist_nutzergruppe'] == $Nutzergruppe['name']){
+                if($UserRes[$Nutzergruppe['name']] == 'true'){
                     if($Nutzergruppe['alle_res_gratis'] == "true"){
                         $GratisCounter++;
                     } elseif ($Nutzergruppe['hat_freifahrten_pro_jahr'] > 0){
                         $FreifahrtenCounter+=$Nutzergruppe['hat_freifahrten_pro_jahr'];
-                    } else {
-                        $IDrueckfallnutzgergruppe = $Nutzergruppe['id'];
                     }
+                }
+                if($UserRes['ist_nutzergruppe'] == $Nutzergruppe['name']){
+                    $IDrueckfallnutzgergruppe = $Nutzergruppe['id'];
                 }
             }
 
