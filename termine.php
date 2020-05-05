@@ -26,6 +26,7 @@ if(($AngebotHinzufuegenParser['success'] == false) OR ($AngebotHinzufuegenParser
 $HTML .= spalte_uebergaben();
 $HTML .= spalte_termine();
 $HTML .= spalte_uebergabeangebote();
+$HTML .= spalte_vergangene_uebergaben();
 
 # Put it all into a container
 $HTML = container_builder($HTML);
@@ -379,6 +380,40 @@ function spalte_termine(){
     $HTML .= "</div>";
 
     return $HTML;
+}
+function spalte_vergangene_uebergaben(){
+
+    $link = connect_db();
+    $Limit = lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-uebergaben');
+    $Grenze = date("Y-m-d G:i:s", strtotime('- '.$Limit.' weeks'));
+    $Anfrage = "SELECT * FROM uebergaben WHERE durchfuehrung != '0000-00-00 00:00:00' AND wart = ".lade_user_id()." AND storno_user = 0 AND durchfuehrung > '".$Grenze."' ORDER BY durchfuehrung DESC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    if($Anzahl>0){
+
+        $CollapsibleItems = '';
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            $Schluessel = lade_schluesseldaten($Ergebnis['schluessel']);
+            $Reservierung = lade_reservierung($Ergebnis['res']);
+            $Empfaenger = lade_user_meta($Reservierung['user']);
+
+            $Titel = strftime("%A, %d. %B %G", strtotime($Ergebnis['durchfuehrung'])).' an '.$Empfaenger['vorname'].' '.$Empfaenger['nachname'].'';
+            $BodyTable = table_row_builder(table_header_builder('Schlüssel').table_data_builder('#'.$Schluessel['id'].' '.$Schluessel['farbe'].''));
+            $BodyTable .= table_row_builder(table_header_builder('Eingenommene Summe').table_data_builder(lade_gezahlte_summe_forderung(lade_forderung_res($Ergebnis['res']))."&euro;"));
+            $BodyTable .= table_row_builder(table_header_builder(button_link_creator('Storno', './undo_uebergabe.php?uebergabe='.$Ergebnis['id'].'', 'undo', '')).table_data_builder(''));
+            $BodyTable = table_builder($BodyTable);
+
+            $CollapsibleItems .= collapsible_item_builder($Titel, $BodyTable, 'forward');
+        }
+
+        $HTML = "<h5 class='header'>Vergangene Schl&uuml;ssel&uuml;bergaben der letzten ".$Limit." Wochen</h5>";
+        $HTML .= collapsible_builder($CollapsibleItems);
+        return section_builder($HTML);
+
+    } else {
+        return "";
+    }
 }
 
 ?>
