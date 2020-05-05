@@ -38,7 +38,9 @@ function active_nutzergruppen_form(){
                 //Tabelle mit aktiven Nutzern der Gruppe
                 $UserStatsNutzergruppe = load_nutzergruppe_current_user_stats($NutzergruppeInfo['id']);
                 $TableRows = table_row_builder(table_header_builder('Gesamtzahl User:').table_data_builder($UserStatsNutzergruppe['total']));
-                $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
+                if($NutzergruppeInfo['req_verify']!='false'){
+                    $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
+                }
 
                 $NutzergruppeInfoInhalt .= "<h5>Nutzerstatistik</h5>";
                 $NutzergruppeInfoInhalt .= table_builder($TableRows);
@@ -281,32 +283,15 @@ function add_nutzergruppe_meta($NutzergruppeID, $Schluessel, $Wert){
 function load_nutzergruppe_current_user_stats($IDNutzergruppe){
 
     $link = connect_db();
-    $NutzergruppeInfos = lade_nutzergruppe_infos($IDNutzergruppe);
     $Antwort = null;
+    $NutzergruppeInfos = lade_nutzergruppe_infos($IDNutzergruppe);
 
-    if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ?"))) {
-        $Antwort = false;
-        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
-    }
-    if (!$stmt->bind_param("s", $NutzergruppeInfos['name'])) {
-        $Antwort = false;
-        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-    }
-    if (!$stmt->execute()) {
-        $Antwort = false;
-        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-    } else {
-
-        //Lade erstmal alle User, die glauben in einer Nutzergruppe zu sein
-        $res = $stmt->get_result();
-        $Antwort['total'] = mysqli_num_rows($res);
-
-        //Jetzt noch feststellen, wie viele User eigentlich verifiziert sind
-        if (!($stmt = $link->prepare("SELECT id FROM nutzergruppe_verification WHERE nutzergruppe = ? AND erfolg = 'true' AND delete_user = 0"))) {
+    if($NutzergruppeInfos['visible_for_user']=='true'){
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ?"))) {
             $Antwort = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
-        if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+        if (!$stmt->bind_param("s", $NutzergruppeInfos['name'])) {
             $Antwort = false;
             echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
@@ -314,11 +299,68 @@ function load_nutzergruppe_current_user_stats($IDNutzergruppe){
             $Antwort = false;
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
-            $res = $stmt->get_result();
-            $Antwort['verified'] = mysqli_num_rows($res);
-        }
 
-        return $Antwort;
+            //Lade erstmal alle User, die glauben in einer Nutzergruppe zu sein
+            $res = $stmt->get_result();
+            $Antwort['total'] = mysqli_num_rows($res);
+
+            //Jetzt noch feststellen, wie viele User eigentlich verifiziert sind
+            if (!($stmt = $link->prepare("SELECT id FROM nutzergruppe_verification WHERE nutzergruppe = ? AND erfolg = 'true' AND delete_user = 0"))) {
+                $Antwort = false;
+                echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+            }
+            if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+                $Antwort = false;
+                echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            }
+            if (!$stmt->execute()) {
+                $Antwort = false;
+                echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            } else {
+                $res = $stmt->get_result();
+                $Antwort['verified'] = mysqli_num_rows($res);
+            }
+
+            return $Antwort;
+        }
+    } elseif ($NutzergruppeInfos['visible_for_user']=='false'){
+        $TrueString = 'true';
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? AND wert = ?"))) {
+            $Antwort = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("ss", $NutzergruppeInfos['name'], $TrueString)) {
+            $Antwort = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        } else {
+
+            //Lade erstmal alle User, die glauben in einer Nutzergruppe zu sein
+            $res = $stmt->get_result();
+            $Antwort['total'] = mysqli_num_rows($res);
+
+            //Jetzt noch feststellen, wie viele User eigentlich verifiziert sind
+            if (!($stmt = $link->prepare("SELECT id FROM nutzergruppe_verification WHERE nutzergruppe = ? AND erfolg = 'true' AND delete_user = 0"))) {
+                $Antwort = false;
+                echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+            }
+            if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+                $Antwort = false;
+                echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            }
+            if (!$stmt->execute()) {
+                $Antwort = false;
+                echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            } else {
+                $res = $stmt->get_result();
+                $Antwort['verified'] = mysqli_num_rows($res);
+            }
+
+            return $Antwort;
+        }
     }
 }
 
