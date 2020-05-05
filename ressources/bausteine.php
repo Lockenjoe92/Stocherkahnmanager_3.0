@@ -1023,4 +1023,28 @@ function prompt_karte_generieren($NameActionButton, $TextJA, $URIzurueck, $TextZ
 
 }
 
+function dropdown_buchungstoolgruppe_waehlen($NameElement, $Selected){
+    $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Startwert
+    if($Selected == ''){
+        $Ausgabe .= "<option value='' selected>wählen</option>";
+    } else {
+        $Ausgabe .= "<option value=''>wählen</option>";
+    }
+
+    $Nutzergruppen = array('ist_admin','ist_wart');
+
+    foreach ($Nutzergruppen as $Nutzergruppe){
+        if($Nutzergruppe == $Selected){
+            $Ausgabe .= "<option value='".$Nutzergruppe."' selected>".$Nutzergruppe."</option>";
+        } else {
+            $Ausgabe .= "<option value='".$Nutzergruppe."'>".$Nutzergruppe."</option>";
+        }
+    }
+
+    $Ausgabe .= "</select>";
+    return $Ausgabe;
+}
+
 ?>

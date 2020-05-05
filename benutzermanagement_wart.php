@@ -18,7 +18,6 @@ $HTML .= section_builder($PageTitle);
 
 # Eigene Reservierungen Normalo-user
 $HTML .= seiteninhalt_liste_user('nachname');
-
 $HTML = container_builder($HTML);
 
 # Output site
@@ -38,14 +37,17 @@ function seiteninhalt_liste_user($Sortierung){
     }
 
     $AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);
+    benutzermanagement_parser($AllUsers);
     $ListHTML = "";
     foreach ($AllUsers as $User){
-        $ListHTML .= listenobjekt_user_generieren($User, $UserIDchosen);
+        if($User['ist_gesperrt']!='true'){
+            $ListHTML .= listenobjekt_user_generieren($User, $UserIDchosen);
+        }
     }
 
     $HTML .= "<h5 class='header hide-on-med-and-down center-align'>".count($AllUsers)." Aktive Nutzeraccounts</h5>";
     $HTML .= "<h5 class='header hide-on-large-only center-align'>".count($AllUsers)." Nutzeraccounts</h5>";
-    $HTML .= collapsible_builder($ListHTML);
+    $HTML .= form_builder(collapsible_builder($ListHTML), '#', 'post');
 
     return $HTML;
 }
@@ -53,6 +55,7 @@ function seiteninhalt_liste_user($Sortierung){
 function listenobjekt_user_generieren($UserID, $UserIDchosen){
 
     $UserMeta = $UserID;
+    $UserID = $UserMeta['id'];
     $HTML = "";
     zeitformat();
 
@@ -60,26 +63,107 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen){
         $Active = " active";
     }
 
+    //Fetch Infos
     $AnzahleRes = count(lade_alle_reservierungen_eines_users($UserMeta['id']));
-
-    //Registrierungsdatum
     $Registrierungsdatum = strftime("%A, %d. %B %G", strtotime($UserMeta['registrierung']));
+    //Suche nach weiter möglichen Nutzergruppen
+    $Nebennutzergruppen = "";
+    $NebennutzergruppenCounter = 0;
+    $Nutzergruppen = lade_alle_nutzgruppen();
+    foreach ($Nutzergruppen as $Nutzergruppe){
+        if($UserMeta['ist_nutzergruppe'] == $Nutzergruppe['name']){
+            if($Nutzergruppe['visible_for_user'] == "false"){
+                $NebennutzergruppenCounter++;
+                $Nebennutzergruppen .= "- ".$Nutzergruppe['name']."  <a href='./delete_buchungstool_rolle.php?rolle=".$Nutzergruppe['name']."&user=".$UserID."'><i class=\"tiny material-icons\">delete_forever</i></a><br>";
+            }
+        }
+    }
+    if($NebennutzergruppenCounter==0){
+        $Nebennutzergruppen .= "keine";
+    }
+    $BuchungstoolRollen = '';
+    $BuchungstoolCounter = 0;
+    if($UserMeta['ist_wart'] == 'true'){
+        $BuchungstoolCounter++;
+        $BuchungstoolRollen .= '- Stocherkahnwart:in <a href="./delete_buchungstool_rolle.php?rolle=ist_wart&user='.$UserID.'"><i class="tiny material-icons">delete_forever</i></a><br>';
+    }
+    if($UserMeta['ist_admin'] == 'true'){
+        $BuchungstoolCounter++;
+        $BuchungstoolRollen .= '- Admin <a href="./delete_buchungstool_rolle.php?rolle=ist_admin&user='.$UserID.'"><i class="tiny material-icons">delete_forever</i></a><br>';
+    }
+    if($BuchungstoolCounter==0){
+        $BuchungstoolRollen .= 'keine';
+    }
+
+    //Parse User Data
+    if(isset($_POST['vorname_user_'.$UserID.''])){
+        $Vorname = $_POST['vorname_user_'.$UserID.''];
+    } else {
+        $Vorname = $UserMeta['vorname'];
+    }
+    if(isset($_POST['nachname_user_'.$UserID.''])){
+        $Nachname = $_POST['nachname_user_'.$UserID.''];
+    } else {
+        $Nachname = $UserMeta['nachname'];
+    }
+    if(isset($_POST['mail_user_'.$UserID.''])){
+        $Mail = $_POST['mail_user_'.$UserID.''];
+    } else {
+        $Mail = $UserMeta['mail'];
+    }
+    if(isset($_POST['telefon_user_'.$UserID.''])){
+        $Tel = $_POST['telefon_user_'.$UserID.''];
+    } else {
+        $Tel = $UserMeta['telefon'];
+    }
+    if(isset($_POST['strasse_user_'.$UserID.''])){
+        $Strasse = $_POST['strasse_user_'.$UserID.''];
+    } else {
+        $Strasse = $UserMeta['strasse'];
+    }
+    if(isset($_POST['hausnummer_user_'.$UserID.''])){
+        $Hausnummer = $_POST['hausnummer_user_'.$UserID.''];
+    } else {
+        $Hausnummer = $UserMeta['hausnummer'];
+    }
+    if(isset($_POST['stadt_user_'.$UserID.''])){
+        $Stadt = $_POST['stadt_user_'.$UserID.''];
+    } else {
+        $Stadt = $UserMeta['stadt'];
+    }
+    if(isset($_POST['plz_user_'.$UserID.''])){
+        $PLZ = $_POST['plz_user_'.$UserID.''];
+    } else {
+        $PLZ = $UserMeta['plz'];
+    }
+
 
     $HTML .= "<li>";
         $HTML .= "<div class='collapsible-header".$Active."'><i class='large material-icons'>perm_identity</i>".$UserMeta['vorname']." ".$UserMeta['nachname']."</div>";
         $HTML .= "<div class='collapsible-body'>";
             $HTML .= "<div class='container'>";
-                $HTML .= "<form method='post'>";
-                    $HTML .= "<ul class='collection'>";
-
-                    if(isset($UserMeta['telefon'])){
-                        $HTML .= "<li class='collection-item'><i class='tiny material-icons'>phone</i> <a href='tel:".$UserMeta['telefon']."'>".$UserMeta['telefon']."</a></li>";
-                    }
-                        $HTML .= "<li class='collection-item'><i class='tiny material-icons'>email</i> <a href='mailto:".$UserMeta['mail']."'>".$UserMeta['mail']."</a></li>";
-                        $HTML .= "<li class='collection-item'>Reservierungen dieses Jahr: ".$AnzahleRes."</li>";
-                        $HTML .= "<li class='collection-item'>Registrierung: ".$Registrierungsdatum."</li>";
-                    $HTML .= "</ul>";
-                $HTML .= "</form>";
+                    $HTML .= "<h5>Nutzerdaten</h5>";
+                        $UserTableHTML = table_form_string_item('Vorname', 'vorname_user_'.$UserID.'', $Vorname, false);
+                        $UserTableHTML .= table_form_string_item('Nachname', 'nachname_user_'.$UserID.'', $Nachname, false);
+                        $UserTableHTML .= table_row_builder(table_header_builder('Registrierung').table_data_builder($Registrierungsdatum));
+                        $UserTableHTML .= table_row_builder(table_header_builder('Reservierungen dieses Jahr').table_data_builder($AnzahleRes));
+                        $UserTableHTML .= table_form_email_item('Mail', 'mail_user_'.$UserID.'', $Mail, false);
+                        $UserTableHTML .= table_form_string_item('Telefon', 'telefon_user_'.$UserID.'', $Tel, false);
+                        $UserTableHTML .= table_form_string_item('Straße', 'strasse_user_'.$UserID.'', $Strasse, false);
+                        $UserTableHTML .= table_form_string_item('Hausnummer', 'hausnummer_user_'.$UserID.'', $Hausnummer, false);
+                        $UserTableHTML .= table_form_string_item('Stadt', 'stadt_user_'.$UserID.'', $Stadt, false);
+                        $UserTableHTML .= table_form_string_item('Postleitzahl', 'plz_user_'.$UserID.'', $PLZ, false);
+                    $HTML .= table_builder($UserTableHTML);
+                    $HTML .= divider_builder();
+                    $HTML .= "<h5>Nutzergruppe(n)</h5>";
+                        $TableHTML = table_row_builder(table_header_builder('Hauptnutzergruppe').table_data_builder($UserMeta['ist_nutzergruppe']));
+                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], 'user');
+                        $TableHTML .= table_row_builder(table_header_builder('Zusätzliche Nutzergruppen').table_data_builder($Nebennutzergruppen));
+                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], 'wart');
+                        $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrollen').table_data_builder($BuchungstoolRollen));
+                        $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrolle hinzufügen').table_data_builder(dropdown_buchungstoolgruppe_waehlen('neue_buchungstoolrolle_'.$UserID.'', $_POST['neue_buchungstoolrolle_'.$UserID.''])));
+                        $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_suspend_user_'.$UserID.'', 'Sperren', 'action', 'block', '')));
+                    $HTML .= table_builder($TableHTML);
             $HTML .= "</div>";
         $HTML .= "</div>";
     $HTML .= "</li>";
@@ -88,4 +172,71 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen){
 
 }
 
+function benutzermanagement_parser($AllUsers){
+
+    $link = connect_db();
+
+    foreach ($AllUsers as $User){
+        $EditLink = 'action_edit_user_'.$User['id'].'';
+        $SperrenLink = 'action_suspend_user_'.$User['id'].'';
+        $PswdRstLink = 'action_pswd_rst_user_'.$User['id'].'';
+        if(isset($_POST[$EditLink])) {
+            update_user_meta($User['id'], 'vorname', $_POST['vorname_user_' . $User['id'] . '']);
+            update_user_meta($User['id'], 'nachname', $_POST['nachname_user_' . $User['id'] . '']);
+            update_user_meta($User['id'], 'mail', $_POST['mail_user_' . $User['id'] . '']);
+            update_user_meta($User['id'], 'telefon', $_POST['telefon_user_' . $User['id'] . '']);
+            update_user_meta($User['id'], 'strasse', $_POST['strasse_user_' . $User['id'] . '']);
+            update_user_meta($User['id'], 'hausnummer', $_POST['hausnummer_user_' . $User['id'] . '']);
+            update_user_meta($User['id'], 'stadt', $_POST['stadt_user_' . $User['id'] . '']);
+            update_user_meta($User['id'], 'plz', $_POST['plz_user_' . $User['id'] . '']);
+            if (isset($_POST['main_usergroup_' . $User['id'] . ''])) {
+                $NutzergruppeMeta = lade_nutzergruppe_infos($_POST['main_usergroup_' . $User['id'] . '']);
+                $Setting = 'ist_nutzergruppe';
+                $SettingValue = $NutzergruppeMeta['name'];
+                update_user_meta(lade_user_id(), $Setting, $SettingValue);
+                nutzergruppen_verifications_user_loeschen(lade_user_id(), $_POST[$Setting]);
+            }
+            if($_POST['additional_usergroup_' . $User['id'] . '']!=''){
+                $NutzergruppeMeta = lade_nutzergruppe_infos($_POST['additional_usergroup_' . $User['id'] . '']);
+                $Setting = 'ist_nutzergruppe';
+                $SettingValue = $NutzergruppeMeta['name'];
+                $Anfrage = "SELECT id FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ".$SettingValue." AND user = ".$User['id']."";
+                var_dump($Anfrage);
+                $Abfrage = mysqli_query($link, $Anfrage);
+                $Anzahl = mysqli_num_rows($Abfrage);
+                if($Anzahl==0){
+                    add_user_meta($User['id'], $Setting, $SettingValue);
+                }
+            }
+            if($_POST['neue_buchungstoolrolle_' . $User['id'] . '']!=''){
+                $Setting = $_POST['neue_buchungstoolrolle_' . $User['id'] . ''];
+                $SettingValue = 'true';
+                $Anfrage = "SELECT id FROM user_meta WHERE schluessel = ".$Setting." AND user = ".$User['id']."";
+                $Abfrage = mysqli_query($link, $Anfrage);
+                $Anzahl = mysqli_num_rows($Abfrage);
+                if($Anzahl==0){
+                    add_user_meta($User['id'], $Setting, $SettingValue);
+                } elseif ($Anzahl==1){
+                    update_user_meta($User['id'], $Setting, $SettingValue);
+                }
+            }
+        }
+        if(isset($_POST[$SperrenLink])){
+            $Setting = 'ist_gesperrt';
+            $SettingValue = 'true';
+
+            $Anfrage = "SELECT id FROM user_meta WHERE schluessel = '".$Setting."' AND user = ".$User['id']."";
+            $Abfrage = mysqli_query($link, $Anfrage);
+            $Anzahl = mysqli_num_rows($Abfrage);
+            if($Anzahl==17){
+                return add_user_meta($User['id'], $Setting, $SettingValue);
+            } elseif ($Anzahl==16){
+                return update_user_meta($User['id'], $Setting, $SettingValue);
+            }
+        }
+        if(isset($_POST[$PswdRstLink])){
+            return reset_user_pswd($User['mail']);
+        }
+    }
+}
 ?>
