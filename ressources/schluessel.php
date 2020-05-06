@@ -244,8 +244,19 @@ function schluessel_bearbeiten($SchluesselID, $NewID, $Farbe, $FarbeMatCSS, $RFI
             $Aenderungsbefehl .= "RFID = '".$RFID."'";
         }
 
+        $Anfrage = "UPDATE schluessel SET ".$Aenderungsbefehl." WHERE id = '$SchluesselID'";
+        if (mysqli_query($link, $Anfrage)){
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "&Auml;nderungen am Schl&uuml;ssel ".$SchluesselID." erfolgreich eingetragen!";
+            $EintragText = "Schl&uuml;ssel ".$SchluesselID." von Wart ".lade_user_id()." bearbeitet: ".$Aenderungsbefehl."";
+            add_protocol_entry(lade_user_id(),$EintragText, 'schluessel');
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Datenbankfehler!";
+        }
+
         if($NewID!=""){
-            $Aenderungsbefehl .= "id = '".$NewID."'";
+            $Aenderungsbefehl = "id = '".$NewID."'";
         }
 
         $Anfrage = "UPDATE schluessel SET ".$Aenderungsbefehl." WHERE id = '$SchluesselID'";

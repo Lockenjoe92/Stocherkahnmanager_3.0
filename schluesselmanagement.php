@@ -234,9 +234,9 @@ function schluessel_bearbeiten_listenelement_generieren(){
 
     $FormHTML = table_row_builder(table_header_builder('Schlüssel auswählen').table_data_builder(dropdown_aktive_schluessel('id_schluessel_bearbeiten')));
     $FormHTML .= table_form_select_item('Schlüsselnummer ändern', 'schluessel_id', 1, 50, $_POST['schluessel_id'], '', 'Schlüsselnummer', '', false);
-    $FormHTML .= table_form_string_item('Farbe', 'farbe_schluessel', $_POST['farbe_schluessel'], false);
-    $FormHTML .= table_form_string_item('Farbe in materialize.css', 'farbe_schluessel_mat', $_POST['farbe_schluessel_mat'], false);
-    $FormHTML .= table_form_string_item('RFID Code', 'rfid_code', $_POST['rfid_code'], false);
+    $FormHTML .= table_form_string_item('Farbe', 'farbe_schluessel_bearbeiten', $_POST['farbe_schluessel_bearbeiten'], false);
+    $FormHTML .= table_form_string_item('Farbe in materialize.css', 'farbe_schluessel_mat_bearbeiten', $_POST['farbe_schluessel_mat_bearbeiten'], false);
+    $FormHTML .= table_form_string_item('RFID Code', 'rfid_code_bearbeiten', $_POST['rfid_code_bearbeiten'], false);
     $FormHTML .= table_row_builder(table_header_builder(form_button_builder('action_schluessel_bearbeiten', 'Eintragen', 'submit', 'send', '')." ".form_button_builder('action_schluessel_loeschen', 'Löschen', 'action', 'delete', '')).table_data_builder(''));
     $FormHTML = table_builder($FormHTML);
     $FormHTML = form_builder($FormHTML, '#', 'post', '', '');
