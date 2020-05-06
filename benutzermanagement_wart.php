@@ -300,8 +300,16 @@ function benutzermanagement_parser($AllUsers){
             $Abfrage = mysqli_query($link, $Anfrage);
             $Anzahl = mysqli_num_rows($Abfrage);
             if($Anzahl==0){
+                $AlleResUser = lade_alle_reservierungen_eines_users($User['id']);
+                foreach($AlleResUser as $ResUser){
+                    reservierung_stornieren($ResUser['id'], lade_user_id(), 'Dein Nutzerkonto wurde gesperrt. Bitte setze dich mit uns in Verbindung um die Sache zu klären!');
+                }
                 return add_user_meta($User['id'], $Setting, $SettingValue);
             } elseif ($Anzahl==1){
+                $AlleResUser = lade_alle_reservierungen_eines_users($User['id']);
+                foreach($AlleResUser as $ResUser){
+                    reservierung_stornieren($ResUser['id'], lade_user_id(), 'Dein Nutzerkonto wurde gesperrt. Bitte setze dich mit uns in Verbindung um die Sache zu klären!');
+                }
                 return update_user_meta($User['id'], $Setting, $SettingValue);
             }
         }
