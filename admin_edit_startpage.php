@@ -19,6 +19,12 @@ $Header = "Webseite Editieren - " . lade_db_einstellung('site_name');
 $PageTitle = '<h1>Webseite Editieren</h1>';
 $HTML .= section_builder($PageTitle);
 
+//
+$PageParser = add_new_site_parser();
+if($PageParser['success']!=null){
+    $HTML .= section_builder(error_button_creator($PageParser['meldung'], 'error', ''));
+}
+
 # Load Subsites
 $Anfrage = "SELECT * FROM homepage_sites WHERE delete_user = 0 ORDER BY menue_rang ASC";
 $Abfrage = mysqli_query($link, $Anfrage);
@@ -403,5 +409,80 @@ function parse_change_items_rang(){
             return increase_item_rank_parse($Item);
         }
     }
+}
+
+function add_new_site_parser(){
+
+    if(isset($_POST['add_new_site'])){
+
+        $link = connect_db();
+        $DAUcounter = 0;
+        $DAUmessage = '';
+
+        if(empty($_POST['new_site_title'])){
+            $DAUcounter++;
+            $DAUmessage .= 'Bitte gebe einen Seitentitel an!<br>';
+        }
+
+        if(empty($_POST['new_site_name'])){
+            $DAUcounter++;
+            $DAUmessage .= 'Bitte gebe einen Seitennamen an!<br>';
+        } else {
+
+            if (!($stmt = $link->prepare("SELECT id FROM homepage_sites WHERE name = ? AND delete_user = 0"))) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->bind_param("s", $_POST['new_site_name'])) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->execute()) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            $res = $stmt->get_result();
+            if(mysqli_num_rows($res)>0){
+                $DAUcounter++;
+                $DAUmessage .= 'Eine Seite mit diesem Seitennamen existiert bereits!<br>';
+            }
+        }
+
+        if($DAUcounter>0){
+            $Antwort['success']=false;
+            $Antwort['meldung']=$DAUmessage;
+        }else{
+
+            $AnfrageListSites = "SELECT id FROM homepage_sites WHERE rang > 0 AND delete_user = 0";
+            $AbfrageListSites = mysqli_query($link,$AnfrageListSites);
+            $AktZahlRang = mysqli_num_rows($AbfrageListSites);
+            $RangNewPage = $AktZahlRang+1;
+            if(isset($_POST['new_site_menue_visibility'])){
+                $Visibility = 'on';
+            } else {
+                $Visibility = 'off';
+                $RangNewPage = 0;
+            }
+
+            if (!($stmt = $link->prepare("INSERT INTO homepage_sites (name, menue_text, menue_rang, show_in_main_menue) VALUES (?,?,?,?)"))) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->bind_param("ssis", $_POST['new_site_name'], $_POST['new_site_title'], $RangNewPage, $Visibility)) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->execute()) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            } else {
+                $Antwort['success']=true;
+            }
+        }
+    } else {
+        $Antwort['success']=null;
+    }
+
+    return $Antwort;
 }
 ?>
