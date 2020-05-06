@@ -327,6 +327,7 @@ function listenelement_tagesgeschehen_generieren($TageVerschiebung){
 
     zeitformat();
     $link = connect_db();
+    $UebernahmenTag = array();
     $Befehl = "+ ".$TageVerschiebung." days";
     $PausenInhalt = "";
     $SperrungenInhalt = "";
@@ -380,8 +381,6 @@ function listenelement_tagesgeschehen_generieren($TageVerschiebung){
     if ($AnzahlLadeResTag > 0){
         $ReservierungenInhalt .= "<h5>Reservierungen</h5><div class='collection'>";
         $ReservierungenInhaltMobile .= "<h5 class='center-align'>Reservierungen</h5><div class='collection'>";
-
-        $UebernahmenTag = array();
 
         for($d = 1; $d <= $AnzahlLadeResTag; $d++){
             $ResAktuell = mysqli_fetch_assoc($AbfrageLadeResTag);
