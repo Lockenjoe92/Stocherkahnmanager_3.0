@@ -221,8 +221,11 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen){
                         $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], 'wart_visibles');
                         $TableHTML .= table_row_builder(table_header_builder('Zusätzliche Nutzergruppen').table_data_builder($Nebennutzergruppen));
                         $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], 'wart_unvisibles');
-                        $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrollen').table_data_builder($BuchungstoolRollen));
-                        $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrolle hinzufügen').table_data_builder(dropdown_buchungstoolgruppe_waehlen('neue_buchungstoolrolle_'.$UserID.'', $_POST['neue_buchungstoolrolle_'.$UserID.''])));
+                        $AktuellerUser = lade_user_meta(lade_user_id());
+                        if($AktuellerUser['ist_admin']=='true'){
+                            $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrollen').table_data_builder($BuchungstoolRollen));
+                            $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrolle hinzufügen').table_data_builder(dropdown_buchungstoolgruppe_waehlen('neue_buchungstoolrolle_'.$UserID.'', $_POST['neue_buchungstoolrolle_'.$UserID.''])));
+                        }
                         if($UserMeta['ist_gesperrt']=='true'){
                             $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_unsuspend_user_'.$UserID.'', 'Sperre aufheben', 'action', 'check', '')));
                         } else {
