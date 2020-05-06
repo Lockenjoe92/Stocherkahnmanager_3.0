@@ -964,7 +964,19 @@ function schluesselwesen($ID, $Ansicht='user'){
         //Hat er einen eigenen Schlüssel?
         $Schluesselrollen = lade_user_meta($Reservierung['user']);
 
-        if (($Schluesselrollen['hat_eig_schluessel'] == "1")){
+        $Nutzerrollen = lade_alle_nutzgruppen();
+        $HatEigSchluessel = 0;
+
+        foreach($Nutzerrollen as $Nutzerrolle){
+            if($Schluesselrollen[$Nutzerrolle['name']]=='true'){
+                if($Nutzerrolle['darf_last_minute_res'] == 'true'){
+                    $HatEigSchluessel++;
+                }
+            }
+        }
+
+
+        if ($HatEigSchluessel>0){
             if($Ansicht == 'user'){
                 $Antwort = "Du hast einen eigenen Schl&uuml;ssel.";
             } elseif ($Ansicht == 'wart'){
