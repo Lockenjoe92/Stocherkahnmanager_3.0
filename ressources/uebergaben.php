@@ -232,6 +232,50 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
         $AnfrageUebergabeEintragen = "INSERT INTO uebergaben (res, wart, terminangebot, beginn, durchfuehrung, schluessel, angelegt_am, kommentar, storno_time, storno_user, storno_kommentar) VALUES ('$Res', '$Wart', '$Termin', '$Beginn', '0000-00-00 00:00:00', '0', '$Timestamp', '$Kommentar', '0000-00-00 00:00:00', '0', '')";
         if (mysqli_query($link, $AnfrageUebergabeEintragen)){
 
+            $Terminangebot = lade_terminangebot($Termin);
+            $Reservierung = lade_reservierung($Res);
+            $UserMeta = lade_user_meta($Reservierung['user']);
+            $Warteinstellungen = lade_user_meta($Wart);
+            $KontaktdatenWart = $Warteinstellungen['vorname']." ".$Warteinstellungen['nachname']."<br>";
+            if($Warteinstellungen['kontakt-mail-user-sichtbar']=='true'){
+                $KontaktdatenWart .= "Mail: ".$Warteinstellungen['mail']."<br>";
+            }
+            if($Warteinstellungen['kontakt-tel-user-sichtbar']=='true'){
+                $KontaktdatenWart .= "Telefon: ".$Warteinstellungen['telefon']."<br>";
+            }
+
+            //Mail an User
+            $BausteineUser['[vorname_user]']=$UserMeta['vorname'];
+            $BausteineUser['[datum_uebergabe]']=strftime("%A, %d. %B %G", strtotime($Beginn));;
+            $BausteineUser['[uhrzeit_beginn]']=date('G:i', strtotime($Beginn)).' Uhr';
+            $BausteineUser['[ort_uebergabe]']=$Terminangebot['ort'];
+            $BausteineUser['[dauer_uebergabe]']=lade_xml_einstellung('dauer-uebergabe-minuten');
+            $BausteineUser['[reservierungsnummer]']=$Res;
+            $BausteineUser['[kosten_reservierung]']=kosten_reservierung($Res).'&euro;';
+            $BausteineUser['[kontakt_wart]']=$KontaktdatenWart;
+            if($Creator==$Reservierung['user']){
+                mail_senden('uebergabe-angelegt-selbst', $UserMeta['mail'], $BausteineUser);
+            } else {
+                mail_senden('uebergabe-angelegt-wart', $UserMeta['mail'], $BausteineUser);
+            }
+
+            //Mail an Wart
+            if($Warteinstellungen['mail-bei-uebergabe']=='true'){
+                $Bausteine['[vorname_wart]']=$Warteinstellungen['vorname'];
+                $Bausteine['[datum_uebergabe]']=strftime("%A, %d. %B %G", strtotime($Beginn));;
+                $Bausteine['[uhrzeit_beginn]']=date('G:i', strtotime($Beginn)).' Uhr';
+                $Bausteine['[ort_uebergabe]']=$Terminangebot['ort'];
+                $Bausteine['[reservierungsnummer]']=$Res;
+                $Bausteine['[kosten_reservierung]']=kosten_reservierung($Res).'&euro;';
+                if($Kommentar!=''){
+                    $Bausteine['[kommentar_user]']='<p>Kommentar des Nutzers:<br>'.$Kommentar.'</p>';
+                } else {
+                    $Bausteine['[kommentar_user]']='';
+                }
+
+                mail_senden('uebergabe-bekommen-wart', $Warteinstellungen['mail'], $Bausteine);
+            }
+
             $Antwort['success'] = TRUE;
             $Antwort['meldung'] = "Übergabe erfolgreich eingetragen!";
 
