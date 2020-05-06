@@ -1360,11 +1360,17 @@ function reservierung_preis_aendern($IDreservierung, $NeuerPreis){
     }
 }
 
-function reservierung_listenelement_generieren($IDreservierung){
+function reservierung_listenelement_generieren($IDreservierung, $Selected=false){
 
     $Reservierung = lade_reservierung($IDreservierung);
     $User = lade_user_meta($Reservierung['user']);
     zeitformat();
+
+    if($Selected == true){
+        $Selected = 'active';
+    } else {
+        $Selected = '';
+    }
 
     if (anschlussfahrt($IDreservierung)){
 
@@ -1387,7 +1393,7 @@ function reservierung_listenelement_generieren($IDreservierung){
     }
 
     $HTML =  "<li>";
-    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>label_outline</i>Reservierung: #".$IDreservierung."</div>";
+    $HTML .= "<div class='collapsible-header ".$Selected."'><i class='large material-icons'>label_outline</i>Reservierung: #".$IDreservierung."</div>";
     $HTML .= "<div class='collapsible-body'>";
     $HTML .= "<ul class='collection'>";
     $HTML .= "<li class='collection-item'><i class='tiny material-icons'>today</i> Datum: ".strftime("%A, %d. %B %G", strtotime($Reservierung['beginn']))."";

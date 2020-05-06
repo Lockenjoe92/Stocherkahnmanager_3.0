@@ -99,7 +99,7 @@ function formular_do_uebergabe($UebergabeID){
     }
 
     $HTML = "<h3 class='center-align'>Informationen</h3>";
-    $CollapsibleItems = reservierung_listenelement_generieren($Uebergabe['res']);
+    $CollapsibleItems = reservierung_listenelement_generieren($Uebergabe['res'], true);
     $CollapsibleItems .= uebergabe_listenelement_generieren($UebergabeID, FALSE);
     $CollapsibleItems .= dokumente_listenelement_generieren();
     $CollapsibleItems .= faq_user_hauptansicht_generieren();
