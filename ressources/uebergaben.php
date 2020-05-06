@@ -107,10 +107,10 @@ function uebergabe_stornieren($ID, $Begruendung){
 
                 //Wart informieren
                 $WartUebergabe = lade_user_meta($Uebergabe['wart']);
-                $BausteineWartmails['vorname_wart'] = $WartUebergabe['vorname'];
-                $BausteineWartmails['zeitangabe_uebergabe'] = strftime("%A, den %d. %B %G - Beginn: %H:%M Uhr", strtotime($Uebergabe['beginn']));
-                $BausteineWartmails['kommentar_user'] = $Begruendung;
-                $BausteineWartmails['zeitpunkt_uebergabe'] = strftime("%A, %d. %B %G - Beginn: %H:%M Uhr", strtotime($Uebergabe['beginn']));
+                $BausteineWartmails['[vorname_wart]'] = $WartUebergabe['vorname'];
+                $BausteineWartmails['[zeitangabe_uebergabe]'] = strftime("%A, den %d. %B %G - Beginn: %H:%M Uhr", strtotime($Uebergabe['beginn']));
+                $BausteineWartmails['[kommentar_user]'] = $Begruendung;
+                $BausteineWartmails['[zeitpunkt_uebergabe]'] = strftime("%A, %d. %B %G - Beginn: %H:%M Uhr", strtotime($Uebergabe['beginn']));
 
                 //Nach eigenen Einstellungen
                 $Usersettings = lade_user_meta($Uebergabe['wart']);
@@ -121,7 +121,7 @@ function uebergabe_stornieren($ID, $Begruendung){
                 }
 
                 //SMS
-                if ($Usersettings['sms_uebergabe_storno'] == "1"){
+                if ($Usersettings['sms_uebergabe_storno'] == "true"){
                     if (lade_xml_einstellung('sms-active') == "true"){
                         sms_senden('uebergabe-storniert', $BausteineWartmails, $Uebergabe['wart'], NULL);
                     }
@@ -267,6 +267,7 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
                 $Bausteine['[ort_uebergabe]']=$Terminangebot['ort'];
                 $Bausteine['[reservierungsnummer]']=$Res;
                 $Bausteine['[kosten_reservierung]']=kosten_reservierung($Res).'&euro;';
+                $Bausteine['[kontakt_reservierung]']=$UserMeta['vorname'].' '.$UserMeta['nachname'];
                 if($Kommentar!=''){
                     $Bausteine['[kommentar_user]']='<p>Kommentar des Nutzers:<br>'.$Kommentar.'</p>';
                 } else {
@@ -274,6 +275,21 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
                 }
 
                 mail_senden('uebergabe-bekommen-wart', $Warteinstellungen['mail'], $Bausteine);
+            }
+
+            //SMS        <text>Neue Übergabe: Wann? [zeitpunkt_uebergabe], Wo? [ort_uebergabe], Wer? [name_user] - [tel_user]:) [kommentar_user]
+            if ($Warteinstellungen['sms-bei-uebergabe'] == "true"){
+                if (lade_xml_einstellung('sms-active') == "true"){
+                    $Bausteine['[zeitpunkt_uebergabe]']=strftime("%A, %d. %B %G", strtotime($Beginn)).' '.date('G:i', strtotime($Beginn)).' Uhr';
+                    $Bausteine['[ort_uebergabe]']=$Terminangebot['ort'];
+                    $Bausteine['[name_user]']=$UserMeta['vorname'].' '.$UserMeta['nachname'];
+                    if($Kommentar!=''){
+                        $Bausteine['[kommentar_user]']='Kommentar des Nutzers: '.$Kommentar.'';
+                    } else {
+                        $Bausteine['[kommentar_user]']='';
+                    }
+                    sms_senden('neue-uebergabe-wart', $Bausteine, $Wart, NULL);
+                }
             }
 
             $Antwort['success'] = TRUE;
