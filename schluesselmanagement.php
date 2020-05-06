@@ -181,7 +181,7 @@ function spalte_schluessel_verwalten(){
 function schluessel_aktueller_status_listenelement_generieren(){
 
     $link = connect_db();
-    $Anfrage = 'SELECT * FROM schluessel WHERE delete_user = 0';
+    $Anfrage = 'SELECT * FROM schluessel WHERE delete_user = 0 ORDER BY id ASC';
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
     $HTMLcollapsible = '';
@@ -194,10 +194,10 @@ function schluessel_aktueller_status_listenelement_generieren(){
                 if($UserMeta['ist_wart']){
                     $Content = '<b>Aktueller User:</b> '.$UserMeta['vorname'].' '.$UserMeta['nachname'].' (Wart:in)';
                 } else {
-                    $Anfrage = 'SELECT * FROM schluesselausgabe WHERE storno_user = 0 AND user = '.$Schluessel['akt_user'].' AND rueckgabe = 0000-00-00 00:00:00';
-                    $Abfrage = mysqli_query($link, $Anfrage);
-                    $Ausgabe = mysqli_fetch_assoc($Abfrage);
-                    $AusgabeWart = lade_user_meta($Ausgabe['wart']);
+                    $Anfrage2 = 'SELECT * FROM schluesselausgabe WHERE storno_user = 0 AND user = '.$Schluessel['akt_user'].' AND rueckgabe = "0000-00-00 00:00:00"';
+                    $Abfrage2 = mysqli_query($link, $Anfrage2);
+                    $Ausgabe2 = mysqli_fetch_assoc($Abfrage2);
+                    $AusgabeWart = lade_user_meta($Ausgabe2['wart']);
                     $Content = '<b>Aktueller User:</b> '.$UserMeta['vorname'].' '.$UserMeta['nachname'].'<br>';
                     $Content .= '<b>Ausgabe:</b> '.strftime("%A, %d. %B %G", strtotime($AusgabeWart['ausgabe'])).' durch '.$AusgabeWart['vorname'].' '.$AusgabeWart['nachname'].'';
                 }

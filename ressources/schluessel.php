@@ -16,13 +16,13 @@ function lade_letze_erinnerung_schluesselrueckgabe($IDres){
     $Typ = "mail_erinnerung_schluesselrueckgabe_intervall-".$IDres."";
     $TypZwei = "mail_erinnerung_schluesselrueckgabe_direkt_nach_fahrt-".$IDres."";
 
-    $Anfrage = "SELECT timestamp FROM mail_protokoll WHERE empfaenger = '".$Reservierung['user']."' AND typ = '$Typ' ORDER BY timestamp DESC";
+    $Anfrage = "SELECT timestamp FROM protocol WHERE user = '".$Reservierung['user']."' AND protocol = '$Typ' ORDER BY timestamp DESC";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
 
     if($Anzahl == 0){
 
-        $AnfrageZwei = "SELECT timestamp FROM mail_protokoll WHERE empfaenger = '".$Reservierung['user']."' AND typ = '$TypZwei' ORDER BY timestamp DESC";
+        $AnfrageZwei = "SELECT timestamp FROM protocol WHERE user = '".$Reservierung['user']."' AND protocol = '$TypZwei' ORDER BY timestamp DESC";
         $AbfrageZwei = mysqli_query($link, $AnfrageZwei);
         $AnzahlZwei = mysqli_num_rows($AbfrageZwei);
 
