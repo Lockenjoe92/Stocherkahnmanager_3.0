@@ -154,12 +154,16 @@ function generate_inhalte_views($BausteinID){
 
         }
 
-        if (($Baustein['typ'] == 'row_container') OR ($Baustein['typ'] == 'collection_container') OR ($Baustein['typ'] == 'collapsible_container')) {
+        if ($Baustein['typ'] == 'row_container') {
             if ($Anzahl < lade_db_einstellung('max_items_row_container')) {
                 $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
                 $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
                 $InhalteHTML .= collection_item_builder($Header);
             }
+        } elseif (($Baustein['typ'] == 'collection_container') OR ($Baustein['typ'] == 'collapsible_container')){
+                $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
+                $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
+                $InhalteHTML .= collection_item_builder($Header);
         }
     }
 

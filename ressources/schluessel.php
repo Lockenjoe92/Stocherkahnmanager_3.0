@@ -438,7 +438,7 @@ function spalte_anstehende_rueckgaben(){
 
             if ((strtotime($Reservierung['ende']) < time()) OR ($Reservierung['storno_user'] != "0")){
                 //darf er dan Schlüssel weiter behalten?
-                $AnfrageWeitereReservierungenMitDiesemSchluessel = "SELECT id, reservierung FROM schluesselausgabe WHERE user = '".$Ausgabe['user']."' AND schluessel = '".$Ausgabe['schluessel']."' AND storno_user = '0' AND rueckgabe = '0000-00-00 00:00:00' AND id <> '".$Ausgabe['id']."'";
+                $AnfrageWeitereReservierungenMitDiesemSchluessel = "SELECT id, wart, user, reservierung FROM schluesselausgabe WHERE user = '".$Ausgabe['user']."' AND schluessel = '".$Ausgabe['schluessel']."' AND storno_user = '0' AND rueckgabe = '0000-00-00 00:00:00' AND id <> '".$Ausgabe['id']."'";
                 $AbfrageWeitereReservierungenMitDiesemSchluessel = mysqli_query($link, $AnfrageWeitereReservierungenMitDiesemSchluessel);
                 $AnzahlWeitereReservierungenMitDiesemSchluessel = mysqli_num_rows($AbfrageWeitereReservierungenMitDiesemSchluessel);
 
@@ -449,7 +449,9 @@ function spalte_anstehende_rueckgaben(){
                 } else if ($AnzahlWeitereReservierungenMitDiesemSchluessel == 0){
 
                     $Counter++;
-
+                    $ErgebnisWeitereReservierungenMitDiesemSchluessel = mysqli_fetch_assoc($AbfrageWeitereReservierungenMitDiesemSchluessel);
+                    $wart = lade_user_meta($Ausgabe['wart']);
+                    $UserInfos = lade_user_meta($Ausgabe['user']);
                     $Schluessel = lade_schluesseldaten($Ausgabe['schluessel']);
 
                     $FahrtZuendeSeit = strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($Reservierung['ende']));
@@ -467,6 +469,8 @@ function spalte_anstehende_rueckgaben(){
                     $HTML .= "<div class='container'>";
                     $HTML .= "<form method='post'>";
                     $HTML .= "<ul class='collection'>";
+                    $HTML .= "<li class='collection-item'>User: ".$UserInfos['vorname']." ".$UserInfos['nachname']."</li>";
+                    $HTML .= "<li class='collection-item'>Austeilender Wart: ".$wart['vorname']." ".$wart['nachname']."</li>";
                     $HTML .= "<li class='collection-item'>Fahrtende: ".$FahrtZuendeSeit."</li>";
                     $HTML .= "<li class='collection-item'>Letzte Erinnerung: ".$LetzeErinnerung."</li>";
                     $HTML .= collection_item_builder(form_button_builder('action_schluessel_'.$Schluessel['id'].'_rueckgabe_festhalten', 'Rückgabe', 'action', 'send', ''));

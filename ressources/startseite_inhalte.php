@@ -291,7 +291,7 @@ function row_container_generieren($BausteinID){
 
             # Daten laden
             $Ergebnis = mysqli_fetch_assoc($Abfrage);
-            $RowContent .= '<div class="col s12 m'.$BreiteRowTeile.'"><div class="icon-block"><h2 class="center '.$Ergebnis['icon_farbe'].'"><i class="material-icons">'.$Ergebnis['icon'].'</i></h2><h5 class="center">'.html_entity_decode($Ergebnis['ueberschrift'], ENT_QUOTES | ENT_IGNORE, "UTF-8").'</h5>'.html_entity_decode($Ergebnis['html_content'], ENT_QUOTES | ENT_IGNORE, "UTF-8").'</div></div>';
+            $RowContent .= '<div class="col s12 m'.$BreiteRowTeile.'"><div class="icon-block"><h2 class="center '.$Ergebnis['icon_farbe'].'"><i class="material-icons">'.$Ergebnis['icon'].'</i></h2><h5 class="center">'.html_entity_decode($Ergebnis['ueberschrift'], ENT_QUOTES | ENT_IGNORE, "UTF-8").'</h5><p class="center-align">'.html_entity_decode($Ergebnis['html_content'], ENT_QUOTES | ENT_IGNORE, "UTF-8").'</p></div></div>';
             $a++;
         }
         $RowContent .= '</div>';

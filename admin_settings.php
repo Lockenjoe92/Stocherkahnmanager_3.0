@@ -11,6 +11,8 @@ admin_settings_parser($Settings);
 #Generate content
 # Page Title
 $PageTitle = '<h1>Admineinstellungen</h1>';
+$PageTitle = '<h1 class="hide-on-med-and-down">Admineinstellungen</h1>';
+$PageTitle .= '<h1 class="hide-on-large-only">Admin Settings</h1>';
 $HTML .= section_builder($PageTitle);
 
 #Settings Form
