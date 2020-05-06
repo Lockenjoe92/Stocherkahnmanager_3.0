@@ -25,7 +25,7 @@ if($Parser == null){
 }
 
 #Put it all in a container
-$HTML = container_builder($HTML, 'admin_settings_page');
+$HTML = container_builder($HTML, 'undo_uebergabe_page');
 
 # Output site
 echo site_header($Header);
@@ -43,19 +43,24 @@ function parse_undo_uebergabe($Uebergabe){
         $Uebergabe = lade_uebergabe($Uebergabe);
         $Res = lade_reservierung($Uebergabe['res']);
         $Forderung = lade_forderung_res($Res['id']);
+        if($_POST['storno_kommentar']!=''){
+            $Kommentar = ", storno_kommentar = '".$_POST['storno_kommentar']."'";
+        } else {
+            $Kommentar = "";
+        }
 
         //1. Schluesselausgabe löschen
-        $Anfrage = "UPDATE schluesselausgabe SET storno_user = ".$Stornierender.", storno_time = '".timestamp()."', storno_kommentar = '".$_POST['storno_kommentar']."' WHERE res = ".$Res['id']." AND uebergabe = ".$Uebergabe['id']."";
+        $Anfrage = "UPDATE schluesselausgabe SET storno_user = ".$Stornierender.", storno_time = '".timestamp()."'".$Kommentar." WHERE reservierung = ".$Res['id']." AND uebergabe = ".$Uebergabe['id']."";
         if(mysqli_query($link, $Anfrage)){
 
             //2. Zahlungen Laden
-            $Anfrage = "SELECT id, betrag FROM finanz_einnahmen WHERE forderung_id = ".$Forderung['id']." AND konto_id = ".$Wartkonto." AND storno_user = 0";
+            $Anfrage = "SELECT id, betrag FROM finanz_einnahmen WHERE forderung_id = ".$Forderung['id']." AND konto_id = ".$Wartkonto['id']." AND storno_user = 0";
             $Abfrage = mysqli_query($link, $Anfrage);
             if($Abfrage){
                 $ErgebnisZahlungLaden = mysqli_fetch_assoc($Abfrage);
 
                 //3. Zahlungen Löschen
-                $Anfrage = "UPDATE finanz_einnahmen SET storno_user = , storno = '".timestamp()."' WHERE forderung_id = ".$Forderung['id']." AND konto_id = ".$Wartkonto."";
+                $Anfrage = "UPDATE finanz_einnahmen SET storno_user = ".$Stornierender.", storno = '".timestamp()."' WHERE forderung_id = ".$Forderung['id']." AND konto_id = ".$Wartkonto['id']."";
                 if(mysqli_query($link, $Anfrage)){
 
                     //4. Kontostand Wart updaten
@@ -63,7 +68,7 @@ function parse_undo_uebergabe($Uebergabe){
                     if(update_kontostand($Wartkonto, $NeuerKontostand)){
 
                         //5. Uebergabedurchführung wieder auf 0000 setzen
-                        $Anfrage = "UPDATE uebergaben SET durchfuehrung = '0000-00-00 00:00:00' WHERE id = ".$Uebergabe."";
+                        $Anfrage = "UPDATE uebergaben SET durchfuehrung = '0000-00-00 00:00:00' WHERE id = ".$Uebergabe['id']."";
                         if(mysqli_query($link, $Anfrage)){
 
                             //6. Schluessel umbuchen
