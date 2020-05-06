@@ -396,11 +396,12 @@ function spalte_vergangene_uebergaben(){
             $Ergebnis = mysqli_fetch_assoc($Abfrage);
             $Schluessel = lade_schluesseldaten($Ergebnis['schluessel']);
             $Reservierung = lade_reservierung($Ergebnis['res']);
+            $Forderung = lade_forderung_res($Ergebnis['res']);
             $Empfaenger = lade_user_meta($Reservierung['user']);
 
             $Titel = strftime("%A, %d. %B %G", strtotime($Ergebnis['durchfuehrung'])).' an '.$Empfaenger['vorname'].' '.$Empfaenger['nachname'].'';
             $BodyTable = table_row_builder(table_header_builder('Schlüssel').table_data_builder('#'.$Schluessel['id'].' '.$Schluessel['farbe'].''));
-            $BodyTable .= table_row_builder(table_header_builder('Eingenommene Summe').table_data_builder(lade_gezahlte_summe_forderung(lade_forderung_res($Ergebnis['res']))."&euro;"));
+            $BodyTable .= table_row_builder(table_header_builder('Eingenommene Summe').table_data_builder(lade_gezahlte_summe_forderung($Forderung['id'])."&euro;"));
             $BodyTable .= table_row_builder(table_header_builder(button_link_creator('Storno', './undo_uebergabe.php?uebergabe='.$Ergebnis['id'].'', 'undo', '')).table_data_builder(''));
             $BodyTable = table_builder($BodyTable);
 
