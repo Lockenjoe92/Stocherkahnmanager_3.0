@@ -311,7 +311,7 @@ function benutzermanagement_parser($AllUsers){
             return update_user_meta($User['id'], $Setting, $SettingValue);
         }
         if(isset($_POST[$PswdRstLink])){
-            return reset_user_pswd($User['mail']);
+            return reset_user_pswd($User['mail'], 'wart');
         }
         if(isset($_POST[$VerifyLink])){
             return verify_nutzergruppe($User['id'], lade_user_id());

@@ -250,4 +250,3 @@ function wartkonto_anlegen($User){
 
     return $Abfrage;
 }
-

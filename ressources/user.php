@@ -114,8 +114,8 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         }
 
         $MailArray = array();
-        $MailArray['vorname_empfaenger'] = $Vorname;
-        $MailArray['verify_link'] = lade_xml_einstellung('site_url')."/login.php?register_code=".$ID_hash."";
+        $MailArray['[vorname_empfaenger]'] = $Vorname;
+        $MailArray['[verify_link]'] = lade_xml_einstellung('site_url')."/login.php?register_code=".$ID_hash."";
         mail_senden('registrierung_user', $Mail, $MailArray);
 
         $Antwort['erfolg'] = True;
@@ -357,7 +357,7 @@ function get_sorted_user_array_with_user_meta_fields($orderBy='nachname'){
 
     return $ReturnArray;
 }
-function reset_user_pswd($Mail){
+function reset_user_pswd($Mail, $Mode='selbst'){
 
     $link = connect_db();
 
@@ -390,19 +390,28 @@ function reset_user_pswd($Mail){
                 var_dump('Hashing Fail');
                 return false;
             } else {
-                $Anfrage = "UPDATE users SET register_secret = '".$ID_hash."', secret = '".$PSWD_hashed."', pswd_needs_change = 1 WHERE id = ".$Ergebnis['id']."";
+                $Anfrage = "UPDATE users SET secret = '".$PSWD_hashed."', pswd_needs_change = 1 WHERE id = ".$Ergebnis['id']."";
                 $Abfrage = mysqli_query($link, $Anfrage);
                 if($Abfrage){
                     $MailInfos = array();
                     $MailInfos['[vorname_user]']=$UserMeta['vorname'];
                     $MailInfos['[passwort]']=$PSWD_hash;
-                    $MailInfos['[register_code]']=lade_xml_einstellung('site_url')."/login.php?register_code=".$ID_hash."";
-                    if(mail_senden('passwort-zurueckgesetzt-selbst', $Mail, $MailInfos)){
-                        return true;
-                    }else{
-                        var_dump('MAIL fail');
-                        return false;
+                    if($Mode=='selbst'){
+                        if(mail_senden('passwort-zurueckgesetzt-selbst', $Mail, $MailInfos)){
+                            return true;
+                        }else{
+                            var_dump('MAIL fail');
+                            return false;
+                        }
+                    } elseif($Mode=='wart'){
+                        if(mail_senden('passwort-zurueckgesetzt-wart', $Mail, $MailInfos)){
+                            return true;
+                        }else{
+                            var_dump('MAIL fail');
+                            return false;
+                        }
                     }
+
                 } else {
                     var_dump($Anfrage);
                     var_dump('UPDATE fail');
