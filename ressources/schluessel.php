@@ -409,7 +409,7 @@ function spalte_anstehende_rueckgaben(){
     zeitformat();
 
     $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header'>Anstehende R&uuml;ckgaben</h5>";
+    $HTML .= "<h5 class='header hide-on-med-and-down'>Anstehende R&uuml;ckgaben</h5>";
     $HTML .= "<h5 class='header center-align hide-on-large-only'>Anstehende R&uuml;ckgaben</h5>";
     $HTML .= "<div class='section'>";
 

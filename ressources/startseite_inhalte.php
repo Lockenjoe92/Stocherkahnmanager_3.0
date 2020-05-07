@@ -45,6 +45,30 @@ function startseite_inhalt_home(){
     return $HTML;
 }
 
+function site_exists($Sitename){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT * FROM homepage_sites WHERE name = ? AND delete_user = '0'"))) {
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+
+    if (!$stmt->bind_param("s",$Sitename)) {
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Anzahl = mysqli_num_rows($res);
+    if($Anzahl==1){
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function generiere_startseite_content($Baustein){
 
     $HTML = '';
