@@ -28,8 +28,12 @@
     <reply_mail>info@stocherkahn.fachschaftmedizin.de</reply_mail>
     <site_url>https://www.stocherkahn.marcsprojects.de</site_url>
 
-    <!--SMS STUFF-->
+    <!--SMS-->
     <sms-active>true</sms-active>
+    <user-sms>StocherkahnMedizin</user-sms>
+    <key-sms>g19pF7qM3f3yr4tukMwHOeSzi0881QPO</key-sms>
+    <absender-sms>Stocherkahn</absender-sms>
+    <type-sms>direct</type-sms>
 
     <!--- GENERAL -->
     <max_items_row_container>4</max_items_row_container>
@@ -67,6 +71,7 @@
     <moegliche_schluesselorte>rueckgabekasten,vermisst,verloren</moegliche_schluesselorte>
     <kritischer-abstand-storno-vor-beginn>60</kritischer-abstand-storno-vor-beginn>
     <wochen-vergangenheit-durchgefuehrte-uebergaben>2</wochen-vergangenheit-durchgefuehrte-uebergaben>
+    <schluesseluebernahme-ueber-mehrere-res>false</schluesseluebernahme-ueber-mehrere-res>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>
@@ -114,5 +119,14 @@
     <p>Stocherkahn fahren ist einfach, aber dennoch gibt es einige Sachen die man beachten muss. Du kannst dich hier auf der Homepage schon vorab informieren, aber die wichtigsten Facts und Regeln werden wir dir nochmal pers&ouml;hnlich erkl&auml;ren und dir gerne deine Fragen beantworten.</p>
     <p>Eine Ersteinweisung dauert in etwa 5-10 Minuten.</p>
 ]]></text-info-uebergabe-einweisung>
+    <erklaerung_schluesseluebernahme><![CDATA[
+        <p><table><tr><th><i class='large material-icons'>new_releases</i> </th><td>Du bist im Begriff eine Schl&uuml;ssel&uuml;bernahme f&uuml;r deine Reservierung auszumachen. Damit kannst du dir und uns Stocherkahnw&auml;rten ein bisschen Arbeit ersparen, indem du den Schl&uuml;ssel nicht pers&ouml;nlich bei uns abholen kommst. Dennoch gibt es folgende Dinge zu beachten:</td></tr></table></p>
+    <p><ul class='collection'>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>schedule</i> </th><td>Eine Schl&uuml;ssel&uuml;bernahme h&auml;ngt sowohl von deiner P&uuml;nktlichkeit, als auch der der Gruppe vor dir ab. Sei daher bitte p&uuml;nktlich an der Anlegestelle zu Beginn deiner Reservierung damit die Gruppe vor dir nicht warten muss.<br>Im Gegenzug erh&auml;t die Gruppe vor dir von uns nochmal den Hinweis ebenfalls p&uuml;nktlich an die Anlegestelle zur&uuml;ckzukehren.</td></tr></table></li>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Die Gruppe vor dir wird eine eMail erhalten, die sie &uuml;ber dein Vorhaben in Kenntnis setzt. Sollte die Gruppe dies nicht w&uuml;nschen (z.B. wenn sie den Kahn nicht bis ganz ans Ende der Fahrt nutzen m&ouml;chte), kann diese die geplante Schl&uuml;ssel&uuml;bernahme absagen und du erh&auml;ltst eine Mail.</td></tr></table></li>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Wir Stocherkahnw&auml;rte k&ouml;nnen keine Garantie daf&uuml;r &Uuml;bernehmen, dass die &Uuml;bernahme klappt. Falls also kurzfristig sich doch etwas &auml;ndern sollte, kann es daher sein, dass du doch keinen Schl&uuml;ssel bekommst.</td></tr></table></li>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>loyalty</i> </th><td>Da du deine Fahrt nicht pers&ouml;hnlich bei einem unserer W&auml;rte bezahlen kannst, verlassen wir uns darauf, dass du die Ausleihgeb&uuml;hr und den Schl&uuml;ssel zuverl&auml;ssig direkt nach deiner Fahrt in den R&uuml;ckgabebriefkasten wirfst.</td></tr></table></li>
+    </ul></p>
+    ]]></erklaerung_schluesseluebernahme>
 
 </global_settings>

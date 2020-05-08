@@ -7,11 +7,12 @@ function uebernahme_moeglich($ReservierungID){
     $AnfrageLaden = "SELECT * FROM reservierungen WHERE id = '$ReservierungID'";
     $AbfrageLaden = mysqli_query($link, $AnfrageLaden);
     $Reservierung = mysqli_fetch_assoc($AbfrageLaden);
-
     $Benutzereinstellungen = lade_user_meta($Reservierung['user']);
+    $Nutzergruppe = $Benutzereinstellungen['ist_nutzergruppe'];
+    $NutzergruppeInfos = lade_nutzergruppe_infos($Nutzergruppe, 'name');
+    $Verification = load_last_nutzergruppe_verification_user($NutzergruppeInfos['id'], $Reservierung['user']);
 
-    if($Benutzereinstellungen['darf_uebernahme'] == 'true'){
-
+    if(user_darf_uebernahme($Reservierung['user'])){
         $Anfrage = "SELECT id FROM reservierungen WHERE ende = '".$Reservierung['beginn']."' AND storno_user = '0'";
         $Abfrage = mysqli_query($link, $Anfrage);
         $Anzahl = mysqli_num_rows($Abfrage);
@@ -68,6 +69,8 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
 
     $Antwort = array();
     $link = connect_db();
+    $UserID = lade_user_id();
+    $UserAktuell = lade_user_meta($UserID);
     $Reservierung = lade_reservierung($ReservierungID);
     zeitformat();
 
@@ -84,15 +87,12 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
     }
 
     //Reservierung gehört nicht dem User - ist es noch ein Wart?
-    if (lade_user_id() != intval($Reservierung['user'])){
+    if ($UserID != intval($Reservierung['user'])){
 
-        $UserAktuell = lade_user_meta(lade_user_id());
-        $Benutzerrollen = benutzerrollen_laden($UserAktuell['username']);
-
-        if ($Benutzerrollen['wart'] != TRUE){
+        if ($UserAktuell['ist_wart'] != 'true'){
             $DAUcounter++;
             $DAUerror .= "Du hast nicht die n&ouml;tigen Rechte um diese Reservierung zu bearbeiten!<br>";
-        } else if ($Benutzerrollen['wart'] == TRUE){
+        } else if ($UserAktuell['ist_wart'] == 'true'){
             $Wartmode = TRUE;
         }
     }
@@ -106,18 +106,14 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
     } else {
 
         //User darf noch keine Übernahme machen
-        $Benutzereinstellungen = benutzereinstellung_laden(lade_user_id());
-
-        if (intval($Benutzereinstellungen['uebernahme']) != 1){
+        if (!user_darf_uebernahme($UserID)){
 
             //Bei StoKaWart egal
             $UserAktuell = lade_user_meta(lade_user_id());
-            $Benutzerrollen = benutzerrollen_laden($UserAktuell['username']);
-
-            if ($Benutzerrollen['wart'] != TRUE){
+            if ($UserAktuell['ist_wart'] != 'true'){
                 $DAUcounter++;
                 $DAUerror .= "Du hast nicht die n&ouml;tigen Einweisungen um eine Schl&uuml;ssel&uuml;bernahme auszumachen!<br>";
-            } else if ($Benutzerrollen['wart'] == TRUE){
+            } else if ($UserAktuell['ist_wart'] == 'true'){
                 $Wartmode = TRUE;
             }
         }
@@ -130,7 +126,6 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
         if ($AnzahlUebergabestatusDieseRes > 0){
 
             $Uebergabe = mysqli_fetch_assoc($AbfrageUebergabestatusDieseRes);
-
             $DAUcounter++;
             $DAUerror .= "Du hast f&uuml;r diese Reservierung bereits eine Schl&uuml;ssel&uuml;bergabe ausgemacht! Falls du lieber den Schl&uuml;ssel der Vorgruppe &uuml;bernehmen m&ouml;chtest, <a href='uebergabe_stornieren_user.php?id=".$Uebergabe['id']."'>storniere bitte zuerst die &Uuml;bergabe!</a><br>";
         }
@@ -165,7 +160,7 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
             if ($AnzahlUebergabestatus == 0){
 
                 //Hat die reservierung vielleicht eine Schlüsselübernahme gebucht? -> Wenn ja, einstellung Checken ob man Schlüssel über mehrere Reservierungen weitergeben darf:
-                if (lade_einstellung('schluesseluebernahme-ueber-mehrere-res') == "TRUE"){
+                if (lade_xml_einstellung('schluesseluebernahme-ueber-mehrere-res') == "true"){
 
                     $AnfrageHatVorfahrendeReservierungUebernahme = "SELECT id FROM uebernahmen WHERE reservierung_davor = '".$ReservierungVorher['id']."' AND storno_user = '0'";
                     $AbfrageHatVorfahrendeReservierungUebernahme = mysqli_query($link, $AnfrageHatVorfahrendeReservierungUebernahme);
@@ -201,9 +196,8 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
             if ($Kommentar != ""){
                 $BausteineGruppeDavor['kommentar'] = "<p>Kommentar des anlegenden Users: ".$Kommentar."</p>";
             }
-            $TypMailAngabeDavor = "uebernahme-angelegt-vorgruppe-".$ReservierungVorher['id']."";
 
-            if (mail_senden('uebernahme-angelegt-vorgruppe', $UserReservierungDavor['mail'], $ReservierungVorher['user'], $BausteineGruppeDavor, $TypMailAngabeDavor)){
+            if (mail_senden('uebernahme-angelegt-vorgruppe', $UserReservierungDavor['mail'], $BausteineGruppeDavor)){
 
                 $BausteineGruppe = array();
                 $BausteineGruppe['vorname_user'] = $UserReservierungDavor['vorname'];
@@ -214,9 +208,8 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
                 if ($Kommentar != ""){
                     $BausteineGruppe['kommentar'] = "<p>Hier der Kommentar des anlegenden Users: ".$Kommentar."</p>";
                 }
-                $TypMailAngabe = "uebernahme-angelegt-nachgruppe-".$Reservierung['id']."";
 
-                if (mail_senden('uebernahme-angelegt-nachgruppe', $UserReservierung['mail'], $Reservierung['user'], $BausteineGruppe, $TypMailAngabe)){
+                if (mail_senden('uebernahme-angelegt-nachgruppe', $UserReservierung['mail'], $BausteineGruppe)){
 
                     $AnfrageUebernahmeEintragen = "INSERT INTO uebernahmen (reservierung, reservierung_davor, create_time, create_user, storno_time, storno_user, kommentar) VALUES ('$ReservierungID', '".$ReservierungVorher['id']."', '".timestamp()."', '".lade_user_id()."', '0000-00-00 00:00:00', '0', '$Kommentar')";
                     if (mysqli_query($link, $AnfrageUebernahmeEintragen)){
@@ -301,6 +294,42 @@ function uebernahme_planen_listenelement_parser(){
             return $Antwort;
         }
     }
+}
+
+function user_darf_uebernahme($UserID){
+
+    $Benutzereinstellungen = lade_user_meta($UserID);
+    $Nutzergruppe = $Benutzereinstellungen['ist_nutzergruppe'];
+    $NutzergruppeInfos = lade_nutzergruppe_infos($Nutzergruppe, 'name');
+    $Verification = load_last_nutzergruppe_verification_user($NutzergruppeInfos['id'], $UserID);
+    $Antwort = false;
+
+    if($NutzergruppeInfos['req_verify']=='yearly'){
+        if($Verification['erfolg'] == 'true'){
+            if(date('Y', strtotime($Verification['timestamp']))){
+                $Antwort = true;
+            }
+        }
+    } elseif($NutzergruppeInfos['req_verify']=='once'){
+        if($Verification['erfolg'] == 'true'){
+            $Antwort = true;
+        }
+    } elseif($NutzergruppeInfos['req_verify']=='false'){
+        $Antwort = true;
+    }
+
+    return $Antwort;
+}
+
+function lade_uebernahme_res($IDres){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM uebernahmen WHERE reservierung = '$IDres' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+
+    return $Ergebnis;
 }
 
 ?>

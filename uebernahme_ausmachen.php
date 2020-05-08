@@ -96,7 +96,11 @@ function parse_uebernahme_ausmachen($ReservierungID){
             //User darf noch keine Übernahme machen
             $Benutzereinstellungen = lade_user_meta(lade_user_id());
 
-            if ($Benutzereinstellungen['darf_uebernahme'] != 'true'){
+            $AnfrageEinweisungenJemals = "SELECT id FROM schluesselausgabe WHERE user = '".lade_user_id()."' AND storno_user = '0' AND rueckgabe != '0000-00-00 00:00:00'";
+            $AbfrageEinweisungenJemals = mysqli_query($link,$AnfrageEinweisungenJemals);
+            $AnzahlEinweisungenJemals = mysqli_num_rows($AbfrageEinweisungenJemals);
+
+            if ($AnzahlEinweisungenJemals == 0){
                 if ($Benutzereinstellungen['ist_wart'] != 'true'){
                     $DAUcounter++;
                     $DAUerror .= "Du hast nicht die n&ouml;tigen Einweisungen um eine Schl&uuml;ssel&uuml;bernahme auszumachen!<br>";
@@ -135,7 +139,7 @@ function parse_uebernahme_ausmachen($ReservierungID){
 
             if ($AnfrageLadeResVorher == 0){
                 $DAUcounter++;
-                $DAUerror .= "Es gibt leider keine Reservierung mehr vor dir! <a href='./uebernahme_ausmachen.php?res=".$ReservierungID."'>Buche dir einfach eine Schl&uuml;ssel&uuml;bergabe</a> durch einen unserer Stocherkahnw&auml;rte:)<br>";
+                $DAUerror .= "Es gibt leider keine Reservierung mehr vor dir! <a href='./uebergabe_ausmachen.php?res=".$ReservierungID."'>Buche dir einfach eine Schl&uuml;ssel&uuml;bergabe</a> durch einen unserer Stocherkahnw&auml;rte:)<br>";
             } else if ($AnfrageLadeResVorher > 0){
 
                 $ReservierungVorher = mysqli_fetch_assoc($AbfrageLadeResVorher);
@@ -156,12 +160,12 @@ function parse_uebernahme_ausmachen($ReservierungID){
 
                         if ($AnzahlHatVorfahrendeReservierungUebernahme == 0){
                             $DAUcounter++;
-                            $DAUerror .= "Leider hat die Reservierung vor dir noch keinen zugeteilten Schl&uuml;ssel! Entweder du wartest noch ein wenig, oder <a href='./uebernahme_ausmachen.php?res=".$ReservierungID."'>du buchst dir einfach eine eigeneSchl&uuml;ssel&uuml;bergabe</a>!<br>";
+                            $DAUerror .= "Leider hat die Reservierung vor dir noch keinen zugeteilten Schl&uuml;ssel! Entweder du wartest noch ein wenig, oder <a href='./uebergabe_ausmachen.php?res=".$ReservierungID."'>du buchst dir einfach eine eigene Schl&uuml;ssel&uuml;bergabe</a>!<br>";
                         }
 
                     } else {
                         $DAUcounter++;
-                        $DAUerror .= "Leider hat die Reservierung vor dir noch keinen zugeteilten Schl&uuml;ssel! Entweder du wartest noch ein wenig, oder <a href='./uebernahme_ausmachen.php?res=".$ReservierungID."'>du buchst dir einfach eine eigeneSchl&uuml;ssel&uuml;bergabe</a>!<br>";
+                        $DAUerror .= "Leider hat die Reservierung vor dir noch keinen zugeteilten Schl&uuml;ssel! Entweder du wartest noch ein wenig, oder <a href='./uebergabe_ausmachen.php?res=".$ReservierungID."'>du buchst dir einfach eine eigene Schl&uuml;ssel&uuml;bergabe</a>!<br>";
                     }
                 }
             }
@@ -192,13 +196,9 @@ function parse_uebernahme_ausmachen($ReservierungID){
 
 function erklaerung_schluesseluebernahme_element(){
 
-    $HTML = "<p><table><tr><th><i class='large material-icons'>new_releases</i> </th><td>Du bist im Begriff eine Schl&uuml;ssel&uuml;bernahme f&uuml;r deine Reservierung auszumachen. Damit kannst du dir und uns Stocherkahnw&auml;rten ein bisschen Arbeit ersparen, indem du den Schl&uuml;ssel nicht pers&ouml;nlich bei uns abholen kommst. Dennoch gibt es folgende Dinge zu beachten:</td></tr></table></p>";
-    $HTML .= "<p><ul class='collection'>";
-    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>schedule</i> </th><td>Eine Schl&uuml;ssel&uuml;bernahme h&auml;ngt sowohl von deiner P&uuml;nktlichkeit, als auch der der Gruppe vor dir ab. Sei daher bitte p&uuml;nktlich an der Anlegestelle zu Beginn deiner Reservierung damit die Gruppe vor dir nicht warten muss.<br>Im Gegenzug erh&auml;t die Gruppe vor dir von uns nochmal den Hinweis ebenfalls p&uuml;nktlich an die Anlegestelle zur&uuml;ckzukehren.</td></tr></table></li>";
-    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Die Gruppe vor dir wird eine eMail erhalten, die sie &uuml;ber dein Vorhaben in Kenntnis setzt. Sollte die Gruppe dies nicht w&uuml;nschen (z.B. wenn sie den Kahn nicht bis ganz ans Ende der Fahrt nutzen m&ouml;chte), kann diese die geplante Schl&uuml;ssel&uuml;bernahme absagen und du erh&auml;ltst eine Mail.</td></tr></table></li>";
-    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Wir Stocherkahnw&auml;rte k&ouml;nnen keine Garantie daf&uuml;r &Uuml;bernehmen, dass die &Uuml;bernahme klappt. Falls also kurzfristig sich doch etwas &auml;ndern sollte, kann es daher sein, dass du doch keinen Schl&uuml;ssel bekommst.</td></tr></table></li>";
-    $HTML .= "<li class='collection-item'><table><tr><th><i class='small material-icons'>loyalty</i> </th><td>Da du deine Fahrt nicht pers&ouml;hnlich bei einem unserer W&auml;rte bezahlen kannst, verlassen wir uns darauf, dass du die Ausleihgeb&uuml;hr und den Schl&uuml;ssel zuverl&auml;ssig direkt nach deiner Fahrt in den R&uuml;ckgabebriefkasten wirfst.</td></tr></table></li>";
-    $HTML .= "</ul></p>";
+    $HTML = "<div class='card-panel " .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
+    $HTML .= lade_xml_einstellung('erklaerung_schluesseluebernahme');
+    $HTML .= "</div>";
 
     return section_builder($HTML);
 }
