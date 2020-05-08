@@ -169,7 +169,7 @@ function user_settings_parser($SettingsArray){
     $UserID = lade_user_id();
 
     //Passwort ändern
-    if (isset($_POST['action_passwort'])){
+    if (isset($_POST['action_password'])){
 
         //DAU
         $DAUcounter = 0;
@@ -199,7 +199,7 @@ function user_settings_parser($SettingsArray){
             $Antwort['success']=false;
             $Antwort['meldung']=$DAUerror;
         } else if ($DAUcounter == 0){
-            $Antwort = change_pswd_user($UserID, $_POST['password']);
+            $Antwort = change_pswd_user($UserID, $_POST['password'], $_POST['password_repeat']);
         }
     }
 

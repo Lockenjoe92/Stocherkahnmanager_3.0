@@ -74,13 +74,13 @@ $NutzergruppeHTML .= table_builder($NutzergruppeTable);
 $SettingTable .= section_builder($NutzergruppeHTML);
 $SettingTable .= section_builder(form_button_builder('user_settings_action', 'Speichern', 'action', 'send'));
 
-$SettingTable = "<h3 class='hide-on-med-and-down'>Weitere Funktionen</h3>";
+$SettingTable .= "<h3 class='hide-on-med-and-down'>Weitere Funktionen</h3>";
 $SettingTable .= "<h3 class='center-align hide-on-large-only'>Weitere Funktionen</h3>";
 $WartCollapsibleHTML = '';
 if($UserMeta['ist_wart']=='true'){
     $WartCollapsibleHTML = spalte_wartfunktionen($UserMeta);
 }
-#$WartCollapsibleHTML .= spalte_passwort_aendern();
+$WartCollapsibleHTML .= spalte_passwort_aendern();
 $WartCollapsibleHTML .= spalte_konto_loeschen();
 $WartHTML .= collapsible_builder($WartCollapsibleHTML);
 $SettingTable .= section_builder($WartHTML);

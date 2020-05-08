@@ -94,7 +94,7 @@ function renew_dse_mv_parser($Mode){
         }
 
         if(isset($_POST['action_pswd'])){
-            $Antwort = change_pswd_user($UserID, $_POST['change_pswd']);
+            $Antwort = change_pswd_user($UserID, $_POST['change_pswd'], $_POST['change_pswd_verify']);
         }
 
         return $Antwort;

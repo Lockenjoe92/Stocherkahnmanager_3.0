@@ -449,20 +449,20 @@ function user_needs_pswd_change($UserID){
     }
 
 }
-function change_pswd_user($UserID, $PSWD){
+function change_pswd_user($UserID, $PSWD, $PSWDrpt){
 
     $link = connect_db();
     ## DAU CHECKS BEFORE LOGIN ATTEMPT ##
     $DAUcounter = 0;
     $DAUerror = "";
 
-    if(empty($_POST['change_pswd'])){
+    if(empty($PSWD)){
         $DAUcounter ++;
         $DAUerror .= "Gib bitte ein Passwort an!<br>";
     } else {
 
-        $PSWDcheck = check_password($_POST['change_pswd']);
-        if($_POST['change_pswd'] != $_POST['change_pswd_verify']){
+        $PSWDcheck = check_password($PSWD);
+        if($PSWD != $PSWDrpt){
             $DAUcounter ++;
             $DAUerror .= "Die eingegebenen Passw&ouml;rter sind nicht identisch!<br>";
         }
