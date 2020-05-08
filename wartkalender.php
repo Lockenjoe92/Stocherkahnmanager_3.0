@@ -1,6 +1,6 @@
 <?php
 
-include_once "./ressourcen/ressourcen.php";
+include_once "./ressources/ressourcen.php";
 $link = connect_db();
 
 //Funktionsbeschreibung:
@@ -12,7 +12,7 @@ $link = connect_db();
 //FUNKTION
 	//Wart aus GET laden
 	$IDWart = $_GET['wart'];
-    $Benutzersettings = lade_user_settings($IDWart);
+    $Benutzersettings = lade_user_meta($IDWart);
 
 	if($Benutzersettings['kalenderabo'] == "1"){
         //VORNAME DES WARTES LADEN FÜR KALENDER
@@ -32,7 +32,7 @@ $link = connect_db();
 
         define('DATE_ICAL', 'Ymd\THis');
         $output = "BEGIN:VCALENDAR\r\nMETHOD:PUBLISH\r\nVERSION:2.0\r\nPRODID:-//test//test//EN\r\n";
-        $BefehlUebergabedauer = "+ ".lade_einstellung('dauer-uebergabe-minuten')." minutes";
+        $BefehlUebergabedauer = "+ ".lade_xml_einstellung('dauer-uebergabe-minuten')." minutes";
 
         //Für jedes Übergabeangebot einen Eintrag basteln!
         for ($b=1;$b<=$AnzahlAngeboteLaden;$b++) {

@@ -28,6 +28,9 @@
     <reply_mail>info@stocherkahn.fachschaftmedizin.de</reply_mail>
     <site_url>https://www.stocherkahn.marcsprojects.de</site_url>
 
+    <!--SMS STUFF-->
+    <sms-active>true</sms-active>
+
     <!--- GENERAL -->
     <max_items_row_container>4</max_items_row_container>
     <max_size_file_upload>500000</max_size_file_upload>

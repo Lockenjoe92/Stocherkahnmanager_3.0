@@ -35,3 +35,4 @@ include_once "smsvorlagen.php";
 include_once "uebernahmen.php";
 include_once "./phpmailer/PHPMailer.php";
 include_once "./phpmailer/Exception.php";
+include_once "ortsvorlagen.php";

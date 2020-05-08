@@ -237,10 +237,10 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
             $UserMeta = lade_user_meta($Reservierung['user']);
             $Warteinstellungen = lade_user_meta($Wart);
             $KontaktdatenWart = $Warteinstellungen['vorname']." ".$Warteinstellungen['nachname']."<br>";
-            if($Warteinstellungen['kontakt-mail-user-sichtbar']=='true'){
+            if($Warteinstellungen['mail-userinfo']=='true'){
                 $KontaktdatenWart .= "Mail: ".$Warteinstellungen['mail']."<br>";
             }
-            if($Warteinstellungen['kontakt-tel-user-sichtbar']=='true'){
+            if($Warteinstellungen['tel-userinfo']=='true'){
                 $KontaktdatenWart .= "Telefon: ".$Warteinstellungen['telefon']."<br>";
             }
 

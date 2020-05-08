@@ -250,3 +250,21 @@ function wartkonto_anlegen($User){
 
     return $Abfrage;
 }
+
+function lade_gezahlte_betraege_ausgleich($AusgleichID){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT betrag FROM finanz_ausgaben WHERE ausgleich_id = '$AusgleichID' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    $Counter = 0;
+
+    for ($a = 1; $a <= $Anzahl; $a++){
+        $Ausgabe = mysqli_fetch_assoc($Abfrage);
+        $Counter = $Counter + $Ausgabe['betrag'];
+    }
+
+    return $Counter;
+}
