@@ -185,13 +185,15 @@ function lade_ds($ID){
 function ds_unterschreiben($User, $DSid){
 
     $link = connect_db();
+    $Meta = lade_user_meta($User);
+    $UserString = $Meta['vorname'].' '.$Meta['nachname'];
     $Timestamp = timestamp();
 
-    if (!($stmt = $link->prepare("INSERT INTO ds_unterzeichnungen (ds_id, user_id, timestamp) VALUES (?,?,?)"))) {
+    if (!($stmt = $link->prepare("INSERT INTO ds_unterzeichnungen (ds_id, user_id, user_string, timestamp) VALUES (?,?,?)"))) {
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
 
-    if (!$stmt->bind_param("iis",$DSid, $User, $Timestamp)) {
+    if (!$stmt->bind_param("iis",$DSid, $User, $UserString, $Timestamp)) {
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
 

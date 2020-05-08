@@ -14,13 +14,15 @@ function aktuellen_mietvertrag_id_laden(){
 function mietvertrag_unterschreiben($User, $DSid){
 
     $link = connect_db();
+    $Meta = lade_user_meta($User);
+    $UserString = $Meta['vorname'].' '.$Meta['nachname'].' - '.$Meta['strasse'].''.$Meta['hausnummer'].' '.$Meta['stadt'].' '.$Meta['plz'];
     $Timestamp = timestamp();
 
-    if (!($stmt = $link->prepare("INSERT INTO ausleihvertrag_unterzeichnungen (vertrag, user_id, timestamp) VALUES (?,?,?)"))) {
+    if (!($stmt = $link->prepare("INSERT INTO ausleihvertrag_unterzeichnungen (vertrag, user_id, user_string, timestamp) VALUES (?,?,?)"))) {
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
 
-    if (!$stmt->bind_param("iis",$DSid, $User, $Timestamp)) {
+    if (!$stmt->bind_param("iis",$DSid, $User, $UserString, $Timestamp)) {
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
 
