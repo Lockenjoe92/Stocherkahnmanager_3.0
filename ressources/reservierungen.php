@@ -682,7 +682,6 @@ function lade_reservierung($ResID){
     $Anfrage = "SELECT * FROM reservierungen WHERE id = '$ResID'";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Reservierung = mysqli_fetch_assoc($Abfrage);
-
     return $Reservierung;
 
 }

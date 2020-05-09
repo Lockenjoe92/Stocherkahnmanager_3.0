@@ -15,14 +15,13 @@ function lade_letze_erinnerung_schluesselrueckgabe($IDres){
     $Reservierung = lade_reservierung($IDres);
     $Typ = "mail_erinnerung_schluesselrueckgabe_intervall-".$IDres."";
     $TypZwei = "mail_erinnerung_schluesselrueckgabe_direkt_nach_fahrt-".$IDres."";
-
-    $Anfrage = "SELECT timestamp FROM protocol WHERE user = '".$Reservierung['user']."' AND protocol = '$Typ' ORDER BY timestamp DESC";
+    $Anfrage = "SELECT * FROM mail_protokoll WHERE empfaenger = '".$Reservierung['user']."' AND typ = '$Typ' AND erfolg = 'true' ORDER BY timestamp DESC";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
 
     if($Anzahl == 0){
 
-        $AnfrageZwei = "SELECT timestamp FROM protocol WHERE user = '".$Reservierung['user']."' AND protocol = '$TypZwei' ORDER BY timestamp DESC";
+        $AnfrageZwei = "SELECT * FROM mail_protokoll WHERE empfaenger = '".$Reservierung['user']."' AND typ = '$TypZwei' AND erfolg = 'true' ORDER BY timestamp DESC";
         $AbfrageZwei = mysqli_query($link, $AnfrageZwei);
         $AnzahlZwei = mysqli_num_rows($AbfrageZwei);
 
@@ -455,7 +454,7 @@ function spalte_anstehende_rueckgaben(){
                     $Schluessel = lade_schluesseldaten($Ausgabe['schluessel']);
 
                     $FahrtZuendeSeit = strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($Reservierung['ende']));
-                    $LetzteUsererinnerungLaden = lade_letze_erinnerung_schluesselrueckgabe($Ausgabe['user']);
+                    $LetzteUsererinnerungLaden = lade_letze_erinnerung_schluesselrueckgabe($Ausgabe['reservierung']);
                     if($LetzteUsererinnerungLaden == NULL){
                         $LetzeErinnerung = "Nie erfolgt.";
                     } else {
