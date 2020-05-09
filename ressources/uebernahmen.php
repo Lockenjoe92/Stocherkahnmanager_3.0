@@ -285,7 +285,8 @@ function uebernahme_planen_listenelement_parser(){
     if (isset($_POST['action_uebernahme_vorplanen_durchfuehren'])){
 
         if (intval($_POST['reservierung_uebernahme_vorplanen']) > 0){
-            $header = "Location: ./uebernahme_vorplanen.php?res=".$_POST['reservierung_uebernahme_vorplanen']."";
+            $Reservation = str_replace('#','', $_POST['reservierung_uebernahme_vorplanen']);
+            $header = "Location: ./uebernahme_vorplanen.php?res=".$Reservation."";
             header($header);
             die();
 
@@ -330,6 +331,97 @@ function lade_uebernahme_res($IDres){
     $Ergebnis = mysqli_fetch_assoc($Abfrage);
 
     return $Ergebnis;
+}
+
+function seiteninhalt_uebernahme_vorplanen_generieren($Reservierung){
+
+    $link = connect_db();
+    //DAU-Abfangen:
+    $DAUcounter = 0;
+    $DAUerror = "";
+    $HTML = '';
+
+    //Keine reservierung angegeben
+    if(($Reservierung == "") OR ($Reservierung == "0")){
+        $DAUcounter++;
+        $DAUerror .= "Du hast keine Reservierung angegeben!<br>";
+    } else if (intval($Reservierung) > 0) {
+
+        //Reservierung inzwischen abgelaufen/storniert
+        $ReservierungInfo = lade_reservierung($Reservierung);
+        if(($ReservierungInfo['storno_user'] == "0") OR (time() > strtotime($ReservierungInfo['ende']))){
+            $DAUcounter++;
+            $DAUerror .= "Reservierung inzwischen abgelaufen!<br>";
+        } else {
+            //Reservierung bereits mit Übernahme/Übergabe versorgt
+            $AnfrageUebergaben = "SELECT id FROM uebergaben WHERE res = '$Reservierung' AND storno_user = 0";
+            $AbfrageUebergaben = mysqli_query($link, $AnfrageUebergaben);
+            if(mysqli_num_rows($AbfrageUebergaben)>0){
+                $DAUcounter++;
+                $DAUerror .= "Es ist bereits eine Übergabe angelegt!<br>";
+            }
+
+            $AnfrageUebernahmen = "SELECT id FROM uebernahmen WHERE reservierung = '$Reservierung' AND storno_user = 0";
+            $AbfrageUebernahmen = mysqli_query($link, $AnfrageUebernahmen);
+            if(mysqli_num_rows($AbfrageUebernahmen)>0){
+                $DAUcounter++;
+                $DAUerror .= "Es ist bereits eine Übergabe angelegt!<br>";
+            }
+        }
+    }
+
+    //DAU auswerten
+    if($DAUcounter > 0){
+
+        $HTML .= zurueck_karte_generieren(FALSE, $DAUerror, 'wartwesen.php');
+
+    } else {
+
+        //Vollkommen egal von welcher Reservierung übernommen wird - hauptsache sie ist noch nicht abgeschlossen und hat entweder ne Übernahme oder Übergabe gebucht:)
+        $HTML .= "Vollkommen egal von welcher Reservierung übernommen wird - hauptsache sie ist noch nicht abgeschlossen und hat entweder ne Übernahme oder Übergabe gebucht:)";
+        $HTML .= "<br>Suche nach passenden Reservierungen:";
+
+        $ReservierungInfos = lade_reservierung($Reservierung);
+        $Anfrage = "SELECT * FROM reservierungen WHERE beginn > '01-01-".date('Y')." 00:00:01' AND ende <= '".$ReservierungInfos['beginn']."' AND storno_user = '0' ORDER BY beginn ASC";
+        $Abfrage = mysqli_query($link, $Anfrage);
+        $Anzahl = mysqli_num_rows($Abfrage);
+
+        if ($Anzahl == 0){
+            $HTML .= "Keine passenden Reservierungen!";
+        } else if ($Anzahl > 0){
+            $HTML .= "".$Anzahl." unabgeschlossene/aktive reservierungen vor der gewählten Reservierung<br>";
+
+            for ($a = 1; $a <= $Anzahl; $a++){
+                //Hat Res eine Schlüsselausgabe die bereits zurückgegeben wurde? -> Reservierung ist abgeschlossen:
+                $GefundeneReservierung = mysqli_fetch_assoc($Abfrage);
+                $AnfrageZwei = "SELECT rueckgabe FROM schluesselausgabe WHERE reservierung = '".$GefundeneReservierung['id']."' AND storno_user = '0'";
+                $AbfrageZwei = mysqli_query($link, $AnfrageZwei);
+                $AnzahlZwei = mysqli_num_rows($AbfrageZwei);
+
+                if ($AnzahlZwei == 0){
+
+                    //Kein Schlüssel bislang ausgegeben -> Prüfen ob Übergabe/Übernahme geplant
+                    if(res_hat_uebergabe($GefundeneReservierung['id'])){
+                        $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übergabe gebucht<br>";
+                    }
+                    if(res_hat_uebernahme($GefundeneReservierung['id'])){
+                        $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übernahme gebucht<br>";
+                    }
+
+                } else if ($AnzahlZwei == 1){
+
+                    $ErgebnisZwei = mysqli_fetch_assoc($AbfrageZwei);
+                    if ($ErgebnisZwei['rueckgabe'] == "0000-00-00 00:00:00"){
+
+                        $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage<br>";
+
+                    }
+                }
+            }
+        }
+    }
+
+    return $HTML;
 }
 
 ?>

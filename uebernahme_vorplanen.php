@@ -16,9 +16,9 @@ $PageTitle = '<h1 class="center-align hide-on-med-and-down">Schl&uuml;ssel&uuml;
 $PageTitle .= '<h1 class="center-align hide-on-large-only">&Uuml;bernahme vorplanen</h1>';
 $HTML = section_builder($PageTitle);
 
-$ReservierungID = $_GET['id'];
+$ReservierungID = $_GET['res'];
 $HTML .= card_resinfos_generieren($ReservierungID);
-#$HTML .= seiteninhalt_generieren($ReservierungID);
+$HTML .= seiteninhalt_uebernahme_vorplanen_generieren($ReservierungID);
 
 $HTML = container_builder($HTML);
 
