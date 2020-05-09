@@ -534,8 +534,23 @@ function spalte_anstehende_rueckgaben_parser(){
 
 
         if (isset($_POST[$ErinnerungName])){
-            $Antwort['success'] = false;
-            $Antwort['meldung'] = 'Diese Funktion muss noch implementiert werden!';
+            $Typ = "mail_erinnerung_schluesselrueckgabe_intervall-".$Ausgabe['reservierung']."";
+
+                $Reservierung = lade_reservierung($Ausgabe['reservierung']);
+                $UserMeta = lade_user_meta($Ausgabe['user']);
+                $DifferenzTage = tage_differenz_berechnen(timestamp(), $Reservierung['ende']);
+
+                $Bausteine = array();
+                $Bausteine['[vorname_user]'] = $UserMeta['vorname'];
+                $Bausteine['[tage_seit_ende_res]'] = $DifferenzTage;
+
+            if(mail_senden('mail_erinnerung_schluesselrueckgabe_intervall', $UserMeta['mail'], $Bausteine, $Typ)){
+                $Antwort['success'] = true;
+                $Antwort['meldung'] = 'Erinnerungsmail erfolgreich gesendet!';
+            } else {
+                $Antwort['success'] = false;
+                $Antwort['meldung'] = 'Fehler beim Senden der Erinnerungsmail!';
+            }
         }
 
     }
