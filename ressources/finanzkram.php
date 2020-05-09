@@ -268,3 +268,56 @@ function lade_gezahlte_betraege_ausgleich($AusgleichID){
 
     return $Counter;
 }
+
+function nachzahlung_reservierung_festhalten($IDres, $Betrag, $Wart){
+
+    $Antwort = array();
+
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    if ($IDres == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du musst eine Reservierung ausw&auml;hlen!<br>";
+    }
+
+    if ($Betrag == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen Betrag angeben!<br>";
+    }
+
+    //Forderung schon beglichen
+    $Forderung = lade_forderung_res($IDres);
+    $BisherigeZahlungen = lade_gezahlte_summe_forderung($Forderung['id']);
+    if ($BisherigeZahlungen > intval($Forderung['betrag'])){
+        $DAUcounter++;
+        $DAUerror .= "Forderung wurde inzwischen vollst&auml;ndig beglichen!<br>";
+    }
+
+    //Zuviel geld
+    $Differenz = intval($Forderung['betrag']) - $BisherigeZahlungen;
+    $DifferenzBetrag = $Betrag - $Differenz;
+    if ($DifferenzBetrag > 20){
+        $DAUcounter++;
+        $DAUerror .= "Der eingegebene Betrag &uuml;bersteigt die zul&auml;ssige Trinkgeldgrenze!<br>";
+    }
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else if ($DAUcounter == 0){
+
+        $ForderungRes = lade_forderung_res($IDres);
+        $KontoWart = lade_konto_user($Wart);
+
+        if (einnahme_festhalten($ForderungRes['id'], $KontoWart['id'], $Betrag, 19)){
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "Einnahme erfolgreich eingetragen!";
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Fehler beim Eintragen der Einnahme!";
+        }
+    }
+
+    return $Antwort;
+}

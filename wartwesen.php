@@ -153,13 +153,13 @@ function spalte_moegliche_rueckzahlungen(){
 
 
                 $HTML .= "<li>";
-                $HTML .= "<div class='collapsible-header'>".$Span."".$SpanMobile."<i class='large material-icons'>toll</i>Nachzahlung Res. ".$Reservierung['id']." - ".$UserNachzahlung."</div>";
+                $HTML .= "<div class='collapsible-header'><i class='large material-icons'>toll</i>Nachzahlung Res. ".$Reservierung['id']." - ".$UserNachzahlung."".$Span."".$SpanMobile."</div>";
                 $HTML .= "<div class='collapsible-body'>";
                 $HTML .= "<div class='container'>";
                 $HTML .= "<form method='post'>";
                 $HTML .= "<ul class='collection'>";
                 $HTML .= "<li class='collection-item'>User: ".$UserNachzahlung."</li>";
-                $HTML .= "<li class='collection-item'>Forderung: ".$Restbetrag."&euro;</li>";
+                $HTML .= "<li class='collection-item'>Restforderung: ".$Restbetrag."&euro;</li>";
                 $HTML .= "<li class='collection-item'>Letzte Erinnerung: ".$LetzeErinnerung."</li>";
                 $HTML .= "<li class='collection-item'>
                                         <div class='input-field'>
@@ -188,9 +188,7 @@ function spalte_moegliche_rueckzahlungen(){
         $HTMLexport = "<div class='section'>";
         $HTMLexport .= "<h5 class='header hide-on-med-and-down'>Offene R&uuml;ck-/Nachzahlungen</h5>";
         $HTMLexport .= "<h5 class='header hide-on-large-only center-align'>R&uuml;ck-/Nachzahlungen</h5>";
-        $HTMLexport .= "<ul class='collapsible popout' data-collapsible='accordion'>";
-        $HTMLexport .= $HTML;
-        $HTMLexport .= "</ul>";
+        $HTMLexport .= collapsible_builder($HTML);
         $HTMLexport .= "</div>";
     }
 
@@ -210,12 +208,30 @@ function spalte_moegliche_rueckzahlungen_parser(){
         $HTMLerinnern = "action_nachzahlung_".$Reservierung['id']."_erinnerung_senden";
 
         if (isset($_POST[$HTMLeinztragen])){
-            $Ergebnis = nachzahlung_reservierung_festhalten($Reservierung['id'], $_POST['betrag'], lade_user_id());
-            toast_ausgeben($Ergebnis['meldung']);
+            return $Ergebnis = nachzahlung_reservierung_festhalten($Reservierung['id'], intval($_POST['betrag']), lade_user_id());
         }
 
         if (isset($_POST[$HTMLerinnern])){
-            toast_ausgeben('Funktion muss noch implementiert werden!');
+            $Typ = "mail_erinnerung_nachzahlung_intervall-".$Reservierung['id']."";
+
+            $UserMeta = lade_user_meta($Reservierung['user']);
+            $DifferenzTage = tage_differenz_berechnen(timestamp(), $Reservierung['ende']);
+            $Forderung = lade_forderung_res($Reservierung['id']);
+            $BisherigeZahlungen = lade_gezahlte_summe_forderung($Forderung['id']);
+            $Restbetrag = intval($Forderung['betrag']) - $BisherigeZahlungen;
+
+            $Bausteine = array();
+            $Bausteine['[vorname_user]'] = $UserMeta['vorname'];
+            $Bausteine['[tage_seit_ende_res]'] = $DifferenzTage;
+            $Bausteine['[restbetrag]'] = $Restbetrag;
+
+            if(mail_senden('mail_erinnerung_nachzahlung_intervall', $UserMeta['mail'], $Bausteine, $Typ)){
+                $Antwort['success'] = true;
+                $Antwort['meldung'] = 'Erinnerungsmail erfolgreich gesendet!';
+            } else {
+                $Antwort['success'] = false;
+                $Antwort['meldung'] = 'Fehler beim Senden der Erinnerungsmail!';
+            }
         }
     }
 }
