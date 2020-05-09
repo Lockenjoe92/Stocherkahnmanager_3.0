@@ -53,9 +53,9 @@ function uebernahme_stornieren($UebernahmeID, $Begruendung){
         if ($Begruendung != ""){
             //Nur wenns was zu erzählen gibt
             $BausteineUebernahmeMails = array();
-            $BausteineUebernahmeMails['vorname_user'] = $UserResUebernahme['vorname'];
-            $BausteineUebernahmeMails['datum_resevierung'] = strftime("%A, %d. %B %G", strtotime($ResUebernahme['beginn']));
-            $BausteineUebernahmeMails['begruendung'] = htmlentities($Begruendung);
+            $BausteineUebernahmeMails['[vorname_user]'] = $UserResUebernahme['vorname'];
+            $BausteineUebernahmeMails['[datum_resevierung]'] = strftime("%A, %d. %B %G", strtotime($ResUebernahme['beginn']));
+            $BausteineUebernahmeMails['[begruendung]'] = htmlentities($Begruendung);
             mail_senden('uebernahme-storniert-user', $UserResUebernahme['mail'], $BausteineUebernahmeMails);
             mail_senden('uebernahme-storniert-user-davor', $UserResUebernahmeDavor['mail'], $BausteineUebernahmeMails);
         }
@@ -188,25 +188,25 @@ function uebernahme_eintragen($ReservierungID, $Kommentar){
             $UserReservierungDavor = lade_user_meta($ReservierungVorher['user']);
             $UserReservierung = lade_user_meta($Reservierung['user']);
             $BausteineGruppeDavor = array();
-            $BausteineGruppeDavor['vorname_user'] = $UserReservierungDavor['vorname'];
-            $BausteineGruppeDavor['angaben_reservierung_datum'] = strftime("%A, den %d. %B %G", strtotime($ReservierungVorher['beginn']));
-            $BausteineGruppeDavor['angaben_reservierung_beginn'] = strftime("%H", strtotime($ReservierungVorher['beginn']));
-            $BausteineGruppeDavor['angaben_reservierung_ende'] = strftime("%H", strtotime($ReservierungVorher['ende']));
-            $BausteineGruppeDavor['name_nachfolgender_user'] = "".$UserReservierung['vorname']." ".$UserReservierung['nachname']."";
+            $BausteineGruppeDavor['[vorname_user]'] = $UserReservierungDavor['vorname'];
+            $BausteineGruppeDavor['[angaben_reservierung_datum]'] = strftime("%A, den %d. %B %G", strtotime($ReservierungVorher['beginn']));
+            $BausteineGruppeDavor['[angaben_reservierung_beginn]'] = strftime("%H", strtotime($ReservierungVorher['beginn']));
+            $BausteineGruppeDavor['[angaben_reservierung_ende]'] = strftime("%H", strtotime($ReservierungVorher['ende']));
+            $BausteineGruppeDavor['[name_nachfolgender_user]'] = "".$UserReservierung['vorname']." ".$UserReservierung['nachname']."";
             if ($Kommentar != ""){
-                $BausteineGruppeDavor['kommentar'] = "<p>Kommentar des anlegenden Users: ".$Kommentar."</p>";
+                $BausteineGruppeDavor['[kommentar]'] = "<p>Kommentar des anlegenden Users: ".$Kommentar."</p>";
             }
 
             if (mail_senden('uebernahme-angelegt-vorgruppe', $UserReservierungDavor['mail'], $BausteineGruppeDavor)){
 
                 $BausteineGruppe = array();
-                $BausteineGruppe['vorname_user'] = $UserReservierungDavor['vorname'];
-                $BausteineGruppe['angaben_reservierung_datum'] = strftime("%A, den %d. %B %G", strtotime($Reservierung['beginn']));
-                $BausteineGruppe['angaben_reservierung_beginn'] = strftime("%H", strtotime($Reservierung['beginn']));
-                $BausteineGruppe['angaben_reservierung_ende'] = strftime("%H", strtotime($Reservierung['ende']));
-                $BausteineGruppe['name_vorheriger_user'] = "".$UserReservierungDavor['vorname']." ".$UserReservierungDavor['nachname']."";
+                $BausteineGruppe['[vorname_user]'] = $UserReservierungDavor['vorname'];
+                $BausteineGruppe['[angaben_reservierung_datum]'] = strftime("%A, den %d. %B %G", strtotime($Reservierung['beginn']));
+                $BausteineGruppe['[angaben_reservierung_beginn]'] = strftime("%H", strtotime($Reservierung['beginn']));
+                $BausteineGruppe['[angaben_reservierung_ende]'] = strftime("%H", strtotime($Reservierung['ende']));
+                $BausteineGruppe['[name_vorheriger_user]'] = "".$UserReservierungDavor['vorname']." ".$UserReservierungDavor['nachname']."";
                 if ($Kommentar != ""){
-                    $BausteineGruppe['kommentar'] = "<p>Hier der Kommentar des anlegenden Users: ".$Kommentar."</p>";
+                    $BausteineGruppe['[kommentar]'] = "<p>Hier der Kommentar des anlegenden Users: ".$Kommentar."</p>";
                 }
 
                 if (mail_senden('uebernahme-angelegt-nachgruppe', $UserReservierung['mail'], $BausteineGruppe)){
@@ -349,9 +349,9 @@ function seiteninhalt_uebernahme_vorplanen_generieren($Reservierung){
 
         //Reservierung inzwischen abgelaufen/storniert
         $ReservierungInfo = lade_reservierung($Reservierung);
-        if(($ReservierungInfo['storno_user'] == "0") OR (time() > strtotime($ReservierungInfo['ende']))){
+        if(($ReservierungInfo['storno_user'] != "0") OR (time() > strtotime($ReservierungInfo['ende']))){
             $DAUcounter++;
-            $DAUerror .= "Reservierung inzwischen abgelaufen!<br>";
+            $DAUerror .= "Reservierung inzwischen abgelaufen oder storniert!<br>";
         } else {
             //Reservierung bereits mit Übernahme/Übergabe versorgt
             $AnfrageUebergaben = "SELECT id FROM uebergaben WHERE res = '$Reservierung' AND storno_user = 0";
@@ -378,19 +378,17 @@ function seiteninhalt_uebernahme_vorplanen_generieren($Reservierung){
     } else {
 
         //Vollkommen egal von welcher Reservierung übernommen wird - hauptsache sie ist noch nicht abgeschlossen und hat entweder ne Übernahme oder Übergabe gebucht:)
-        $HTML .= "Vollkommen egal von welcher Reservierung übernommen wird - hauptsache sie ist noch nicht abgeschlossen und hat entweder ne Übernahme oder Übergabe gebucht:)";
-        $HTML .= "<br>Suche nach passenden Reservierungen:";
-
         $ReservierungInfos = lade_reservierung($Reservierung);
-        $Anfrage = "SELECT * FROM reservierungen WHERE beginn > '01-01-".date('Y')." 00:00:01' AND ende <= '".$ReservierungInfos['beginn']."' AND storno_user = '0' ORDER BY beginn ASC";
+        $Anfrage = "SELECT * FROM reservierungen WHERE beginn > '01-01-".date('Y')." 00:00:01' AND ende = '".$ReservierungInfos['beginn']."' AND storno_user = '0' ORDER BY beginn ASC";
         $Abfrage = mysqli_query($link, $Anfrage);
         $Anzahl = mysqli_num_rows($Abfrage);
 
-        if ($Anzahl == 0){
-            $HTML .= "Keine passenden Reservierungen!";
-        } else if ($Anzahl > 0){
-            $HTML .= "".$Anzahl." unabgeschlossene/aktive reservierungen vor der gewählten Reservierung<br>";
+        $Options = "";
 
+        if ($Anzahl == 0){
+            $HTML .= "<h3>Keine passenden Reservierungen!</h3>";
+        } else if ($Anzahl > 0){
+            $HTML .= "<h3>Passende Reservierung gefunden!</h3>";
             for ($a = 1; $a <= $Anzahl; $a++){
                 //Hat Res eine Schlüsselausgabe die bereits zurückgegeben wurde? -> Reservierung ist abgeschlossen:
                 $GefundeneReservierung = mysqli_fetch_assoc($Abfrage);
@@ -402,26 +400,105 @@ function seiteninhalt_uebernahme_vorplanen_generieren($Reservierung){
 
                     //Kein Schlüssel bislang ausgegeben -> Prüfen ob Übergabe/Übernahme geplant
                     if(res_hat_uebergabe($GefundeneReservierung['id'])){
-                        $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übergabe gebucht<br>";
+                        $HTMLitems = "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übergabe gebucht<br>";
+                        $Resinfos = lade_reservierung($GefundeneReservierung['id']);
+                        $UserResOption = lade_user_meta($Resinfos['user']);
+                        $Content = table_row_builder(table_header_builder('User').table_data_builder(''.$UserResOption['vorname'].' '.$UserResOption['nachname'].''));
+                        $Content .= table_row_builder(table_header_builder('Reservierungsdaten').table_data_builder('Beginn: '.strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($Resinfos['beginn'])).'<br>Ende: '.strftime("%H:%M Uhr", strtotime($Resinfos['ende']))));
+                        $Content .= table_row_builder(table_header_builder('').table_data_builder(form_button_builder('uebernahme_vorplanen_'.$GefundeneReservierung['id'].'', 'Eintragen', 'action', 'send', '')));
+                        $Content = table_builder($Content);
+                        $Options .= collapsible_item_builder($HTMLitems, $Content, 'today');
                     }
                     if(res_hat_uebernahme($GefundeneReservierung['id'])){
-                        $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übernahme gebucht<br>";
+                        $HTMLitems = "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat Übernahme gebucht<br>";
+                        $Resinfos = lade_reservierung($GefundeneReservierung['id']);
+                        $UserResOption = lade_user_meta($Resinfos['user']);
+                        $Content = table_row_builder(table_header_builder('User').table_data_builder(''.$UserResOption['vorname'].' '.$UserResOption['nachname'].''));
+                        $Content .= table_row_builder(table_header_builder('Reservierungsdaten').table_data_builder('Beginn: '.strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($Resinfos['beginn'])).'<br>Ende: '.strftime("%H:%M Uhr", strtotime($Resinfos['ende']))));
+                        $Content .= table_row_builder(table_header_builder('').table_data_builder(form_button_builder('uebernahme_vorplanen_'.$GefundeneReservierung['id'].'', 'Eintragen', 'action', 'send', '')));
+                        $Content = table_builder($Content);
+                        $Options .= collapsible_item_builder($HTMLitems, $Content, 'today');
                     }
 
                 } else if ($AnzahlZwei == 1){
 
                     $ErgebnisZwei = mysqli_fetch_assoc($AbfrageZwei);
                     if ($ErgebnisZwei['rueckgabe'] == "0000-00-00 00:00:00"){
-
-                        $HTML .= "Reservierung ".$GefundeneReservierung['id']." kommt in Frage<br>";
-
+                        $HTMLitems = "Reservierung ".$GefundeneReservierung['id']." kommt in Frage - Hat bereits einen Schlüssel<br>";
+                        $Resinfos = lade_reservierung($GefundeneReservierung['id']);
+                        $UserResOption = lade_user_meta($Resinfos['user']);
+                        $Content = table_row_builder(table_header_builder('User').table_data_builder(''.$UserResOption['vorname'].' '.$UserResOption['nachname'].''));
+                        $Content .= table_row_builder(table_header_builder('Reservierungsdaten').table_data_builder('Beginn: '.strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($Resinfos['beginn'])).'<br>Ende: '.strftime("%H:%M Uhr", strtotime($Resinfos['ende']))));
+                        $Content .= table_row_builder(table_header_builder('').table_data_builder(form_button_builder('uebernahme_vorplanen_'.$GefundeneReservierung['id'].'', 'Eintragen', 'action', 'send', '')));
+                        $Content = table_builder($Content);
+                        $Options .= collapsible_item_builder($HTMLitems, $Content, 'today');
                     }
                 }
             }
+
+            $HTML .= collapsible_builder($Options);
         }
     }
 
+    $HTML .= section_builder(button_link_creator('Zurück', 'wartwesen.php', 'arrow_back', ''));
+
     return $HTML;
+}
+
+function schluessel_an_user_weitergeben($UebergabeDavorID, $Schluessel, $ReservierungID, $Wart){
+
+    $Reservierung = lade_reservierung($ReservierungID);
+    $link = connect_db();
+    $Timestamp = timestamp();
+
+    //DAU
+
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    if($DAUcounter > 0){
+
+    } else if ($DAUcounter == 0) {
+
+        $Anfrage = "INSERT INTO schluesselausgabe (uebergabe, wart, user, reservierung, schluessel, ausgabe, rueckgabe, storno_user, storno_time, storno_kommentar) VALUES ('$UebergabeDavorID', '$Wart', '".$Reservierung['user']."', '".$ReservierungID."', '$Schluessel', '$Timestamp', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '')";
+
+        mysqli_query($link, $Anfrage);
+
+        $AnfrageZwei = "UPDATE schluessel SET akt_ort = '', akt_user ='".$Reservierung['user']."' WHERE id = '$Schluessel'";
+        mysqli_query($link, $AnfrageZwei);
+
+        #schluessel_protokoll_event_hinzufuegen($Schluessel, 'Schl&uuml;ssel '.$Schluessel.' durch Res. '.$ReservierungID.' &uuml;bernommen.');
+
+    }
+
+
+}
+
+function lade_schluesselausgabe_reservierung($ResID){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM schluesselausgabe WHERE reservierung = '$ResID' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+
+    return $Ergebnis;
+}
+
+function uebernahme_vorplanen_parser($ReservierungID){
+
+    $Link = connect_db();
+    $Anfrage = "SELECT id FROM reservierungen";
+    $Abfrage = mysqli_query($Link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $Antwort['success'] = null;
+    for($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        if(isset($_POST['uebernahme_vorplanen_'.$Ergebnis['id'].''])){
+            $Antwort = uebernahme_eintragen($ReservierungID, 'Angelegt durch eine:n Stocherkahnwart:in');
+        }
+    }
+    return $Antwort;
 }
 
 ?>
