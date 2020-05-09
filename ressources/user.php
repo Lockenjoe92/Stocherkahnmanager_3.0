@@ -449,6 +449,24 @@ function user_needs_pswd_change($UserID){
     }
 
 }
+function lade_user_id_from_mail($MailAdresse){
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+
+    if (!$stmt->bind_param("s",$MailAdresse)) {
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Ergebnis = mysqli_fetch_assoc($res);
+    return $Ergebnis['id'];
+}
 function change_pswd_user($UserID, $PSWD, $PSWDrpt){
 
     $link = connect_db();

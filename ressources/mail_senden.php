@@ -7,7 +7,7 @@
  */
 
 
-function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
+function mail_senden($NameVorlage, $MailAdresse, $Bausteine, $Typ='')
 {
     //Vorlage laden
     $Vorlage = lade_mailvorlage($NameVorlage);
@@ -39,9 +39,21 @@ function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
     $mail->Body = html_entity_decode($Mailtext);
 
     //E-Mail senden
+    $link = connect_db();
+    $EmpfaenegrID = lade_user_id_from_mail($MailAdresse);
     if($mail->Send())
     {
+        if($Typ!=''){
+            $AnfrageMailMisserfolgSpeichern = "INSERT INTO mail_protokoll (timestamp, typ, empfaenger, erfolg) VALUES ('".timestamp()."', '$Typ', '$EmpfaenegrID', 'true')";
+            mysqli_query($link, $AnfrageMailMisserfolgSpeichern);
+        }
         return true;
+    } else {
+        if($Typ!=''){
+            $AnfrageMailMisserfolgSpeichern = "INSERT INTO mail_protokoll (timestamp, typ, empfaenger, erfolg) VALUES ('".timestamp()."', '$Typ', '$EmpfaenegrID', 'false')";
+            mysqli_query($link, $AnfrageMailMisserfolgSpeichern);
+        }
+        return false;
     }
 }
 
@@ -49,7 +61,7 @@ function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
 
         $link = connect_db();
 
-        $Anfrage = "SELECT id FROM mail_protokoll WHERE empfaenger = '$User' AND typ = '$Typ' AND erfolg = '1'";
+        $Anfrage = "SELECT id FROM mail_protokoll WHERE empfaenger = '$User' AND typ = '$Typ' AND erfolg = 'true'";
         $Abfrage = mysqli_query($link, $Anfrage);
         $Anzahl = mysqli_num_rows($Abfrage);
 
@@ -64,7 +76,7 @@ function mail_senden($NameVorlage, $MailAdresse, $Bausteine)
 
         $link = connect_db();
 
-        $Anfrage = "SELECT id, timestamp FROM mail_protokoll WHERE empfaenger = '$User' AND typ = '$Typ' AND erfolg = '1' ORDER BY timestamp DESC";
+        $Anfrage = "SELECT id, timestamp FROM mail_protokoll WHERE empfaenger = '$User' AND typ = '$Typ' AND erfolg = 'true' ORDER BY timestamp DESC";
         $Abfrage = mysqli_query($link, $Anfrage);
         $Anzahl = mysqli_num_rows($Abfrage);
 

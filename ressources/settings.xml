@@ -72,6 +72,11 @@
     <kritischer-abstand-storno-vor-beginn>60</kritischer-abstand-storno-vor-beginn>
     <wochen-vergangenheit-durchgefuehrte-uebergaben>2</wochen-vergangenheit-durchgefuehrte-uebergaben>
     <schluesseluebernahme-ueber-mehrere-res>false</schluesseluebernahme-ueber-mehrere-res>
+    <erinnerung-uebergabe-ausmachen-1>3</erinnerung-uebergabe-ausmachen-1>
+    <erinnerung-uebergabe-ausmachen-2>1</erinnerung-uebergabe-ausmachen-2>
+    <erinnerung-schluessel-zurueckgeben-intervall-beginn>2</erinnerung-schluessel-zurueckgeben-intervall-beginn>
+    <erinnerung-schluessel-zurueckgeben-intervall-groesse>2</erinnerung-schluessel-zurueckgeben-intervall-groesse>
+    <stunden-bis-uebergabe-eingetragen-sein-soll>6</stunden-bis-uebergabe-eingetragen-sein-soll>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>

@@ -1,7 +1,7 @@
 <?php
 
 //Gets called every 5 minutes
-include_once "./ressourcen/ressourcen.php";
+include_once "./ressources/ressourcen.php";
 echo "Mailbrain beginnt...";
 
 mail_erinnerung_uebergabe_ausmachen_intervall_eins();
@@ -13,7 +13,7 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
     function mail_erinnerung_uebergabe_ausmachen_intervall_eins(){
         //Erinnerung eine Übergabe ausmachen - Intervall 1
         echo "<p>Erinnerung &Uuml;bergabe ausmachen - Intervall eins:<br>";
-        $TageVorherIntervallEinsUebergabeAusmachen = lade_einstellung('erinnerung-uebergabe-ausmachen-1');
+        $TageVorherIntervallEinsUebergabeAusmachen = lade_xml_einstellung('erinnerung-uebergabe-ausmachen-1');
         $BefehlIntervallEinsUebergabeAusmachen = "+ ".$TageVorherIntervallEinsUebergabeAusmachen." days";
         $ZeitgrenzeIntervallEinsUebergabeAusmachen = date("Y-m-d G:i:s", strtotime($BefehlIntervallEinsUebergabeAusmachen));
 
@@ -41,12 +41,21 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                     if ($AnzahlUebernahmeGebucht == 0){
 
                         //Braucht er gemäß seiner Schlüsselrollen überhaupt eine Übergabe?
-                        $Schluesselrollen = schluesselrollen_user_laden($Reservierung['user']);
+                        $Schluesselrollen = lade_user_meta($Reservierung['user']);
+                        $Nutzerrollen = lade_alle_nutzgruppen();
+                        $HatEigSchluessel = 0;
 
-                        if (($Schluesselrollen['hat_eig_schluessel'] == "1") OR ($Schluesselrollen['wg_hat_schluessel'] == "1")){
+                        foreach($Nutzerrollen as $Nutzerrolle){
+                            if($Schluesselrollen[$Nutzerrolle['name']]=='true'){
+                                if($Nutzerrolle['darf_last_minute_res'] == 'true'){
+                                    $HatEigSchluessel++;
+                                }
+                            }
+                        }
+
+                        if (($HatEigSchluessel>0)){
                             echo "Reservierung ".$Reservierung['id']." - User hat eigenen Schl&uuml;ssel<br>";
                         } else {
-
                             $NameVorlage = "erinnerung-uebergabe-ausmachen-intervall-eins";
                             $TypMail = "".$NameVorlage."-".$Reservierung['id']."";
 
@@ -63,12 +72,11 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                                 }
 
                                 //Mail senden
-                                $UserMeta = lade_user_meta($Reservierung['user']);
                                 $Bausteine = array();
-                                $Bausteine['vorname_user'] = $UserMeta['vorname'];
-                                $Bausteine['angabe_tage'] = $AngabeTage;
+                                $Bausteine['[vorname_user]'] = $Schluesselrollen['vorname'];
+                                $Bausteine['[angabe_tage]'] = $AngabeTage;
 
-                                if (mail_senden($NameVorlage, $UserMeta['mail'], $Reservierung['user'], $Bausteine, $TypMail)){
+                                if (mail_senden($NameVorlage, $Schluesselrollen['mail'], $Bausteine, $TypMail)){
                                     echo "Reservierung ".$Reservierung['id']." - Mail gesendet!<br>";
                                 } else {
                                     echo "Reservierung ".$Reservierung['id']." - Fehler beim senden der Mail!<br>";
@@ -92,7 +100,7 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
     function mail_erinnerung_uebergabe_ausmachen_intervall_zwei(){
         //Erinnerung eine Übergabe ausmachen - Intervall 2
         echo "<p>Erinnerung &Uuml;bergabe ausmachen - Intervall zwei:<br>";
-        $TageVorherIntervallZweiUebergabeAusmachen = lade_einstellung('erinnerung-uebergabe-ausmachen-2');
+        $TageVorherIntervallZweiUebergabeAusmachen = lade_xml_einstellung('erinnerung-uebergabe-ausmachen-2');
         $BefehlIntervallZweiUebergabeAusmachen = "+ ".$TageVorherIntervallZweiUebergabeAusmachen." days";
         $ZeitgrenzeIntervallZweiUebergabeAusmachen = date("Y-m-d G:i:s", strtotime($BefehlIntervallZweiUebergabeAusmachen));
 
@@ -113,10 +121,19 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                 if ($AnzahlLadeUebergaben == 0){
 
                     //Bei leuten mit eigenem Schlüssel nix machen
-                    $UserMeta = lade_user_meta($Reservierung['user']);
-                    $BenutzerrollenUser = schluesselrollen_user_laden($Reservierung['user']);
+                    $Schluesselrollen = lade_user_meta($Reservierung['user']);
+                    $Nutzerrollen = lade_alle_nutzgruppen();
+                    $HatEigSchluessel = 0;
 
-                    if (($BenutzerrollenUser['hat_eig_schluessel'] == "1") OR ($BenutzerrollenUser['wg_hat_schluessel'] == "1")){
+                    foreach($Nutzerrollen as $Nutzerrolle){
+                        if($Schluesselrollen[$Nutzerrolle['name']]=='true'){
+                            if($Nutzerrolle['darf_last_minute_res'] == 'true'){
+                                $HatEigSchluessel++;
+                            }
+                        }
+                    }
+
+                    if ($HatEigSchluessel>0){
 
                         echo "Reservierung ".$Reservierung['id']." - User hat eigenen Schl&uuml;ssel<br>";
 
@@ -148,10 +165,10 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
 
                                 //Mail senden
                                 $Bausteine = array();
-                                $Bausteine['vorname_user'] = $UserMeta['vorname'];
-                                $Bausteine['angabe_tage'] = $AngabeTage;
+                                $Bausteine['[vorname_user]'] = $Schluesselrollen['vorname'];
+                                $Bausteine['[angabe_tage]'] = $AngabeTage;
 
-                                if (mail_senden($NameVorlage, $UserMeta['mail'], $Reservierung['user'], $Bausteine, $TypMail)){
+                                if (mail_senden($NameVorlage, $Schluesselrollen['mail'], $Bausteine, $TypMail)){
                                     echo "Reservierung ".$Reservierung['id']." - Mail gesendet!<br>";
                                 } else {
                                     echo "Reservierung ".$Reservierung['id']." - Fehler beim senden der Mail!<br>";
@@ -187,10 +204,20 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
         for ($a = 1; $a <= $Anzahl; $a++){
 
             $Reservierung = mysqli_fetch_assoc($Abfrage);
-            $Schluesselrollen = schluesselrollen_user_laden($Reservierung['user']);
+            $Schluesselrollen = lade_user_meta($Reservierung['user']);
+            $Nutzerrollen = lade_alle_nutzgruppen();
+            $HatEigSchluessel = 0;
+
+            foreach($Nutzerrollen as $Nutzerrolle){
+                if($Schluesselrollen[$Nutzerrolle['name']]=='true'){
+                    if($Nutzerrolle['darf_last_minute_res'] == 'true'){
+                        $HatEigSchluessel++;
+                    }
+                }
+            }
 
             //Schlüsselrollen beachten
-            if (($Schluesselrollen['hat_eig_schluessel'] == "1") OR ($Schluesselrollen['wg_hat_schluessel'] == "1")){
+            if ($HatEigSchluessel>0){
                 echo "Reservierung ".$Reservierung['id']." - User hat eigenen Schl&uuml;ssel!<br>";
             } else {
 
@@ -203,14 +230,14 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                 if ($AnzahlLadeSchluesseluebergabe > 0){
 
                     //Feststellen ob danach direkt eine Übernahme stattfindet
-                    $AnfrageLadePotentielleÜbergabe = "SELECT id FROM uebernahmen WHERE reservierung_davor = '".$Reservierung['id']."' AND storno_user = '0'";
-                    $AbfrageLadePotentielleÜbergabe = mysqli_query($link, $AnfrageLadePotentielleÜbergabe);
-                    $AnzahlLadePotentielleÜbergabe = mysqli_num_rows($AbfrageLadePotentielleÜbergabe);
+                    $AnfrageLadePotentielleUbergabe = "SELECT id FROM uebernahmen WHERE reservierung_davor = '".$Reservierung['id']."' AND storno_user = '0'";
+                    $AbfrageLadePotentielleUbergabe = mysqli_query($link, $AnfrageLadePotentielleUbergabe);
+                    $AnzahlLadePotentielleUbergabe = mysqli_num_rows($AbfrageLadePotentielleUbergabe);
 
-                    if ($AnzahlLadePotentielleÜbergabe > 0){
+                    if ($AnzahlLadePotentielleUbergabe > 0){
                         $NameVorlage = "mail_erinnerung_schluesselrueckgabe_direkt_nach_fahrt_mit_uebernahme";
                         echo "UEBERNAHME DANACH ";
-                    } else if ($AnzahlLadePotentielleÜbergabe == 0){
+                    } else if ($AnzahlLadePotentielleUbergabe == 0){
                         $NameVorlage = "mail_erinnerung_schluesselrueckgabe_direkt_nach_fahrt";
                         echo "KEINE UEBERNAHME DANACH ";
                     }
@@ -221,11 +248,10 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                         echo "Reservierung ".$Reservierung['id']." schon informiert!<br>";
                     } else {
                         //Mail senden
-                        $UserMeta = lade_user_meta($Reservierung['user']);
                         $Bausteine = array();
-                        $Bausteine['vorname_user'] = $UserMeta['vorname'];
+                        $Bausteine['[vorname_user]'] = $Schluesselrollen['vorname'];
 
-                            if (mail_senden($NameVorlage, $UserMeta['mail'], $Reservierung['user'], $Bausteine, $Typ)){
+                            if (mail_senden($NameVorlage, $Schluesselrollen['mail'], $Bausteine, $Typ)){
                                 echo "Reservierung ".$Reservierung['id']." erfolgreich gesendet!<br>";
                             } else {
                                 echo "Reservierung ".$Reservierung['id']." - Fehler beim Senden der Mail!<br>";
@@ -250,8 +276,8 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
         echo "<p>Erinnerung R&uuml;ckgabe Zyklus<br>";
         $link = connect_db();
 
-        $AbAnzahlTage = lade_einstellung('erinnerung-schluessel-zurueckgeben-intervall-beginn');
-        $IntervallTage = lade_einstellung('erinnerung-schluessel-zurueckgeben-intervall-groesse');
+        $AbAnzahlTage = lade_xml_einstellung('erinnerung-schluessel-zurueckgeben-intervall-beginn');
+        $IntervallTage = lade_xml_einstellung('erinnerung-schluessel-zurueckgeben-intervall-groesse');
 
         $AnfrageLadeAlleOffenenAusgaben = "SELECT * FROM schluesselausgabe WHERE ausgabe <> '0000-00-00 00:00:00' AND rueckgabe = '0000-00-00 00:00:00' AND storno_user = '0'";
         $AbfrageLadeAlleOffenenAusgaben = mysqli_query($link, $AnfrageLadeAlleOffenenAusgaben);
@@ -273,16 +299,16 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
 
                     $TimestampLetzteMail = timestamp_letzte_mail_gesendet($Reservierung['user'], $Typ);
                     $UserMeta = lade_user_meta($Reservierung['user']);
-                    $DifferenzTage = tage_differenz_berechnen(timestamp(), $Reservierung['ende']);
+                    $DifferenzTage = tage_differenz_berechnen(timestamp(), $TimestampLetzteMail);
 
                     $Bausteine = array();
-                    $Bausteine['vorname_user'] = $UserMeta['vorname'];
-                    $Bausteine['tage_seit_ende_res'] = $DifferenzTage;
+                    $Bausteine['[vorname_user]'] = $UserMeta['vorname'];
+                    $Bausteine['[tage_seit_ende_res]'] = $DifferenzTage;
 
                     if ($TimestampLetzteMail == FALSE){
 
                         //Es wurde noch nie eine Mail geschickt -> GO
-                        if(mail_senden('mail_erinnerung_schluesselrueckgabe_intervall', $UserMeta['mail'], $Reservierung['user'], $Bausteine, $Typ)){
+                        if(mail_senden('mail_erinnerung_schluesselrueckgabe_intervall', $UserMeta['mail'], $Bausteine, $Typ)){
 
                             echo "Reservierung #".$Reservierung['id']." - Mail senden erfolgreich!<br>";
                         } else {
@@ -292,21 +318,12 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                     } else {
 
                         //Es wurde bereits eine Mail geschickt -> Doublecheck ob wir wieder eine Senden dürfen
-                        if (! ($DifferenzTage % $IntervallTage)){
-
-                            if ($Reservierung['user'] == "188"){
-                                //Es wurde noch nie eine Mail geschickt -> GO
-                                //if(mail_senden('mail_erinnerung_schluesselrueckgabe_intervall', $UserMeta['mail'], $Reservierung['user'], $Bausteine, $Typ)){
-
-                                    echo "Reservierung #".$Reservierung['id']." - Mail senden erfolgreich!<br>";
-                                //} else {
-                                    //echo "Reservierung #".$Reservierung['id']." - Mail senden fehlgeschlagen!<br>";
-                                //}
-
-                            } else {
-                                echo "Reservierung #".$Reservierung['id']." - Mail sollte gesendet werden!<br>";
-                            }
-
+                        if ($DifferenzTage>=$IntervallTage){
+                             if(mail_senden('mail_erinnerung_schluesselrueckgabe_intervall', $UserMeta['mail'], $Bausteine, $Typ)){
+                                 echo "Reservierung #".$Reservierung['id']." - Mail senden erfolgreich!<br>";
+                             } else {
+                                 echo "Reservierung #".$Reservierung['id']." - Mail senden fehlgeschlagen!<br>";
+                             }
                         } else {
                             echo "Reservierung #".$Reservierung['id']." - Intervall noch nicht wieder eingetreten!<br>";
                         }
@@ -328,7 +345,7 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
         $Abfrage = mysqli_query($link, $Anfrage);
         $Anzahl = mysqli_num_rows($Abfrage);
 
-        $Zeitgrenze = lade_einstellung('stunden-bis-uebergabe-eingetragen-sein-soll');
+        $Zeitgrenze = lade_xml_einstellung('stunden-bis-uebergabe-eingetragen-sein-soll');
         $Zeitbefehl = "+ ".$Zeitgrenze." hours";
 
         echo "<p>Erinnerung Wart Schl&uuml;ssel&uuml;bergabe nachzutragen<br>";
@@ -342,8 +359,8 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                 echo "Zeitfenster ist eingetreten - ";
 
                 //Einstellung Wart
-                $Benutzersettings = lade_user_settings($Uebergabe['wart']);
-                if($Benutzersettings['erinnerung-wart-schluesseluebergabe-eintragen'] == "1"){
+                $Benutzersettings = lade_user_meta($Uebergabe['wart']);
+                if($Benutzersettings['erinnerung-wart-schluesseluebergabe-eintragen'] == "true"){
 
                     //Mail schon gesendet?
                     $Typ = "erinnerung-wart-schluesseluebergabe-eintragen-".$Uebergabe['id']."";
@@ -356,13 +373,13 @@ mail_erinnerung_schluesseluebergabe_eintragen_wart();
                         $UserReservierungMeta = lade_user_meta($Reservierung['user']);
 
                         $Bausteine = array();
-                        $Bausteine['vorname_wart'] = $WartMeta['vorname'];
-                        $Bausteine['uebergabe_id'] = $Uebergabe['id'];
-                        $Bausteine['datum'] = date("d.m.Y", strtotime($Uebergabe['beginn']));
-                        $Bausteine['zeitpunkt'] = date("G:i", strtotime($Uebergabe['beginn']));
-                        $Bausteine['empfaenger'] = "".$UserReservierungMeta['vorname']." ".$UserReservierungMeta['nachname']."";
+                        $Bausteine['[vorname_wart]'] = $WartMeta['vorname'];
+                        $Bausteine['[uebergabe_id]'] = $Uebergabe['id'];
+                        $Bausteine['[datum]'] = date("d.m.Y", strtotime($Uebergabe['beginn']));
+                        $Bausteine['[zeitpunkt]'] = date("G:i", strtotime($Uebergabe['beginn']));
+                        $Bausteine['[empfaenger]'] = "".$UserReservierungMeta['vorname']." ".$UserReservierungMeta['nachname']."";
 
-                        if(mail_senden('erinnerung-wart-schluesseluebergabe-eintragen', $WartMeta['mail'], $Uebergabe['wart'], $Bausteine, $Typ)){
+                        if(mail_senden('erinnerung-wart-schluesseluebergabe-eintragen', $WartMeta['mail'], $Bausteine, $Typ)){
                             echo "Mail gesendet<br>";
                         } else {
                             echo "Fehler beim senden der Mail<br>";
