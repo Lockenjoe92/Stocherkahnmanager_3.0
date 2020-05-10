@@ -1049,4 +1049,104 @@ function dropdown_buchungstoolgruppe_waehlen($NameElement, $Selected){
     return $Ausgabe;
 }
 
+function table_form_dropdown_termintyp_waehlen($Titel, $NameElement, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Startwert
+    if($Selected == ''){
+        $Ausgabe .= "<option value='' selected>wählen</option>";
+    } else {
+        $Ausgabe .= "<option value=''>wählen</option>";
+    }
+
+    $Nutzergruppen = explode(',', lade_xml_einstellung('termin_typen'));
+    if(lade_xml_einstellung('grill-global-aktiv')=='true'){
+        array_push($Nutzergruppen, array('Grillausgabe','Grillrückgabe'));
+    }
+
+    foreach ($Nutzergruppen as $Nutzergruppe){
+        if($Nutzergruppe == $Selected){
+            $Ausgabe .= "<option value='".$Nutzergruppe."' selected>".$Nutzergruppe."</option>";
+        } else {
+            $Ausgabe .= "<option value='".$Nutzergruppe."'>".$Nutzergruppe."</option>";
+        }
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+}
+
+function table_form_terminangebote_user($Titel, $NameElement, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Startwert
+    if($Selected == ''){
+        $Ausgabe .= "<option value='' selected>wählen</option>";
+    } else {
+        $Ausgabe .= "<option value=''>wählen</option>";
+    }
+
+    $link = connect_db();
+    $Anfrage = "SELECT id, von, bis FROM terminangebote WHERE wart = '".lade_user_id()."' AND bis > '".timestamp()."' AND storno_user = 0";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    for ($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        $TimeInfos = strftime("%A, %d. %B %G * %H:%M - ", strtotime($Ergebnis['von'])).strftime("%H:%M Uhr", strtotime($Ergebnis['bis']));
+        if($a == $Selected){
+            $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$TimeInfos."</option>";
+        } else {
+            $Ausgabe .= "<option value='".$Ergebnis['id']."'>".$TimeInfos."</option>";
+        }
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+
+}
+
+function table_form_res_mit_ausgleichen($Titel, $NameElement, $UserID, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Startwert
+    if($Selected == ''){
+        $Ausgabe .= "<option value='' selected>wählen</option>";
+    } else {
+        $Ausgabe .= "<option value=''>wählen</option>";
+    }
+
+    $Reservierungen = lade_alle_reservierungen_eines_users($UserID);
+    foreach ($Reservierungen as $Reservierung){
+        $Ausgleiche = lade_offene_ausgleiche_res($Reservierung['id']);
+        if(sizeof($Ausgleiche)>0){
+            $Rueckzahlungswert = 0;
+            foreach ($Ausgleiche as $Ausgleich){
+                $Auszahlung = lade_gezahlte_betraege_ausgleich($Ausgleich['id']);
+                if($Auszahlung<$Ausgleich['betrag']){
+                    $Rueckzahlungswert += $Ausgleich['betrag']-$Auszahlung;
+                }
+            }
+        }
+        if($Rueckzahlungswert>0){
+            $TimeInfos = strftime("%A, %d. %B %G * %H:%M - ", strtotime($Reservierung['beginn'])).strftime("%H:%M Uhr", strtotime($Reservierung['ende']));
+            if($Reservierung['id'] == $Selected){
+                $Ausgabe .= "<option value='".$Reservierung['id']."' selected>".$TimeInfos." ".$Rueckzahlungswert."&euro;</option>";
+            } else {
+                $Ausgabe .= "<option value='".$Reservierung['id']."'>".$TimeInfos." ".$Rueckzahlungswert."&euro;</option>";
+            }
+        }
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+
+}
+
 ?>

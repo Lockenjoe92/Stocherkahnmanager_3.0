@@ -321,3 +321,11 @@ function nachzahlung_reservierung_festhalten($IDres, $Betrag, $Wart){
 
     return $Antwort;
 }
+
+function lade_ausgleich($IDausgleich){
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM finanz_ausgleiche WHERE id = '$IDausgleich'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Termin = mysqli_fetch_assoc($Abfrage);
+    return $Termin;
+}

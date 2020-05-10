@@ -214,7 +214,7 @@ function navbar_links_big(){
         if($UserMeta['ist_wart'] == 'true'){
             $HTML .= "<ul id='dropdown2' class='dropdown-content'>";
             $HTML .= '<li><a href="../wartwesen.php">Wartwesen</a></li>';
-            $HTML .= "<li><a href='termine.php'>&Uumlbergaben</a></li>";
+            $HTML .= "<li><a href='termine.php'>Termine</a></li>";
             $HTML .= "<li><a href=\"ausfaelle.php\">Ausf&aumllle</a></li>";
             $HTML .= "<li><a href=\"reservierungsmanagement.php\">Reservierungen</a></li>";
             $HTML .= "<li><a href=\"schluesselmanagement.php\">Schl&uumlssel</a></li>";
@@ -268,7 +268,7 @@ function navbar_links_mobile(){
             $HTML .= "<li><div class=\"divider\"></div></li>";
             $HTML .= "<li><a class=\"subheader\">Wartfunktionen</a></li>";
             $HTML .= '<li><a href="../wartwesen.php">Wartwesen</a></li>';
-            $HTML .= "<li><a href='../termine.php'>&Uumlbergaben</a></li>";
+            $HTML .= "<li><a href='../termine.php'>Termine</a></li>";
             $HTML .= "<li><a href=\"../ausfaelle.php\">Ausf&aumllle</a></li>";
             $HTML .= "<li><a href=\"../reservierungsmanagement.php\">Reservierungen</a></li>";
             $HTML .= "<li><a href=\"../schluesselmanagement.php\">Schl&uumlssel</a></li>";

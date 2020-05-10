@@ -364,6 +364,7 @@ function spalte_termine(){
 
     if ($AnzahlLadeAktiveTermine == 0){
         $HTML .= "<p class='caption'>Derzeit hast du keine anstehenden Termine! <br>";
+        $HTML .= collapsible_builder(collapsible_add_termin());
     } else if ($AnzahlLadeAktiveTermine > 0){
         $HTML .= "<div class='section'>";
         $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
@@ -373,13 +374,14 @@ function spalte_termine(){
             $HTML .= termin_listenelement_generieren($Termin['id']);
         }
 
+        $HTML .= collapsible_add_termin();
         $HTML .= "</ul>";
         $HTML .= "</div>";
     }
 
     $HTML .= "</div>";
 
-    return $HTML;
+    return section_builder($HTML);
 }
 function spalte_vergangene_uebergaben(){
 
@@ -415,6 +417,21 @@ function spalte_vergangene_uebergaben(){
     } else {
         return "";
     }
+}
+function collapsible_add_termin(){
+
+    $Titel = "Termin hinzufügen";
+    $Icon = "add_new";
+    $Table = table_form_dropdown_termintyp_waehlen("Termintyp", 'type_termin', $_POST['type_termin']);
+    $Table .= table_form_string_item('Eigenen Typ eingeben (optional)', 'type_termin_eigen', $_POST['type_termin_eigen']);
+    $Table .= table_form_dropdown_menu_user('Nutzer', 'user_termin', $_POST['user_termin']);
+    $Table .= table_form_terminangebote_user('Terminangebot wählen', 'terminangebot_add_termin', $_POST['terminangebot_add_termin']);
+    $Table .= table_row_builder(table_header_builder('Den genauen Zeitpunkt wählst du dann im zweiten Schritt;)').table_data_builder(form_button_builder('add_termin', 'Hinzufügen', 'action', 'send')));
+    $Content = table_builder($Table);
+    $Content = form_builder($Content, './add_termin.php?mode=wart', 'post');
+
+    return collapsible_item_builder($Titel, $Content, $Icon);
+
 }
 
 ?>

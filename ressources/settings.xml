@@ -69,6 +69,7 @@
     <tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>3</tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>
     <erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>2</erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>
     <moegliche_schluesselorte>rueckgabekasten,vermisst,verloren</moegliche_schluesselorte>
+    <termin_typen>Geldrückgabe,andere</termin_typen>
     <kritischer-abstand-storno-vor-beginn>60</kritischer-abstand-storno-vor-beginn>
     <wochen-vergangenheit-durchgefuehrte-uebergaben>2</wochen-vergangenheit-durchgefuehrte-uebergaben>
     <schluesseluebernahme-ueber-mehrere-res>false</schluesseluebernahme-ueber-mehrere-res>
@@ -77,6 +78,7 @@
     <erinnerung-schluessel-zurueckgeben-intervall-beginn>2</erinnerung-schluessel-zurueckgeben-intervall-beginn>
     <erinnerung-schluessel-zurueckgeben-intervall-groesse>2</erinnerung-schluessel-zurueckgeben-intervall-groesse>
     <stunden-bis-uebergabe-eingetragen-sein-soll>6</stunden-bis-uebergabe-eingetragen-sein-soll>
+    <grill-global-aktiv>false</grill-global-aktiv>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>

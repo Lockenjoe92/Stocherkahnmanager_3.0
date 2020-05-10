@@ -760,20 +760,32 @@ function termin_listenelement_generieren($IDtermin){
     $Abfrage = mysqli_query($link, $Anfrage);
     $Termin = mysqli_fetch_assoc($Abfrage);
 
-    $Wart = lade_user_meta($Termin['wart']);
+    $Creator = lade_user_meta($Termin['create_user']);
+    $User = lade_user_meta($Termin['user']);
+    $Ausgleich = lade_ausgleich($Termin['id_grund']);
+    $BisherigeAuszahlungen = lade_gezahlte_betraege_ausgleich($Termin['id_grund']);
+    if($Termin['grund']=='ausgleich'){
+        $Class="Geldrückzahlung";
+    } elseif ($Termin['grund']=='grill_out'){
+        $Class="Grillübergabe";
+    } elseif ($Termin['grund']=='grill_return'){
+        $Class="Grillrückgabe";
+    } else {
+        $Class=$Termin['grund'];
+    }
 
     //Textinhalte generieren
     $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Termin['zeitpunkt']))."</b>";
 
     //Ausgabe
     $HTML = "<li>";
-    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>label_outline</i>Termin: </div>";
+    $HTML .= "<div class='collapsible-header'><i class='large material-icons'>label_outline</i>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Termin['zeitpunkt']))." - ".$Class.": ".$User['vorname']."</div>";
     $HTML .= "<div class='collapsible-body'>";
     $HTML .= "<ul class='collection'>";
-    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>class</i>";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>class</i> ".$Class."";
     $HTML .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
-    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> ";
-    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Wart['vorname']." ".$Wart['nachname']."";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> Bisherige Zahlungen ".$BisherigeAuszahlungen."&euro;";
+    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Creator['vorname']." ".$Creator['nachname']."";
     $HTML .= "<li class='collection-item'> <a href='termin_bearbeiten.php'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
     $HTML .= "</ul>";
     $HTML .= "</div>";
@@ -1299,6 +1311,55 @@ function spontanuebergabe_listenelement_generieren(){
     $HTML = collapsible_item_builder('Spontanübergabe', $HTML, 'star');
 
     return $HTML;
+}
+
+function termin_anlegen($User, $Wart, $Terminangebot, $Zeitpunkt, $Reason, $ReasonID='', $Comment=''){
+    $link = connect_db();
+
+    //Last doublecheck:
+    if (!($stmt = $link->prepare("SELECT id FROM termine WHERE user = ? AND wart = ? AND terminangebot = ? AND zeitpunkt = ? AND grund = ? AND kommentar = ? AND storno_user = 0"))) {
+        $Antwort['success'] = false;
+        $Antwort['meldung'] = "Datenbankfehler!";
+        #echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("iiisss", $User, $Wart, $Terminangebot, $Zeitpunkt, $Reason, $Kommentar)) {
+        $Antwort['success'] = false;
+        $Antwort['meldung'] = "Datenbankfehler!";
+        #echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['success'] = false;
+        $Antwort['meldung'] = "Datenbankfehler!";
+        #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    } else {
+        $Res = $stmt->get_result();
+        $Nums = mysqli_num_rows($Res);
+        if($Nums==0){
+            if (!($stmt = $link->prepare("INSERT INTO termine (user, wart, terminangebot, zeitpunkt, create_time, create_user, grund, id_grund, kommentar) VALUES (?,?,?,?,?,?,?,?,?)"))) {
+                $Antwort['success'] = false;
+                $Antwort['meldung'] = "Datenbankfehler!";
+                #echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+            }
+            if (!$stmt->bind_param("iiissisis", $User, $Wart, $Terminangebot, $Zeitpunkt, timestamp(), lade_user_id(), $Reason, $ReasonID, $Comment)) {
+                $Antwort['success'] = false;
+                $Antwort['meldung'] = "Datenbankfehler!";
+                echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            }
+            if (!$stmt->execute()) {
+                $Antwort['success'] = false;
+                $Antwort['meldung'] = "Datenbankfehler!";
+                #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            } else {
+                $Antwort['success'] = true;
+                $Antwort['meldung'] = "Termin erfolgreich angelegt!";
+            }
+        } else {
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = "Ein identischer Termin liegt bereits vor!";
+        }
+    }
+
+    return $Antwort;
 }
 
 ?>
