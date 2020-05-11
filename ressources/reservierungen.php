@@ -564,9 +564,9 @@ function reservierung_stornieren($ReservierungID, $IDstornierer, $Begruendung){
                 if ($IDstornierer != $Reservierung['user']){
 
                     $User = lade_user_meta($Reservierung['user']);
-                    $Bausteine['vorname_user'] = $User['vorname'];
-                    $Bausteine['datum'] = strftime("%A, %d. %B %G", strtotime($Reservierung['beginn']));
-                    $Bausteine['begruendung'] = $Begruendung;
+                    $Bausteine['[vorname_user]'] = $User['vorname'];
+                    $Bausteine['[datum]'] = strftime("%A, %d. %B %G", strtotime($Reservierung['beginn']));
+                    $Bausteine['[begruendung]'] = $Begruendung;
 
                     mail_senden('storno-reservierung', $User['mail'], $Bausteine);
                 }
@@ -575,6 +575,10 @@ function reservierung_stornieren($ReservierungID, $IDstornierer, $Begruendung){
 
             //Finanzkram:
             $ForderungenRes = lade_offene_forderung_res($Reservierung['id']);
+            $Einnahmen = lade_einnahmen_forderung($ForderungenRes['id']);
+            if($Einnahmen>0){
+                ausgleich_hinzufuegen_res($Reservierung['id'], $Einnahmen, 19);
+            }
             forderung_stornieren($ForderungenRes['id']);
 
             $Antwort['success'] = TRUE;
@@ -1109,6 +1113,22 @@ function lade_offene_forderung_res($ResID){
     return $Array;
 }
 
+function lade_einnahmen_forderung($ForderungID){
+
+    $link = connect_db();
+    $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_einnahmen WHERE forderung_id = '".$ForderungID."' AND storno_user = '0'";
+    $AbfrageSucheNachZahlungen = mysqli_query($link, $AnfrageSucheNachZahlungen);
+    $AnzahlSucheNachZahlungen = mysqli_num_rows($AbfrageSucheNachZahlungen);
+
+    $Einnahmenzaehler = 0;
+    for ($b = 1; $b <= $AnzahlSucheNachZahlungen; $b++){
+        $Zahlung = mysqli_fetch_assoc($AbfrageSucheNachZahlungen);
+        $Einnahmenzaehler = $Einnahmenzaehler + $Zahlung['betrag'];
+    }
+
+    return $Einnahmenzaehler;
+}
+
 function lade_offene_ausgleiche_res($ResID){
 
     $link = connect_db();
@@ -1118,11 +1138,9 @@ function lade_offene_ausgleiche_res($ResID){
     $AnfrageLadeForderungen = "SELECT * FROM finanz_ausgleiche WHERE referenz_res = '$ResID' AND storno_user = '0'";
     $AbfrageLadeForderungen = mysqli_query($link, $AnfrageLadeForderungen);
     $AnzahlLadeForderungen = mysqli_num_rows($AbfrageLadeForderungen);
-
     for ($a = 1; $a <= $AnzahlLadeForderungen; $a++){
 
         $Ausgleich = mysqli_fetch_assoc($AbfrageLadeForderungen);
-
         $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_ausgaben WHERE ausgleich_id = '".$Ausgleich['id']."' AND storno_user = '0'";
         $AbfrageSucheNachZahlungen = mysqli_query($link, $AnfrageSucheNachZahlungen);
         $AnzahlSucheNachZahlungen = mysqli_num_rows($AbfrageSucheNachZahlungen);
@@ -1199,12 +1217,16 @@ function kosten_reservierung($ReservierungID){
     return $Kosten;
 }
 
-function lade_alle_reservierungen_eines_users($UserID){
+function lade_alle_reservierungen_eines_users($UserID, $IgnoreStorno=false){
 
     $link = connect_db();
     $AnfangDesJahres = date("Y")."-01-01 00:00:00";
     $Ergebnis = array();
-    $Anfrage = "SELECT * FROM reservierungen WHERE user = '".$UserID."' AND storno_user = '0' AND beginn > '$AnfangDesJahres' ORDER BY beginn ASC";
+    if($IgnoreStorno){
+        $Anfrage = "SELECT * FROM reservierungen WHERE user = '".$UserID."' AND beginn > '$AnfangDesJahres' ORDER BY beginn ASC";
+    } else {
+        $Anfrage = "SELECT * FROM reservierungen WHERE user = '".$UserID."' AND storno_user = '0' AND beginn > '$AnfangDesJahres' ORDER BY beginn ASC";
+    }
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
     for ($a = 1; $a <= $Anzahl; $a++){

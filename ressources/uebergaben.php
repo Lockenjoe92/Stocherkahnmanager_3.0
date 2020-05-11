@@ -762,31 +762,45 @@ function termin_listenelement_generieren($IDtermin){
 
     $Creator = lade_user_meta($Termin['create_user']);
     $User = lade_user_meta($Termin['user']);
-    $Ausgleich = lade_ausgleich($Termin['id_grund']);
-    $BisherigeAuszahlungen = lade_gezahlte_betraege_ausgleich($Termin['id_grund']);
+
+    //Textinhalte generieren
+    $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Termin['zeitpunkt']))."</b>";
+
     if($Termin['grund']=='ausgleich'){
+        $Ausgleich = lade_offene_ausgleiche_res($Termin['id_grund']);
+        $Forderung = lade_forderung_res($Termin['id_grund']);
+        $Auszahlung = lade_einnahmen_forderung($Forderung['id']);
+        $BisherigeAuszahlungen = lade_gezahlte_betraege_ausgleich($Ausgleich['id']);
+
         $Class="Geldrückzahlung";
+        $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> ".$Class."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> Auszahlbetrag: ".$Auszahlung."&euro;";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> Bisherige Auszahlungen: ".$BisherigeAuszahlungen."&euro;";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Creator['vorname']." ".$Creator['nachname']."";
+        $Content .= "<li class='collection-item'> <a href='termin_abhaken.php'><i class='tiny material-icons'>check</i> abhaken</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
     } elseif ($Termin['grund']=='grill_out'){
         $Class="Grillübergabe";
     } elseif ($Termin['grund']=='grill_return'){
         $Class="Grillrückgabe";
     } else {
         $Class=$Termin['grund'];
+        $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> ".$Class."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Creator['vorname']." ".$Creator['nachname']."";
+        $Content .= "<li class='collection-item'> <a href='termin_abhaken.php'><i class='tiny material-icons'>check</i> abhaken</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
     }
 
-    //Textinhalte generieren
-    $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Termin['zeitpunkt']))."</b>";
+
 
     //Ausgabe
     $HTML = "<li>";
     $HTML .= "<div class='collapsible-header'><i class='large material-icons'>label_outline</i>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Termin['zeitpunkt']))." - ".$Class.": ".$User['vorname']."</div>";
     $HTML .= "<div class='collapsible-body'>";
     $HTML .= "<ul class='collection'>";
-    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>class</i> ".$Class."";
-    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
-    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> Bisherige Zahlungen ".$BisherigeAuszahlungen."&euro;";
-    $HTML .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Creator['vorname']." ".$Creator['nachname']."";
-    $HTML .= "<li class='collection-item'> <a href='termin_bearbeiten.php'><i class='tiny material-icons'>mode_edit</i> bearbeiten</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
+    $HTML .= $Content;
     $HTML .= "</ul>";
     $HTML .= "</div>";
     $HTML .= "</li>";

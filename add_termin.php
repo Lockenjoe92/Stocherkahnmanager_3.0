@@ -41,7 +41,7 @@ echo site_body($HTML);
 
 
 function add_termin_parser($Mode){
-    var_dump($_POST);
+    #var_dump($_POST);
 
     $DAUcounter = 0;
     $DAUmessage = '';
@@ -115,6 +115,8 @@ function add_termin_parser($Mode){
                 //add andere terminangebote
                 if($_POST['type_termin']=='andere'){
                     $Antwort = termin_anlegen($_POST['user_termin'], lade_user_id(), $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], $_POST['type_termin_eigen'], '', $Kommentar);
+                } elseif ($_POST['type_termin']=='Geldrückgabe'){
+                    $Antwort = termin_anlegen($_POST['user_termin'], lade_user_id(), $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], 'ausgleich', $_POST['res_termin_rueckzahlung'], $Kommentar);
                 }
             }
         }

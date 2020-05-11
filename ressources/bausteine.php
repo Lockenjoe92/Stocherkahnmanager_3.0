@@ -1122,24 +1122,25 @@ function table_form_res_mit_ausgleichen($Titel, $NameElement, $UserID, $Selected
         $Ausgabe .= "<option value=''>wählen</option>";
     }
 
-    $Reservierungen = lade_alle_reservierungen_eines_users($UserID);
+    $Reservierungen = lade_alle_reservierungen_eines_users($UserID, true);
     foreach ($Reservierungen as $Reservierung){
         $Ausgleiche = lade_offene_ausgleiche_res($Reservierung['id']);
         if(sizeof($Ausgleiche)>0){
             $Rueckzahlungswert = 0;
             foreach ($Ausgleiche as $Ausgleich){
+                #var_dump($Ausgleich);
                 $Auszahlung = lade_gezahlte_betraege_ausgleich($Ausgleich['id']);
                 if($Auszahlung<$Ausgleich['betrag']){
                     $Rueckzahlungswert += $Ausgleich['betrag']-$Auszahlung;
                 }
             }
-        }
-        if($Rueckzahlungswert>0){
-            $TimeInfos = strftime("%A, %d. %B %G * %H:%M - ", strtotime($Reservierung['beginn'])).strftime("%H:%M Uhr", strtotime($Reservierung['ende']));
-            if($Reservierung['id'] == $Selected){
-                $Ausgabe .= "<option value='".$Reservierung['id']."' selected>".$TimeInfos." ".$Rueckzahlungswert."&euro;</option>";
-            } else {
-                $Ausgabe .= "<option value='".$Reservierung['id']."'>".$TimeInfos." ".$Rueckzahlungswert."&euro;</option>";
+            if($Rueckzahlungswert>0){
+                $TimeInfos = strftime("%A, %d. %B %G * %H:%M - ", strtotime($Reservierung['beginn'])).strftime("%H:%M Uhr", strtotime($Reservierung['ende']));
+                if($Reservierung['id'] == $Selected){
+                    $Ausgabe .= "<option value='".$Reservierung['id']."' selected>".$TimeInfos." ".$Rueckzahlungswert."&euro;</option>";
+                } else {
+                    $Ausgabe .= "<option value='".$Reservierung['id']."'>".$TimeInfos." ".$Rueckzahlungswert."&euro;</option>";
+                }
             }
         }
     }
