@@ -477,9 +477,9 @@ function reservierung_stornieren($ReservierungID, $IDstornierer, $Begruendung){
     $DAUcounter = 0;
     $DAUerror = "";
 
-    if ($Benutzer['ist_wart'] == TRUE){
+    if ($Benutzer['ist_wart'] == 'true'){
 
-        if ($Reservierung['storno_user'] == "1"){
+        if ($Reservierung['storno_user'] != "0"){
             $DAUcounter++;
             $DAUerror .= "Die Reservierung wurde bereits storniert!<br>";
         }
@@ -491,7 +491,7 @@ function reservierung_stornieren($ReservierungID, $IDstornierer, $Begruendung){
             $DAUerror .= "Du kannst deine Reservierung nach Fahrtbeginn nicht mehr stornieren!<br>";
         }
 
-        if ($Reservierung['storno_user'] == "1"){
+        if ($Reservierung['storno_user'] != "0"){
             $DAUcounter++;
             $DAUerror .= "Die Reservierung wurde bereits storniert!<br>";
         }
@@ -755,7 +755,7 @@ function zahlungswesen($ID){
         //Bekommt er gar etwas zurück?
         if (sizeof($OffeneAusgleiche) > 0){
 
-            $Antwort = "<b>Du bekommst f&uuml;r die Fahrt noch Geld zur&uuml;ck!</b><br>Mache hier einen <a href='treffen_ausmachen.php?reason=rueckgabe'>Termin f&uuml;r eine Geldr&uuml;ckgabe</a> aus. Ansonsten kannst du das auch mit deiner n&auml;chsten Fahrt verrechnen.";
+            $Antwort = "<b>Du bekommst f&uuml;r die Fahrt noch Geld zur&uuml;ck!</b><br>Mache hier einen <a href='add_termin.php?mode=user&reason=rueckgabe&res=".$ID."'>Termin f&uuml;r eine Geldr&uuml;ckgabe</a> aus. Ansonsten kannst du das auch mit deiner n&auml;chsten Fahrt verrechnen.";
 
         } else {
             $Antwort = "Du musst nichts mehr bezahlen!";

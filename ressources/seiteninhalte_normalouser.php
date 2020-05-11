@@ -93,8 +93,8 @@ function eigene_reservierungen_user(){
                     if ($CounterMussNochWasAngezeigtWerden > 0) {
 
                         $CollpsibleHeader = "Resvierung #" . $Reservierung['id'] . " - " . $DatumHeader . " +++ STORNIERT +++";
-                        $TableRows = table_row_builder(table_header_builder('payment') . table_data_builder(zahlungswesen($Reservierung['id'])));
-                        $TableRows .= table_row_builder(table_header_builder('vpn_key') . table_data_builder(schluesselwesen($Reservierung['id'])));
+                        $TableRows = table_row_builder(table_header_builder('Zahlungswesen') . table_data_builder(zahlungswesen($Reservierung['id'])));
+                        $TableRows .= table_row_builder(table_header_builder('Schlüssel') . table_data_builder(schluesselwesen($Reservierung['id'])));
                         $CollapsibleContent = table_builder($TableRows);
                         $CollapsibleItems .= collapsible_item_builder($CollpsibleHeader, $CollapsibleContent, 'label_outline');
 

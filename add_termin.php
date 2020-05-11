@@ -2,10 +2,29 @@
 
 include_once "./ressources/ressourcen.php";
 $Mode = $_GET['mode'];
+$Reason = $_GET['reason'];
+$Res = $_GET['res'];
 if($Mode=='wart'){
     session_manager('ist_wart');
 } elseif ($Mode=='user'){
-    session_manager();
+    if($Reason=='rueckgabe'){
+        if(intval($Res)>0){
+            $ResInfos = lade_reservierung($Res);
+            $UserID = lade_user_id();
+            if($ResInfos['user']==$UserID){
+                session_manager();
+            } else {
+                header('Location: my_reservations.php');
+                die();
+            }
+        } else {
+            header('Location: my_reservations.php');
+            die();
+        }
+    } else {
+        header('Location: my_reservations.php');
+        die();
+    }
 } else {
     header('Location: my_reservations.php');
     die();
@@ -18,7 +37,11 @@ $HTML = section_builder("<h1 class='center-align'>Termin ausmachen</h1>");
 $Parser = add_termin_parser($Mode);
 
 if($Parser['success']===null){
-    $HTML .= add_termin_form2($Mode);
+    if($Mode=='wart'){
+        $HTML .= add_termin_form2($Mode);
+    }elseif (($Mode=='user')AND(($Reason=='rueckgabe'))){
+        $HTML .= add_geldrueckgabetermin_user_form($ResInfos, $UserID, $Parser);
+    }
 }elseif($Parser['success']===true){
     if($Mode=='wart'){
         $HTML .= zurueck_karte_generieren(true, $Parser['meldung'], 'termine.php');
@@ -104,9 +127,45 @@ function add_termin_parser($Mode){
         }
     }
 
+    if($Mode=='user'){
+        if(isset($_POST['user_add_rueckzahlung_first'])){
+            if($_POST['terminangebot_add_termin']==''){
+                $DAUcounter++;
+                $DAUmessage .= 'Bitte wähle eines der Terminangebote aus, an dem du dich treffen willst!<br>';
+            }
+            if($_POST['res_termin_rueckzahlung']==''){
+                $DAUcounter++;
+                $DAUmessage .= 'Bitte wähle eine deiner Reservierungen aus, bei deinen du eine Geldrückgabe ausmachen willst!<br>';
+            }
+        }
+        if(isset($_POST['user_add_rueckzahlung_final'])){
+            if($_POST['terminangebot_add_termin']==''){
+                $DAUcounter++;
+                $DAUmessage .= 'Bitte wähle eines der Terminangebote aus, an dem du dich treffen willst!<br>';
+            }
+            if($_POST['res_termin_rueckzahlung']==''){
+                $DAUcounter++;
+                $DAUmessage .= 'Bitte wähle eine deiner Reservierungen aus, bei deinen du eine Geldrückgabe ausmachen willst!<br>';
+            }
+            if($_POST['termin_uhrzeit_select']==''){
+                $DAUcounter++;
+                $DAUmessage .= 'Bitte wähle ein Zeitfenster des Terminangebots aus, an dem du dich treffen willst!<br>';
+            }
+            if($_POST['kommentar_termin']==''){
+                $Kommentar = ' ';
+            } else {
+                $Kommentar = $_POST['kommentar_termin'];
+            }
+        }
+    }
     if($DAUcounter>0){
-        $Antwort['success'] = false;
-        $Antwort['meldung'] = $DAUmessage;
+        if(isset($_POST['user_add_rueckzahlung_first'])){
+            $Antwort['success'] = null;
+            $Antwort['meldung'] = $DAUmessage;
+        } else {
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = $DAUmessage;
+        }
     } else {
         if(!isset($_POST['second_form_button'])){
             $Antwort['success'] = null;
@@ -118,6 +177,17 @@ function add_termin_parser($Mode){
                 } elseif ($_POST['type_termin']=='Geldrückgabe'){
                     $Antwort = termin_anlegen($_POST['user_termin'], lade_user_id(), $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], 'ausgleich', $_POST['res_termin_rueckzahlung'], $Kommentar);
                 }
+            }
+        }
+        if ($Mode=='user'){
+            if(isset($_POST['user_add_rueckzahlung_first'])){
+                $Antwort['success'] = null;
+                $Antwort['meldung'] = 'Prima! Wähle jetzt bitte eine konrete Zeit zum Treffen aus:)';
+            }
+            if(isset($_POST['user_add_rueckzahlung_final'])){
+                $Reservierung = lade_reservierung($_POST['res_termin_rueckzahlung']);
+                $Terminangebot = lade_terminangebot($_POST['terminangebot_add_termin']);
+                $Antwort = termin_anlegen($Reservierung['user'], $Terminangebot['wart'], $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], 'ausgleich', $_POST['res_termin_rueckzahlung'], $Kommentar);
             }
         }
     }
@@ -151,10 +221,30 @@ function add_termin_form2($Mode){
         $Table = form_builder(table_builder($Table), '#','post');
     }
 
-
-
-
-
-
     return $Table;
+}
+
+function add_geldrueckgabetermin_user_form($ResInfos, $UserID, $Parser){
+
+    zeitformat();
+
+    $Table = table_form_string_item('Termintyp', 'type_termin', 'Geldrückgabe', true);
+    #$Table .= table_form_res_mit_ausgleichen('Mögliche Reservierungen für die du Geld zurückbekommen kannst', 'res_termin_rueckzahlung', $UserID, $ResInfos['id']);
+    $Table .= table_form_terminangebote_fuer_termine('Termin zur Geldrückgabe wählen', 'terminangebot_add_termin', $_POST['terminangebot_add_termin']);
+    if($_POST['terminangebot_add_termin']!=''){
+        $Table .= table_form_dropdown_terminzeitfenster_generieren('Terminzeitpunkt auswählen', 'termin_uhrzeit_select', $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select']);
+    } else {
+        $Table .= table_row_builder(table_header_builder('Genauen Terminzeitpunkt auswählen').table_data_builder('Bitte wähle zuerst ein Terminangebot aus und klicke unten auf Bestätigen:)'));
+    }
+    $Table .= table_form_string_item('Kommentar', 'kommentar_termin', $_POST['kommentar_termin'], '');
+    if($_POST['terminangebot_add_termin']!='') {
+        $Table .= table_row_builder(table_header_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', '') . "&nbsp;" . form_button_builder('user_add_rueckzahlung_final', 'Anlegen', 'action', 'send')) . table_data_builder('<input type="hidden" name="res_termin_rueckzahlung" value="'.$ResInfos['id'].'">'));
+    } else {
+        $Table .= table_row_builder(table_header_builder(button_link_creator('Zurück', './my_reservations.php', 'arrow_back', '') . "&nbsp;" . form_button_builder('user_add_rueckzahlung_first', 'Bestätigen', 'action', 'send')) . table_data_builder('<input type="hidden" name="res_termin_rueckzahlung" value="'.$ResInfos['id'].'">'));
+    }
+    $HTML = "";
+    $HTML .= "<h4 class='center-align'>".$Parser['meldung']."</h4>";
+    $HTML .= form_builder(table_builder($Table), '#','post');
+
+    return $HTML;
 }

@@ -1110,6 +1110,51 @@ function table_form_terminangebote_user($Titel, $NameElement, $Selected){
 
 }
 
+function table_form_terminangebote_fuer_termine($Titel, $NameElement, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    //Startwert
+    if($Selected == ''){
+        $Ausgabe .= "<option value='' selected>wählen</option>";
+    } else {
+        $Ausgabe .= "<option value=''>wählen</option>";
+    }
+
+    $link = connect_db();
+    $HrsMaxBeforeTermin = lade_xml_einstellung('max-stunden-vor-abfahrt-buchbar');
+    $Grenztimestamp = date("Y-m-d G:i:s", strtotime('+ '.$HrsMaxBeforeTermin.' hours'));
+    $Anfrage = "SELECT id, von, bis, terminierung FROM terminangebote WHERE bis > '".$Grenztimestamp."' AND storno_user = 0 ORDER BY von ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    for ($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        if($Ergebnis['terminierung']=='0000-00-00 00:00:00'){
+            $TimeInfos = strftime("%A, %d. %B %G * %H:%M - ", strtotime($Ergebnis['von'])).strftime("%H:%M Uhr", strtotime($Ergebnis['bis']));
+            if($Ergebnis['id'] == $Selected){
+                $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$TimeInfos."</option>";
+            } else {
+                $Ausgabe .= "<option value='".$Ergebnis['id']."'>".$TimeInfos."</option>";
+            }
+        } else {
+            if(strtotime($Ergebnis['terminierung'])>strtotime('+ '.$HrsMaxBeforeTermin.' hours')){
+                $TimeInfos = strftime("%A, %d. %B %G * %H:%M - ", strtotime($Ergebnis['von'])).strftime("%H:%M Uhr", strtotime($Ergebnis['bis']));
+                if($a == $Selected){
+                    $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$TimeInfos."</option>";
+                } else {
+                    $Ausgabe .= "<option value='".$Ergebnis['id']."'>".$TimeInfos."</option>";
+                }
+            }
+        }
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+
+}
+
 function table_form_res_mit_ausgleichen($Titel, $NameElement, $UserID, $Selected){
 
     $Ausgabe = "<tr><th>".$Titel."</th><td>";
