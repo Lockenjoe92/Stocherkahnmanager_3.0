@@ -779,7 +779,7 @@ function termin_listenelement_generieren($IDtermin){
         $Content .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> Bisherige Auszahlungen: ".$BisherigeAuszahlungen."&euro;";
         $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
         $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Creator['vorname']." ".$Creator['nachname']."";
-        $Content .= "<li class='collection-item'> <a href='termin_abhaken.php'><i class='tiny material-icons'>check</i> abhaken</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
+        $Content .= "<li class='collection-item'> <a href='termin_abhaken.php?termin=".$Termin['id']."'><i class='tiny material-icons'>check</i> abhaken</a> <a href='termin_loeschen.php?termin=".$Termin['id']."'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
     } elseif ($Termin['grund']=='grill_out'){
         $Class="Grillübergabe";
     } elseif ($Termin['grund']=='grill_return'){
@@ -790,7 +790,7 @@ function termin_listenelement_generieren($IDtermin){
         $Content .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
         $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
         $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> Erstellt von ".$Creator['vorname']." ".$Creator['nachname']."";
-        $Content .= "<li class='collection-item'> <a href='termin_abhaken.php'><i class='tiny material-icons'>check</i> abhaken</a> <a href='termin_loeschen.php'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
+        $Content .= "<li class='collection-item'> <a href='termin_abhaken.php?termin=".$Termin['id']."'><i class='tiny material-icons'>check</i> abhaken</a> <a href='termin_loeschen.php?termin=".$Termin['id']."'><i class='tiny material-icons'>delete</i> l&ouml;schen</a>";
     }
 
 
@@ -1376,4 +1376,28 @@ function termin_anlegen($User, $Wart, $Terminangebot, $Zeitpunkt, $Reason, $Reas
     return $Antwort;
 }
 
+function lade_termin($IDtermin){
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM termine WHERE id = '$IDtermin'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Termin = mysqli_fetch_assoc($Abfrage);
+
+    return $Termin;
+}
+
+function termin_durchfuehren($TerminID){
+
+    $link = connect_db();
+    $Anfrage = "UPDATE termine SET durchfuehrung = '".timestamp()."' WHERE id = ".$TerminID."";
+    if(mysqli_query($link, $Anfrage)){
+        $Antwort['success'] = true;
+        $Antwort['meldung'] = 'Durchführung erfolgreich festgehalten!';
+    } else {
+        $Antwort['success'] = false;
+        $Antwort['meldung'] = 'Datenbankfehler!';
+    }
+
+    return $Antwort;
+}
 ?>
