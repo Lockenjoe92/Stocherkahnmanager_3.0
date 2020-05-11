@@ -63,9 +63,11 @@ function termin_loeschen_formular($TerminID, $Mode){
         $Class=$Termin['grund'];
     }
 
-    $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> Grund: ".$Class."";
+    $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> Grund für den Termin: ".$Class."";
     $Content .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
-    $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> User: ".$User['vorname']." ".$User['nachname']."";
+    if($Mode=='wart'){
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> User: ".$User['vorname']." ".$User['nachname']."";
+    }
     $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
     $Content = collection_builder($Content);
     $Content = section_builder($Content);

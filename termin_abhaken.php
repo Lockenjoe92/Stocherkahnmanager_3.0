@@ -34,6 +34,8 @@ function parser_termin_abhaken_ueser($TerminID){
 
     if(isset($_POST['action_andere'])){
         $Antwort = termin_durchfuehren($TerminID);
+    } elseif (isset($_POST['rueckzahlung'])){
+        $Antwort = rueckzahlung_ausgleich_durchfuehren($TerminID, $_POST['ausgabe_summe']);
     }
 
     return $Antwort;
@@ -47,7 +49,23 @@ function termin_abhaken_formular($TerminID){
     $User = lade_user_meta($Termin['user']);
 
     if($Termin['grund']=='ausgleich'){
-        $Content = 'Ausgleich';
+        $Ausgleich = lade_offene_ausgleiche_res($Termin['id_grund']);
+        $Forderung = lade_forderung_res($Termin['id_grund']);
+        $Auszahlung = lade_einnahmen_forderung($Forderung['id']);
+        $BisherigeAuszahlungen = lade_gezahlte_betraege_ausgleich($Ausgleich['id']);
+
+        $Class="Geldrückzahlung";
+        $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> ".$Class."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> User: ".$User['vorname']." ".$User['nachname']."";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> Auszahlbetrag: ".$Auszahlung."&euro;";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>info_outline</i> Bisherige Auszahlungen: ".$BisherigeAuszahlungen."&euro;";
+        $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
+        $Content = section_builder($Content);
+        $Table = table_form_select_item('Ausgegebene Summe', 'ausgabe_summe', 0, lade_xml_einstellung('max-kosten-einer-reservierung'), $Auszahlung, '&euro;', '', '', '');
+        $Table .= table_row_builder(table_header_builder(button_link_creator('Zurück', 'termine.php', 'arrow_back', '')."&nbsp;".form_button_builder('rueckzahlung', 'Festhalten', 'action', 'send', '')).table_data_builder(''));
+        $Table = table_builder($Table);
+        $Content .= section_builder(form_builder($Table, '#', 'post'));
     } else {
         $Class=$Termin['grund'];
         $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> Grund: ".$Class."";

@@ -130,6 +130,17 @@ function lade_konto_user($User){
     return $Konto;
 }
 
+function lade_konto_via_id($ID){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM finanz_konten WHERE id = '$ID'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Konto = mysqli_fetch_assoc($Abfrage);
+
+    return $Konto;
+}
+
 function lade_einnahme($IDeinnahme){
 
     $link = connect_db();
@@ -328,4 +339,55 @@ function lade_ausgleich($IDausgleich){
     $Abfrage = mysqli_query($link, $Anfrage);
     $Termin = mysqli_fetch_assoc($Abfrage);
     return $Termin;
+}
+
+function rueckzahlung_ausgleich_durchfuehren($TerminID, $Summe){
+
+    $Termin = lade_termin($TerminID);
+    if($Termin['grund']!='ausgleich'){
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler';
+    } else {
+        $Ausgleich = lade_ausgleich($Termin['id_grund']);
+        $Konto = lade_konto_user(lade_user_id());
+        $Ausgabe = ausgabe_hinzufuegen($Summe, 19, $Ausgleich['id'], $Konto['id']);
+        if($Ausgabe['success']){
+            $Antwort = termin_durchfuehren($TerminID);
+        } else {
+            $Antwort = $Ausgabe;
+        }
+    }
+
+    return $Antwort;
+}
+
+function ausgabe_hinzufuegen($Betrag, $Steuersatz, $Ausgleich, $Konto){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("INSERT INTO finanz_ausgaben (betrag, steuersatz, ausgleich_id, konto_id, timestamp, bucher) VALUES (?,?,?,?,?,?)"))) {
+        #echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler';
+    }
+
+    if (!$stmt->bind_param("siiisi",$Betrag, $Steuersatz, $Ausgleich, $Konto, timestamp(), lade_user_id())) {
+        #echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler';
+    }
+
+    if (!$stmt->execute()) {
+        #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler';
+    } else {
+        $Kontoinfos = lade_konto_via_id($Konto);
+        $NeuerKontostand = $Kontoinfos['wert_aktuell']-$Betrag;
+        update_kontostand($Konto, $NeuerKontostand);
+
+        $Antwort['success']=true;
+        $Antwort['meldung']='Ausgabe erfolgreich festgehalten!';
+    }
+
+    return $Antwort;
 }
