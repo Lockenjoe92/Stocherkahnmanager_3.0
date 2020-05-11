@@ -1400,4 +1400,26 @@ function termin_durchfuehren($TerminID){
 
     return $Antwort;
 }
+
+function termin_loeschen($TerminID, $Kommentar){
+
+    $link = connect_db();
+    if($Kommentar==''){
+        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."' AND storno_user = '".lade_user_id()."' WHERE id = ".$TerminID."";
+    } else {
+        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."' AND storno_user = '".lade_user_id()."' AND storno_kommentar = '".$Kommentar."' WHERE id = ".$TerminID."";
+    }
+    if(mysqli_query($link, $Anfrage)){
+
+        //SEND SOME MAILS HERE
+
+        $Antwort['success'] = true;
+        $Antwort['meldung'] = 'Löschen erfolgreich festgehalten!';
+    } else {
+        $Antwort['success'] = false;
+        $Antwort['meldung'] = 'Datenbankfehler!';
+    }
+
+    return $Antwort;
+}
 ?>
