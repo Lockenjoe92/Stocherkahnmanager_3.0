@@ -16,19 +16,17 @@
 
         //EINSTELLUNGEN LADEN
 
-        $UserSMS = lade_einstellung('user-sms');
-        $PSWD = lade_einstellung('key-sms');
-        $Absender = lade_einstellung('absender-sms');
+        $UserSMS = lade_xml_einstellung('user-sms');
+        $PSWD = lade_xml_einstellung('key-sms');
+        $Absender = lade_xml_einstellung('absender-sms');
 
         //Mode laden, wenn NULL
         if ($Mode == NULL) {
-            $Mode = lade_einstellung('type-sms');
+            $Mode = lade_xml_einstellung('type-sms');
         }
 
         //USERDATEN LADEN
-        $AnfrageUserdatenLaden = "SELECT vorname, telefon FROM user WHERE id = '$EmpfaengerID'";
-        $AbfrageUserdatenLaden = mysqli_query($link, $AnfrageUserdatenLaden);
-        $User = mysqli_fetch_assoc($AbfrageUserdatenLaden);
+        $User = lade_user_meta($EmpfaengerID);
         $Telefon = $User['telefon'];
 
         $VorlageText = lade_smsvorlage($VorlageName);
@@ -37,7 +35,7 @@
         if ($WerteArray == NULL) {
             $TextZumSenden = $VorlageText;
         } else {
-            $TextZumSenden = string_replace($VorlageText, $WerteArray);
+            $TextZumSenden = str_replace(array_keys($WerteArray), array_values($WerteArray), $VorlageText);
         }
 
         //SMS GENERIEREN
