@@ -43,8 +43,8 @@ function parser_termin_loeschen_ueser($TerminID){
 
     $Antwort['success'] = null;
 
-    if(isset($_POST['action_andere_loeschen'])){
-        $Antwort = termin_loeschen($TerminID);
+    if(isset($_POST['action_loeschen'])){
+        $Antwort = termin_loeschen($TerminID, $_POST['termin_loeschen_kommentar']);
     }
 
     return $Antwort;
@@ -58,18 +58,19 @@ function termin_loeschen_formular($TerminID, $Mode){
     $User = lade_user_meta($Termin['user']);
 
     if($Termin['grund']=='ausgleich'){
-        $Content = 'Ausgleich';
+        $Class="Geldrückzahlung";
     } else {
         $Class=$Termin['grund'];
-        $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> Grund: ".$Class."";
-        $Content .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
-        $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> User: ".$User['vorname']." ".$User['nachname']."";
-        $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
-        $Content = collection_builder($Content);
-        $Content = section_builder($Content);
-        $Content .= section_builder(table_builder(table_row_builder(table_header_builder(button_link_creator('Zurück', 'termine.php', 'arrow_back', '')."&nbsp;".form_button_builder('action_andere_loeschen', 'Löschen', 'action', 'delete_forever')))));
-        $Content = form_builder($Content, '#', 'post');
     }
+
+    $Content = "<li class='collection-item'><i class='tiny material-icons'>class</i> Grund: ".$Class."";
+    $Content .= "<li class='collection-item'><i class='tiny material-icons'>schedule</i> ".$Zeitraum."";
+    $Content .= "<li class='collection-item'><i class='tiny material-icons'>perm_identity</i> User: ".$User['vorname']." ".$User['nachname']."";
+    $Content .= "<li class='collection-item'><i class='tiny material-icons'>comment</i> Kommentar: ".$Termin['kommentar']."";
+    $Content = collection_builder($Content);
+    $Content = section_builder($Content);
+    $Content .= section_builder(table_builder(table_row_builder(table_form_string_item('Kommentar zum Löschen angeben (optional)', 'termin_loeschen_kommentar', '', '')).table_row_builder(table_header_builder(button_link_creator('Zurück', 'termine.php', 'arrow_back', '')."&nbsp;".form_button_builder('action_loeschen', 'Löschen', 'action', 'delete_forever')).table_data_builder(''))));
+    $Content = form_builder($Content, '#', 'post');
 
     return $Content;
 }
