@@ -1150,13 +1150,11 @@ function lade_offene_ausgleiche_res($ResID){
             $Zahlung = mysqli_fetch_assoc($AbfrageSucheNachZahlungen);
             $Einnahmenzaehler = $Einnahmenzaehler + $Zahlung['betrag'];
         }
-
         if ($Ausgleich['betrag'] > $Einnahmenzaehler){
             //Forderung nicht vollständig getilgt!
-            array_push($Array, $Ausgleich);
+            if($a==1){$Array=$Ausgleich;}else{array_push($Array, $Ausgleich);}
         }
     }
-
     return $Array;
 }
 
