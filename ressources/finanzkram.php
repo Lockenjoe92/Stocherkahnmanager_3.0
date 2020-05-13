@@ -119,6 +119,22 @@ function lade_forderung_res($ResID){
     return $Forderung;
 }
 
+function lade_offene_forderungen_user($UserID){
+    $link = connect_db();
+    $ReturnArray = array();
+    $Anfrage = "SELECT * FROM finanz_forderungen WHERE von_user = '$UserID' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link,$Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    for($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        $Einnahmen = lade_einnahmen_forderung($Ergebnis['id']);
+        if($Einnahmen<$Ergebnis['forderung']){
+            array_push($ReturnArray, $Ergebnis);
+        }
+    }
+    return $ReturnArray;
+}
+
 function lade_konto_user($User){
 
     $link = connect_db();

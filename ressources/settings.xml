@@ -135,5 +135,6 @@
     <li class='collection-item'><table><tr><th><i class='small material-icons'>loyalty</i> </th><td>Da du deine Fahrt nicht pers&ouml;hnlich bei einem unserer W&auml;rte bezahlen kannst, verlassen wir uns darauf, dass du die Ausleihgeb&uuml;hr und den Schl&uuml;ssel zuverl&auml;ssig direkt nach deiner Fahrt in den R&uuml;ckgabebriefkasten wirfst.</td></tr></table></li>
     </ul></p>
     ]]></erklaerung_schluesseluebernahme>
+    <erklaerung-forderung-zahlen-user><![CDATA[ <ul><li>Werfe das Geld einfach in den Rückgabebriefkasten - denke bitte dabei das Geld zB in einen Umschlag zu packen und drauf zu schrieben von wem das Geld ist, damit wir es auch zuordnen können:)</li></ul> ]]></erklaerung-forderung-zahlen-user>
 
 </global_settings>

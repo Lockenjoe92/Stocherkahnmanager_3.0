@@ -3,9 +3,9 @@
 //STARTSEITE NORMALOUSER
 function seiteninhalt_normalouser_generieren(){
     $HTML = eigene_reservierungen_user();
+    $HTML .= anstehende_termine_user();
     $HTML .= faellige_schluesselrueckgaben_user();
     $HTML .= faellige_zahlungen_user();
-    $HTML .= moegliche_rueckzahlungen_user();
     return $HTML;
 }
 function eigene_reservierungen_user(){
@@ -217,11 +217,43 @@ function faellige_schluesselrueckgaben_user(){
 
     return $HTML;
 }
-function faellige_zahlungen_user(){
-    return null;
+function anstehende_termine_user(){
+
+    $link = connect_db();
+    $Anfrage = "SELECT id FROM termine WHERE user = ".lade_user_id()." AND storno_user = 0 AND durchfuehrung = '0000-00-00 00:00:00' ORDER BY zeitpunkt ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    if($Anzahl>0){
+        $Items='';
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            $Items .= termin_listenelement_user_generieren($Ergebnis['id']);
+        }
+        $HTML = '<h3 class="center-align">Anstehende Termine</h3>';
+        $HTML .= collapsible_builder($Items);
+        return $HTML;
+    } else {
+        return null;
+    }
 }
-function moegliche_rueckzahlungen_user(){
-    return null;
+function faellige_zahlungen_user(){
+
+    $Forderungen = lade_offene_forderungen_user(lade_user_id());
+    if(sizeof($Forderungen)>0){
+        $ReturnHTMLitems = '';
+        foreach ($Forderungen as $Forderung){
+            if($Forderung['referenz_res']=='0'){
+                $ReturnHTMLitems .= listenelement_offene_forderung_generieren($Forderung);
+            }
+        }
+
+        $HTML = '<h3>Offene Forderungen</h3>';
+        $HTML .= collapsible_builder($ReturnHTMLitems);
+        return $HTML;
+
+    }else{
+        return null;
+    }
 }
 function dokumente_listenelement_generieren(){
 
