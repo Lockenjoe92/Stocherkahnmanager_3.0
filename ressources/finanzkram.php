@@ -178,6 +178,47 @@ function lade_einnahme($IDeinnahme){
     return $Einnahme;
 }
 
+function lade_ausgabe($IDeinnahme){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM finanz_ausgaben WHERE id = '$IDeinnahme'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Einnahme = mysqli_fetch_assoc($Abfrage);
+
+    return $Einnahme;
+}
+
+function einnahme_loeschen($ID){
+    $link = connect_db();
+    $Einnahme = lade_einnahme($ID);
+    $Konto = lade_konto_via_id($Einnahme['konto_id']);
+    $Anfrage = "UPDATE finanz_einnahmen SET storno = '".timestamp()."', storno_user = ".lade_user_id()." WHERE id = '$ID'";
+    if(mysqli_query($link, $Anfrage)){
+        $NeuerKontostand = $Konto['akt_kontostand']-$Einnahme['betrag'];
+        return update_kontostand($Einnahme['konto_id'], $NeuerKontostand);
+    } else{
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler beim Löschen';
+        return $Antwort;
+    }
+}
+
+function ausgabe_loeschen($ID){
+    $link = connect_db();
+    $Ausgabe = lade_ausgabe($ID);
+    $Konto = lade_konto_via_id($Ausgabe['konto_id']);
+    $Anfrage = "UPDATE finanz_ausgaben SET storno = '".timestamp()."', storno_user = ".lade_user_id()." WHERE id = '$ID'";
+    if(mysqli_query($link, $Anfrage)){
+        $NeuerKontostand = $Konto['akt_kontostand']+$Ausgabe['betrag'];
+        return update_kontostand($Ausgabe['konto_id'], $NeuerKontostand);
+    } else{
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler beim Löschen';
+        return $Antwort;
+    }
+}
+
 function gesamteinnahmen_jahr($Jahr){
 
     $link = connect_db();
