@@ -31,13 +31,13 @@ function forderung_generieren($Betrag, $Steuersatz, $VonUser, $VonKonto, $Refere
     }
 
     //Forderung von
-    if ((!isset($VonUser)) AND (!isset($VonKonto))){
+    if (($VonUser=='') AND ($VonKonto=='')){
         $DAUcounter++;
         $DAUerror .= "Es muss angegeben sein an wen die Forderung gerichtet ist!<br>";
     }
 
     //Referenz
-    if ((!isset($Referenz)) AND (!isset($ReferenzReservierung))){
+    if (($Referenz=='') AND ($ReferenzReservierung=='')){
         $DAUcounter++;
         $DAUerror .= "Es muss eine Referenz angegeben sein!<br>";
     }

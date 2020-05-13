@@ -14,7 +14,7 @@ $HTML = section_builder("<h1 class='center-align'>Wartfinanzen</h1>");
 #ParserStuff
 $Parser = wartfinanzen_parser($UserID);
 if(isset($Parser['meldung'])){
-    $HTML .= "<h5>".$Parser['meldung']."</h5>";
+    $HTML .= "<h5 class='center-align'>".$Parser['meldung']."</h5>";
 }
 
 $HTML .= section_wartkasse($UserID);
@@ -39,6 +39,16 @@ function wartfinanzen_parser($UserID){
         }
         if(isset($_POST['delete_ausgabe_'.$a.''])){
             $Antwort = ausgabe_loeschen($a);
+        }
+    }
+
+    if(isset($_POST['action_add_forderung'])){
+        if(is_numeric($_POST['betrag'])){
+            $Till = $_POST['date'].' 00:00:01';
+            $Antwort = forderung_generieren($_POST['betrag'], $_POST['steuer'], $_POST['user'], '', '', $_POST['reason'], $Till, lade_user_id());
+        } else {
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = 'Bitte gib einen validen Betrag ein!';
         }
     }
 
@@ -130,5 +140,17 @@ function section_vergangene_transaktionen($UserID){
 }
 
 function section_forderung_an_user_anlegen($UserID){
-    return null;
+
+    $Table = table_form_string_item('Forderungsgrund', 'reason', $_POST['reason'], false);
+    $Table .= table_form_dropdown_menu_user('Von Nutzer', 'user', $_POST['user']);
+    $Table .= table_form_string_item('Betrag (Format: 12.34)', 'betrag', $_POST['betrag'], false);
+    $Table .= table_form_select_item('Steuersatz', 'steuer', 0, 99, 19, '%', '', '');
+    $Table .= table_form_datepicker_reservation_item('Zahlbar bis', 'date', $_POST['date'], false, true);
+    $Table .= table_row_builder(table_header_builder(form_button_builder('action_add_forderung', 'Anlegen', 'action', 'send')).table_data_builder(''));
+    $Table = table_builder($Table);
+
+    $HTML = "<h4>Forderung anlegen</h4>";
+    $HTML .= collapsible_builder(collapsible_item_builder('Forderung anlegen', $Table, 'add_new'));
+
+    return $HTML;
 }
