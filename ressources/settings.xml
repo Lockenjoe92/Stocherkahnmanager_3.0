@@ -72,6 +72,7 @@
     <termin_typen>Geldrückgabe,andere</termin_typen>
     <kritischer-abstand-storno-vor-beginn>60</kritischer-abstand-storno-vor-beginn>
     <wochen-vergangenheit-durchgefuehrte-uebergaben>2</wochen-vergangenheit-durchgefuehrte-uebergaben>
+    <wochen-vergangenheit-durchgefuehrte-transaktionen>2</wochen-vergangenheit-durchgefuehrte-transaktionen>
     <schluesseluebernahme-ueber-mehrere-res>false</schluesseluebernahme-ueber-mehrere-res>
     <erinnerung-uebergabe-ausmachen-1>3</erinnerung-uebergabe-ausmachen-1>
     <erinnerung-uebergabe-ausmachen-2>1</erinnerung-uebergabe-ausmachen-2>

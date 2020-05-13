@@ -146,6 +146,16 @@ function lade_konto_user($User){
     return $Konto;
 }
 
+function lade_forderung($ID){
+    $link = connect_db();
+
+    $Anfrage = "SELECT * FROM finanz_forderungen WHERE id = '$ID'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Konto = mysqli_fetch_assoc($Abfrage);
+
+    return $Konto;
+}
+
 function lade_konto_via_id($ID){
 
     $link = connect_db();
