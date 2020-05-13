@@ -1090,6 +1090,7 @@ function table_form_terminangebote_user($Titel, $NameElement, $Selected){
         $Ausgabe .= "<option value=''>wählen</option>";
     }
 
+    zeitformat();
     $link = connect_db();
     $Anfrage = "SELECT id, von, bis FROM terminangebote WHERE wart = '".lade_user_id()."' AND bis > '".timestamp()."' AND storno_user = 0";
     $Abfrage = mysqli_query($link, $Anfrage);
@@ -1122,6 +1123,7 @@ function table_form_terminangebote_fuer_termine($Titel, $NameElement, $Selected)
         $Ausgabe .= "<option value=''>wählen</option>";
     }
 
+    zeitformat();
     $link = connect_db();
     $HrsMaxBeforeTermin = lade_xml_einstellung('max-stunden-vor-abfahrt-buchbar');
     $Grenztimestamp = date("Y-m-d G:i:s", strtotime('+ '.$HrsMaxBeforeTermin.' hours'));

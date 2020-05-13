@@ -1404,15 +1404,29 @@ function termin_durchfuehren($TerminID){
 function termin_loeschen($TerminID, $Kommentar){
 
     $link = connect_db();
+    $Termin = lade_termin($TerminID);
+    $AktUser = lade_user_id();
     if($Kommentar==''){
-        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."', storno_user = '".lade_user_id()."' WHERE id = ".$TerminID."";
+        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."', storno_user = '".$AktUser."' WHERE id = ".$TerminID."";
     } else {
-        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."', storno_user = '".lade_user_id()."', storno_kommentar = '".$Kommentar."' WHERE id = ".$TerminID."";
+        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."', storno_user = '".$AktUser."', storno_kommentar = '".$Kommentar."' WHERE id = ".$TerminID."";
     }
 
     if(mysqli_query($link, $Anfrage)){
 
         //SEND SOME MAILS HERE
+        if($Termin['user']==$AktUser){
+            //Mail an Wart
+            $MailUser = lade_user_meta($Termin['wart']);
+            $TerminUser = lade_user_meta($Termin['user']);
+            $Bausteine = array('[vorname_wart]'=>$MailUser['vorname'], '[zeitangabe_uebergabe]'=>strftime("%A, %d. %B %G", strtotime($Termin['zeitpunkt'])), '[angaben_user]'=>$TerminUser['vorname'].' '.$TerminUser['nachname'], '[kommentar_user]'=>$Kommentar);
+            mail_senden('termin-storniert-wart', $MailUser['mail'], $Bausteine);
+        } elseif ($Termin['wart']==$AktUser){
+            //Mail an User
+            $MailUser = lade_user_meta($Termin['user']);
+            $Bausteine = array('[vorname_user]'=>$MailUser['vorname'], '[zeitangabe_uebergabe]'=>strftime("%A, %d. %B %G", strtotime($Termin['zeitpunkt'])), '[begruendung_wart]'=>$Kommentar);
+            mail_senden('termin-storniert-user', $MailUser['mail'], $Bausteine);
+        }
 
         $Antwort['success'] = true;
         $Antwort['meldung'] = 'Löschen erfolgreich festgehalten!';
