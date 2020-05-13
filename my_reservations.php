@@ -13,8 +13,8 @@ $Header = "Reservierungen - " . lade_db_einstellung('site_name');
 
 #Generate content
 # Page Title
-$PageTitle = '<h1 class="hide-on-med-and-down">Willkommen im Buchungssystem!</h1>';
-$PageTitle .= '<h1 class="hide-on-large-only">Willkommen!</h1>';
+$PageTitle = '<h1 class="hide-on-med-and-down center-align">Willkommen im Buchungssystem!</h1>';
+$PageTitle .= '<h1 class="hide-on-large-only center-align">Willkommen!</h1>';
 $HTML .= section_builder($PageTitle);
 
 # Eigene Reservierungen Normalo-user

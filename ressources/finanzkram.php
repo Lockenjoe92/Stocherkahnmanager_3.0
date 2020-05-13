@@ -128,7 +128,7 @@ function lade_offene_forderungen_user($UserID){
     for($a=1;$a<=$Anzahl;$a++){
         $Ergebnis = mysqli_fetch_assoc($Abfrage);
         $Einnahmen = lade_einnahmen_forderung($Ergebnis['id']);
-        if($Einnahmen<$Ergebnis['forderung']){
+        if($Einnahmen<$Ergebnis['betrag']){
             array_push($ReturnArray, $Ergebnis);
         }
     }

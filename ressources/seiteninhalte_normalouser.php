@@ -33,7 +33,7 @@ function eigene_reservierungen_user(){
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
     } else {
 
-        $SectionHTML = "<h3>Deine Reservierungen</h3>";
+        $SectionHTML = "<h3 class='center-align'>Deine Reservierungen</h3>";
 
         $res = $stmt->get_result();
         $AnzahlLadeAlleReservierungenDiesesJahres = mysqli_num_rows($res);
@@ -109,7 +109,7 @@ function eigene_reservierungen_user(){
         }
     }
 
-    $HTML = section_builder($SectionHTML);
+    $HTML = section_builder($SectionHTML, '', 'center-align');
     $HTML .= divider_builder();
 
     $HelpfulLinksHTML = dokumente_listenelement_generieren();
@@ -207,8 +207,8 @@ function faellige_schluesselrueckgaben_user(){
             }
 
             if ($a > 0) {
-                $HTML = '<h3 class="hide-on-med-and-down">Fällige Schlüsselrückaben!</h3>';
-                $HTML .= '<h3 class="hide-on-large-only">Schlüsselrückaben</h3>';
+                $HTML = '<h3 class="hide-on-med-and-down center-align">Fällige Schlüsselrückaben!</h3>';
+                $HTML .= '<h3 class="hide-on-large-only center-align">Schlüsselrückaben</h3>';
                 $HTML .= collection_builder($ErforderlicheRueckgabenInhalt);
             }
         }
@@ -247,7 +247,7 @@ function faellige_zahlungen_user(){
             }
         }
 
-        $HTML = '<h3>Offene Forderungen</h3>';
+        $HTML = '<h3 class="center-align">Offene Forderungen</h3>';
         $HTML .= collapsible_builder($ReturnHTMLitems);
         return $HTML;
 
