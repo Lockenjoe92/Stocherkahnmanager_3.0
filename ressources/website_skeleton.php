@@ -219,6 +219,7 @@ function navbar_links_big(){
             $HTML .= "<li><a href=\"reservierungsmanagement.php\">Reservierungen</a></li>";
             $HTML .= "<li><a href=\"schluesselmanagement.php\">Schl&uumlssel</a></li>";
             $HTML .= "<li><a href=\"benutzermanagement_wart.php\">User</a></li>";
+            $HTML .= "<li><a href=\"wartfinanzen.php\">Wartfinanzen</a></li>";
             if(site_exists('wartwiki')){
                 $HTML .= "<li><a href=\"index.php?tab=wartwiki\">Wartwiki</a></li>";
             }
@@ -273,6 +274,7 @@ function navbar_links_mobile(){
             $HTML .= "<li><a href=\"../reservierungsmanagement.php\">Reservierungen</a></li>";
             $HTML .= "<li><a href=\"../schluesselmanagement.php\">Schl&uumlssel</a></li>";
             $HTML .= "<li><a href=\"../benutzermanagement_wart.php\">User</a></li>";
+            $HTML .= "<li><a href=\"wartfinanzen.php\">Wartfinanzen</a></li>";
             if(site_exists('wartwiki')){
                 $HTML .= "<li><a href=\"index.php?tab=wartwiki\">Wartwiki</a></li>";
             }
