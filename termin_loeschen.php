@@ -1,6 +1,6 @@
 <?php
 include_once "./ressources/ressourcen.php";
-session_manager('ist_wart');
+session_manager();
 $Header = "Termin löschen - " . lade_db_einstellung('site_name');
 
 #Generate content
