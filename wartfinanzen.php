@@ -5,7 +5,6 @@
  * Date: 12.11.18
  * Time: 13:24
  */
-
 include_once "./ressources/ressourcen.php";
 session_manager('ist_wart');
 $Header = "Wartfinanzen - " . lade_db_einstellung('site_name');
@@ -22,7 +21,7 @@ $HTML .= section_wartkasse($UserID);
 $HTML .= section_vergangene_transaktionen($UserID);
 $HTML .= section_forderung_an_user_anlegen($UserID);
 
-$HTML = container_builder($HTML);
+$HTML = container_builder(form_builder($HTML, '#', 'post'));
 
 # Output site
 echo site_header($Header);
@@ -62,7 +61,7 @@ function section_vergangene_transaktionen($UserID){
     $HTML = '';
     zeitformat();
 
-    $AnfrageEinnahmen = "SELECT * FROM finanz_einnahmen WHERE konto_id = ".$Wartkonto['id']." AND timestamp >= '".$Grenze."' ORDER BY timestamp DESC";
+    $AnfrageEinnahmen = "SELECT * FROM finanz_einnahmen WHERE konto_id = ".$Wartkonto['id']." AND  timestamp >= '".$Grenze."' AND storno_user = 0 ORDER BY timestamp DESC";
     $AbfrageEinnahmen = mysqli_query($link, $AnfrageEinnahmen);
     $AnzahlEinnahmen = mysqli_num_rows($AbfrageEinnahmen);
     $EinnahmenItems = '';
@@ -99,7 +98,7 @@ function section_vergangene_transaktionen($UserID){
         $HTML .= '<h4 class="center-align">Keine Einnahmen in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
     }
 
-    $AnfrageAusgaben = "SELECT * FROM finanz_ausgaben WHERE konto_id = ".$Wartkonto['id']." AND timestamp >= '".$Grenze."' ORDER BY timestamp DESC";
+    $AnfrageAusgaben = "SELECT * FROM finanz_ausgaben WHERE konto_id = ".$Wartkonto['id']." AND storno_user = 0 AND timestamp >= '".$Grenze."' ORDER BY timestamp DESC";
     $AbfrageAusgaben = mysqli_query($link, $AnfrageAusgaben);
     $AnzahlAusgaben = mysqli_num_rows($AbfrageAusgaben);
     $AusgabenItems = '';

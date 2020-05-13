@@ -195,7 +195,7 @@ function einnahme_loeschen($ID){
     $Konto = lade_konto_via_id($Einnahme['konto_id']);
     $Anfrage = "UPDATE finanz_einnahmen SET storno = '".timestamp()."', storno_user = ".lade_user_id()." WHERE id = '$ID'";
     if(mysqli_query($link, $Anfrage)){
-        $NeuerKontostand = $Konto['akt_kontostand']-$Einnahme['betrag'];
+        $NeuerKontostand = $Konto['wert_aktuell']-$Einnahme['betrag'];
         return update_kontostand($Einnahme['konto_id'], $NeuerKontostand);
     } else{
         $Antwort['success']=false;
@@ -210,7 +210,7 @@ function ausgabe_loeschen($ID){
     $Konto = lade_konto_via_id($Ausgabe['konto_id']);
     $Anfrage = "UPDATE finanz_ausgaben SET storno = '".timestamp()."', storno_user = ".lade_user_id()." WHERE id = '$ID'";
     if(mysqli_query($link, $Anfrage)){
-        $NeuerKontostand = $Konto['akt_kontostand']+$Ausgabe['betrag'];
+        $NeuerKontostand = $Konto['wert_aktuell']+$Ausgabe['betrag'];
         return update_kontostand($Ausgabe['konto_id'], $NeuerKontostand);
     } else{
         $Antwort['success']=false;
