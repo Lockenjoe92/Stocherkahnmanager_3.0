@@ -1364,6 +1364,13 @@ function termin_anlegen($User, $Wart, $Terminangebot, $Zeitpunkt, $Reason, $Reas
                 $Antwort['meldung'] = "Datenbankfehler!";
                 #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
             } else {
+                $MailUser = lade_user_meta($Wart);
+                $TerminUser = lade_user_meta($User);
+                $TerminangebotMeta = lade_terminangebot($Terminangebot);
+                zeitformat();
+                $Bausteine = array('[vorname_wart]'=>$MailUser['vorname'], '[datum_uebergabe]'=>strftime("%A, %d. %B %G", strtotime($Zeitpunkt)), '[ort_uebergabe]'=>$TerminangebotMeta['ort'], '[uhrzeit_beginn]'=>date('G:i', strtotime($Zeitpunkt)), '[termininfos]'=>'Grund: '.$Reason, '[kontakt_user]'=>$TerminUser['vorname'].' '.$TerminUser['nachname'], '[kommentar_user]'=>$Kommentar);
+                mail_senden('termin-bekommen-wart', $MailUser['mail'], $Bausteine);
+
                 $Antwort['success'] = true;
                 $Antwort['meldung'] = "Termin erfolgreich angelegt!";
             }
@@ -1413,7 +1420,7 @@ function termin_loeschen($TerminID, $Kommentar){
     }
 
     if(mysqli_query($link, $Anfrage)){
-
+        zeitformat();
         //SEND SOME MAILS HERE
         if($Termin['user']==$AktUser){
             //Mail an Wart
