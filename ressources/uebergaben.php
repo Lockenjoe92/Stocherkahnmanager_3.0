@@ -1405,10 +1405,11 @@ function termin_loeschen($TerminID, $Kommentar){
 
     $link = connect_db();
     if($Kommentar==''){
-        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."' AND storno_user = '".lade_user_id()."' WHERE id = ".$TerminID."";
+        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."', storno_user = '".lade_user_id()."' WHERE id = ".$TerminID."";
     } else {
-        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."' AND storno_user = '".lade_user_id()."' AND storno_kommentar = '".$Kommentar."' WHERE id = ".$TerminID."";
+        $Anfrage = "UPDATE termine SET storno_time = '".timestamp()."', storno_user = '".lade_user_id()."', storno_kommentar = '".$Kommentar."' WHERE id = ".$TerminID."";
     }
+
     if(mysqli_query($link, $Anfrage)){
 
         //SEND SOME MAILS HERE
