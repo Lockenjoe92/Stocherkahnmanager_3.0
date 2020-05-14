@@ -1035,7 +1035,7 @@ function dropdown_buchungstoolgruppe_waehlen($NameElement, $Selected){
         $Ausgabe .= "<option value=''>wählen</option>";
     }
 
-    $Nutzergruppen = array('ist_admin','ist_wart');
+    $Nutzergruppen = array('ist_admin','ist_wart', 'ist_kasse');
 
     foreach ($Nutzergruppen as $Nutzergruppe){
         if($Nutzergruppe == $Selected){

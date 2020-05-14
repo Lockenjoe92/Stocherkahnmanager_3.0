@@ -209,7 +209,7 @@ function navbar_links_big(){
             $HTML .= '<li><a href="./administration.php">Admin</a></li>';
         }
         if($UserMeta['ist_kasse'] == 'true'){
-            $HTML .= '<li><a href="./kasse.php">Kasse</a></li>';
+            $HTML .= '<li><a href="./kassenwart.php">Kasse</a></li>';
         }
         if($UserMeta['ist_wart'] == 'true'){
             $HTML .= "<ul id='dropdown2' class='dropdown-content'>";
@@ -263,7 +263,7 @@ function navbar_links_mobile(){
             $HTML .= '<li><a href="./administration.php">Admin</a></li>';
         }
         if($UserMeta['ist_kasse'] == 'true'){
-            $HTML .= '<li><a href="./kasse.php">Kasse</a></li>';
+            $HTML .= '<li><a href="./kassenwart.php">Kasse</a></li>';
         }
         if($UserMeta['ist_wart'] == 'true'){
             $HTML .= "<li><div class=\"divider\"></div></li>";
