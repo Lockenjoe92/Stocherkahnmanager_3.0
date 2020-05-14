@@ -46,10 +46,15 @@ function uebersicht_section_vereinskasse($YearGlobal){
     $Gesamteinnahmen = gesamteinnahmen_jahr($YearGlobal);
     $Gesamtausgaben = gesamtausgaben_jahr($YearGlobal);
     $Differenz = $Gesamteinnahmen - $Gesamtausgaben;
+    if (floatval($Differenz) >= 0){
+        $StyleGUV = "class=\"green lighten-2\"";
+    } else {
+        $StyleGUV = "class=\"red lighten-1\"";
+    }
 
     $HTML = "<h3 class='center-align'>Jahresstatistik ".$YearGlobal."</h3>";
     $Table = table_row_builder(table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder(form_select_item('year_global', 2017, date('Y'), $_POST['year_global'], '', 'Betrachtungsjahr', '')));
-    $Table .= table_row_builder(table_data_builder($Gesamteinnahmen."&euro;").table_data_builder($Gesamtausgaben."&euro;").table_data_builder($Differenz."&euro;").table_data_builder(form_button_builder('change_betrachtungsjahr', 'wechseln', 'action', 'send')));
+    $Table .= table_row_builder(table_data_builder($Gesamteinnahmen."&euro;").table_data_builder($Gesamtausgaben."&euro;").table_data_builder("<p ".$StyleGUV.">".$Differenz."&euro;</p>").table_data_builder(form_button_builder('change_betrachtungsjahr', 'wechseln', 'action', 'send')));
     $HTML .= form_builder(table_builder($Table), '#', 'post', 'jahresstats');
 
     return section_builder($HTML);
