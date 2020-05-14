@@ -239,6 +239,26 @@ function gesamteinnahmen_jahr($Jahr){
     return $Einnahmen;
 }
 
+function gesamteinnahmen_jahr_konto($Jahr, $KontoID){
+
+    $link = connect_db();
+
+    $AnfangJahr = "".$Jahr."-01-01 00:00:01";
+    $EndeJahr = "".$Jahr."-12-31 23:59:59";
+
+    $Anfrage = "SELECT id, betrag FROM finanz_einnahmen WHERE konto_id = ".$KontoID." AND timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $Einnahmen = 0;
+
+    for ($a = 1; $a <= $Anzahl; $a++){
+        $Einnahme = mysqli_fetch_assoc($Abfrage);
+        $Einnahmen = $Einnahmen + $Einnahme['betrag'];
+    }
+
+    return $Einnahmen;
+}
+
 function gesamtausgaben_jahr($Jahr){
 
     $link = connect_db();

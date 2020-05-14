@@ -258,7 +258,7 @@ function dropdown_menu_wart($NameElement, $PreselectWart){
     $Counter = 0;
     foreach ($Users as $User){
 
-        if ($User['ist_wart'] == true) {
+        if ($User['ist_wart'] == 'true') {
             if ($User['id'] == $PreselectWart) {
                 $Ausgabe .= "<option value='" . $User['id'] . "' selected>" . $User['vorname'] . " " . $User['nachname'] . "</option>";
             } else {
