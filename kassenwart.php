@@ -44,7 +44,6 @@ function vereinskasse_parser($YearGlobal){
 
     return $Antwort;
 }
-
 function uebersicht_section_vereinskasse($YearGlobal){
 
     $Gesamteinnahmen = gesamteinnahmen_jahr($YearGlobal);

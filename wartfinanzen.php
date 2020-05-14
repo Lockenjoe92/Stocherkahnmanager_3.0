@@ -38,11 +38,11 @@ function wartfinanzen_parser($UserID){
 
     for($a=1;$a<=100000;$a++){
         if(isset($_POST['delete_einnahme_'.$a.''])){
-            var_dump($_POST['delete_einnahme_'.$a.'']);
+            #var_dump($_POST['delete_einnahme_'.$a.'']);
             $Antwort = einnahme_loeschen($a);
         }
         if(isset($_POST['delete_ausgabe_'.$a.''])){
-            var_dump($_POST['delete_ausgabe_'.$a.'']);
+            #var_dump($_POST['delete_ausgabe_'.$a.'']);
             $Antwort = ausgabe_loeschen($a);
         }
         if(isset($_POST['einnahme_forderung_'.$a.'_festhalten'])){
@@ -60,7 +60,7 @@ function wartfinanzen_parser($UserID){
     if(isset($_POST['action_add_forderung'])){
         if(is_numeric($_POST['betrag'])){
             $Till = $_POST['datum'].' 00:00:01';
-            $Antwort = forderung_generieren($_POST['betrag'], $_POST['steuer'], $_POST['user'], '', '', $_POST['reason'], $Till, lade_user_id());
+            $Antwort = forderung_generieren($_POST['betrag'], $_POST['steuer'], $_POST['user'], '', lade_zielkonto_einnahmen_forderungen_id(), '', $_POST['reason'], $Till, lade_user_id());
         } else {
             $Antwort['success'] = false;
             $Antwort['meldung'] = 'Bitte gib einen validen Betrag ein!';

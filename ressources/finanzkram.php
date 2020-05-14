@@ -1,5 +1,5 @@
 <?php
-function forderung_generieren($Betrag, $Steuersatz, $VonUser, $VonKonto, $ReferenzReservierung, $Referenz, $ZahlbarBis, $Buchender){
+function forderung_generieren($Betrag, $Steuersatz, $VonUser, $VonKonto, $Zielkonto, $ReferenzReservierung, $Referenz, $ZahlbarBis, $Buchender){
 
     $DAUcounter = 0;
     $DAUerror = "";
@@ -17,6 +17,11 @@ function forderung_generieren($Betrag, $Steuersatz, $VonUser, $VonKonto, $Refere
     if ($Betrag < 0){
         $DAUcounter++;
         $DAUerror .= "Der Forderungsbetrag darf nicht negativ sein!<br>";
+    }
+
+    if(!intval($Zielkonto)>0){
+        $DAUcounter++;
+        $DAUerror .= "Wähle bitte ein Zielkonto aus!<br>";
     }
 
     //Steuersatz
@@ -56,7 +61,7 @@ function forderung_generieren($Betrag, $Steuersatz, $VonUser, $VonKonto, $Refere
     } else if ($DAUcounter == 0){
 
         //Forderung eintragen
-        $AnfrageForderungEintragen = "INSERT INTO finanz_forderungen (betrag, steuersatz, von_user, von_konto, referenz_res, referenz, zahlbar_bis, timestamp, bucher, update_time, update_user, storno_time, storno_user) VALUES ('$Betrag', '$Steuersatz', '$VonUser', '$VonKonto', '$ReferenzReservierung', '$Referenz', '$ZahlbarBis', '$Timestamp', '$Buchender', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '0')";
+        $AnfrageForderungEintragen = "INSERT INTO finanz_forderungen (betrag, steuersatz, von_user, von_konto, zielkonto, referenz_res, referenz, zahlbar_bis, timestamp, bucher, update_time, update_user, storno_time, storno_user) VALUES ('$Betrag', '$Steuersatz', '$VonUser', '$VonKonto', '$Zielkonto', '$ReferenzReservierung', '$Referenz', '$ZahlbarBis', '$Timestamp', '$Buchender', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '0')";
         $AbfrageForderungEintragen = mysqli_query($link, $AnfrageForderungEintragen);
 
         if ($AbfrageForderungEintragen){
@@ -87,6 +92,17 @@ function forderung_stornieren($ForderungID){
     } else {
         return false;
     }
+}
+
+function lade_zielkonto_einnahmen_forderungen_id(){
+
+    $Link = connect_db();
+
+    $Anfrage = "SELECT id FROM finanz_konten WHERE verstecker = 0 AND name = 'Einnahmen aus Forderungen'";
+    $Abfrage = mysqli_query($Link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+    var_dump($Ergebnis);
+    return $Ergebnis['id'];
 }
 
 function forderung_bearbeiten($NeuerBetrag, $ForderungID){

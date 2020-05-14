@@ -270,7 +270,7 @@ function reservierung_hinzufuegen($Von, $Bis, $UserRes, $GratisFahrt, $Ermaessig
                 //Forderung generieren
                 $Kosten = kosten_reservierung($Reservierung['id']);
                 if($Kosten != 0){
-                    forderung_generieren($Kosten, 19, $UserRes, '', intval($Reservierung['id']), '', zahlungsgrenze_forderung_laden($Bis), $UserRes);
+                    forderung_generieren($Kosten, 19, $UserRes, '', lade_zielkonto_reservierungen_id(), intval($Reservierung['id']), '', zahlungsgrenze_forderung_laden($Bis), $UserRes);
                 }
 
                 //Mail an User senden - Wärte erhalten keine:
@@ -647,6 +647,16 @@ function reservierung_storno_aufheben($ReservierungID){
             }
         }
     }
+}
+
+function lade_zielkonto_reservierungen_id(){
+
+    $Link = connect_db();
+
+    $Anfrage = "SELECT id FROM finanz_konten WHERE verstecker = 0 AND name = 'Einnahmen aus Reservierungen'";
+    $Abfrage = mysqli_query($Link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+    return $Ergebnis['id'];
 }
 
 function res_hat_uebergabe($IDres){
