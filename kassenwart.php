@@ -89,7 +89,8 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
         } else {
             $StyleGUV = "class=\"red lighten-1\"";
         }
-        $EinnahmenkontoItems .= table_row_builder(table_data_builder($Ergebnis5['name']).table_data_builder($ForderungenSumme.'&euro;').table_data_builder($EinnahmenSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder(''));
+        $Buttons = form_button_builder('show_details_konto_'.$Ergebnis5['id'].'', 'Details', 'action', 'search');
+        $EinnahmenkontoItems .= table_row_builder(table_data_builder($Ergebnis5['name']).table_data_builder($ForderungenSumme.'&euro;').table_data_builder($EinnahmenSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($Buttons));
         $EinnahmenkontoCounter++;
     }
     if ($EinnahmenkontoCounter > 0){
@@ -120,7 +121,8 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
         } else {
             $StyleGUV = "class=\"red lighten-1\"";
         }
-        $AusgabenkontoItems .= table_row_builder(table_data_builder($Ergebnis6['name']).table_data_builder($AUSgleichSumme.'&euro;').table_data_builder($AusgabeSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder(''));
+        $Buttons = form_button_builder('show_details_konto_'.$Ergebnis6['id'].'', 'Details', 'action', 'search');
+        $AusgabenkontoItems .= table_row_builder(table_data_builder($Ergebnis6['name']).table_data_builder($AUSgleichSumme.'&euro;').table_data_builder($AusgabeSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($Buttons));
         $AusgabenkontoCounter++;
     }
     if ($AusgabenkontoCounter > 0){
@@ -137,7 +139,8 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     $NeutralkontoItems = table_row_builder(table_header_builder('Konto').table_header_builder('Aktueller Kontostand').table_header_builder('Aktionen'));
     for ($g = 1; $g <= $Anzahl7;$g++) {
         $Ergebnis7 = mysqli_fetch_assoc($Abfrage7);
-        $NeutralkontoItems .= table_row_builder(table_data_builder($Ergebnis7['name']).table_data_builder($Ergebnis7['wert_akt'].'&euro;').table_data_builder(''));
+        $Buttons = form_button_builder('show_details_konto_'.$Ergebnis7['id'].'', 'Details', 'action', 'search');
+        $NeutralkontoItems .= table_row_builder(table_data_builder($Ergebnis7['name']).table_data_builder($Ergebnis7['wert_akt'].'&euro;').table_data_builder($Buttons));
         $NeutralkontoCounter++;
     }
     if ($NeutralkontoCounter > 0){
@@ -166,8 +169,9 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
             } else {
                 $Highlight = '';
             }
+            $Buttons = form_button_builder('show_details_konto_'.$Konto['id'].'', 'Details', 'action', 'search');
             $AktionLinks = form_button_builder('highlight_user_actions_'.$User['id'].'', 'hervorheben', 'action', 'highlight');
-            $WartkontoItems .= table_row_builder(table_data_builder('<p '.$Highlight.'>'.$User['vorname'].'&nbsp;'.$User['nachname'].'</p>').table_data_builder($Einnahmen.'&euro;').table_data_builder($Ausgaben.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($AktionLinks));
+            $WartkontoItems .= table_row_builder(table_data_builder('<p '.$Highlight.'>'.$User['vorname'].'&nbsp;'.$User['nachname'].'</p>').table_data_builder($Einnahmen.'&euro;').table_data_builder($Ausgaben.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($AktionLinks.'&nbsp;'.$Buttons));
             $WartkontoCounter++;
         }
     }
