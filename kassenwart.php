@@ -79,13 +79,18 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
             $Einnahmen = gesamteinnahmen_jahr_konto($YearGlobal,$Konto['id']);
             $Ausgaben = gesamtausgaben_jahr_konto($YearGlobal,$Konto['id']);
             $Differenz = $Einnahmen-$Ausgaben;
+            if (floatval($Differenz) >= 0){
+                $StyleGUV = "class=\"green lighten-2\"";
+            } else {
+                $StyleGUV = "class=\"red lighten-1\"";
+            }
             if($Parser['highlight_user']==$User['id']){
                 $Highlight = 'class="blue lighten-2"';
             } else {
                 $Highlight = '';
             }
             $AktionLinks = form_button_builder('highlight_user_actions_'.$User['id'].'', 'hervorheben', 'action', 'highlight');
-            $WartkontoItems .= table_row_builder(table_data_builder('<p '.$Highlight.'>'.$User['vorname'].'&nbsp;'.$User['nachname'].'</p>').table_data_builder($Einnahmen.'&euro;').table_data_builder($Ausgaben.'&euro;').table_data_builder($Differenz.'&euro;').table_data_builder($AktionLinks));
+            $WartkontoItems .= table_row_builder(table_data_builder('<p '.$Highlight.'>'.$User['vorname'].'&nbsp;'.$User['nachname'].'</p>').table_data_builder($Einnahmen.'&euro;').table_data_builder($Ausgaben.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($AktionLinks));
             $WartkontoCounter++;
         }
     }
