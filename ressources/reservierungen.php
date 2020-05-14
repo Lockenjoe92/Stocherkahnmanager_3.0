@@ -1344,7 +1344,7 @@ function ausgleich_hinzufuegen_res($ResID, $Betrag, $Steuersatz){
         $Antwort['meldung'] = $DAUerror;
     } else {
 
-        $Anfrage = "INSERT INTO finanz_ausgleiche (betrag, steuersatz, fuer_user, fuer_konto, referenz, referenz_res, timestamp, anleger, update_time, update_user, storno_time, storno_user) VALUES ('$Betrag', '$Steuersatz', '".$Reservierung['user']."', '0', '', '$ResID', '".timestamp()."', '".lade_user_id()."', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '0')";
+        $Anfrage = "INSERT INTO finanz_ausgleiche (betrag, steuersatz, fuer_user, fuer_konto, von_konto, referenz, referenz_res, timestamp, anleger, update_time, update_user, storno_time, storno_user) VALUES ('$Betrag', '$Steuersatz', '".$Reservierung['user']."', '0', ".lade_ausgleiche_fuer_res_zielkonto().", '', '$ResID', '".timestamp()."', '".lade_user_id()."', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '0')";
 
         if (mysqli_query($link, $Anfrage)){
             $Antwort['success'] = TRUE;

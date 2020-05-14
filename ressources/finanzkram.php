@@ -101,16 +101,46 @@ function lade_zielkonto_einnahmen_forderungen_id(){
     $Anfrage = "SELECT id FROM finanz_konten WHERE verstecker = 0 AND name = 'Einnahmen aus Forderungen'";
     $Abfrage = mysqli_query($Link, $Anfrage);
     $Ergebnis = mysqli_fetch_assoc($Abfrage);
-    var_dump($Ergebnis);
     return $Ergebnis['id'];
 }
 
-function forderung_bearbeiten($NeuerBetrag, $ForderungID){
+function lade_ausgleiche_fuer_res_zielkonto(){
+    $Link = connect_db();
+
+    $Anfrage = "SELECT id FROM finanz_konten WHERE verstecker = 0 AND name = 'Auszahlungen zu Reservierungen'";
+    $Abfrage = mysqli_query($Link, $Anfrage);
+    $Ergebnis = mysqli_fetch_assoc($Abfrage);
+    return $Ergebnis['id'];
+}
+
+function ausgleich_loeschen($Ausgleich){
+    $Link = connect_db();
+    $Anfrage = "UPDATE finanz_ausgleiche SET verstecker = '".lade_user_id()."' WHERE id = ".$Ausgleich."";
+    return mysqli_query($Link, $Anfrage);
+}
+
+function forderung_bearbeiten($NeuerBetrag, $ForderungID, $Mode='res'){
 
     $link = connect_db();
+    $Forderung = lade_forderung($ForderungID);
+    $Zahlungen = lade_einnahmen_forderung($ForderungID);
+
+    if($Zahlungen>$NeuerBetrag){
+        $AusgleichBetrag = $Zahlungen-$NeuerBetrag;
+        //Erzeuge Ausgleich
+        if($Mode=='res'){
+            ausgleich_hinzufuegen_res($Forderung['referenz_res'], $AusgleichBetrag, 19);
+        }
+    } elseif ($Zahlungen<$NeuerBetrag){
+        //lösche etwaige Ausgleiche
+        $Ausgleiche = lade_offene_ausgleiche_res($Forderung['referenz_res']);
+        foreach ($Ausgleiche as $Ausgleich) {
+            ausgleich_loeschen($Ausgleich['id']);
+        }
+    }
 
     $Anfrage = "UPDATE finanz_forderungen SET betrag = '$NeuerBetrag' WHERE id = '$ForderungID'";
-    $Abfrage = mysqli_query($link, $Anfrage);
+    return mysqli_query($link, $Anfrage);
 
 }
 function lade_kontostand($Empfangskonto){
