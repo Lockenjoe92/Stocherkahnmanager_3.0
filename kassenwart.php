@@ -62,12 +62,70 @@ function uebersicht_section_vereinskasse($YearGlobal){
 function kontos_section_vereinskasse($YearGlobal, $Parser){
 
     $BigItems = '';
+    $link = connect_db();
 
     //Einnahmenkonten
+    $Anfrage5 = "SELECT * FROM finanz_konten WHERE typ = 'einnahmenkonto' AND verstecker = '0' ORDER BY typ, name ASC";
+    $Abfrage5 = mysqli_query($link, $Anfrage5);
+    $Anzahl5 = mysqli_num_rows($Abfrage5);
+    $EinnahmenkontoCounter = 0;
+    $EinnahmenkontoItems = table_row_builder(table_header_builder('Konto').table_header_builder('Forderungen').table_header_builder('Einnahmen').table_header_builder('Differenz').table_header_builder('Aktionen'));
+    for ($e = 1; $e <= $Anzahl5;$e++) {
+        $Ergebnis5 = mysqli_fetch_assoc($Abfrage5);
+        $Forderungen = forderungen_konto($Ergebnis5['id'], $YearGlobal);
+        $ForderungenSumme = 0.0;
+        $EinnahmenSumme = 0.0;
+        foreach ($Forderungen as $Forderung){
+            $ForderungenSumme = $ForderungenSumme + $Forderung['betrag'];
+            $Einnahme = lade_einnahmen_forderung($Forderung['id']);
+            $EinnahmenSumme = $EinnahmenSumme + $Einnahme['betrag'];
+        }
+        $Differenz = $EinnahmenSumme - $ForderungenSumme;
+        if (floatval($Differenz) >= 0){
+            $StyleGUV = "class=\"green lighten-2\"";
+        } else {
+            $StyleGUV = "class=\"red lighten-1\"";
+        }
+        $EinnahmenkontoItems .= table_row_builder(table_data_builder($Ergebnis5['name']).table_data_builder($ForderungenSumme.'&euro;').table_data_builder($EinnahmenSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder(''));
+        $EinnahmenkontoCounter++;
+    }
+    if ($EinnahmenkontoCounter > 0){
+        $BigItems .= collapsible_item_builder('Einnahmenkonten', table_builder($EinnahmenkontoItems), 'attach_money');
+    } else{
+        $BigItems .= collapsible_item_builder('Einnahmenkonten', 'Bislang keine Einnahmenkonten angelegt!', 'attach_money');
+    }
 
     //Ausgabenkonten
+    $Anfrage6 = "SELECT * FROM finanz_konten WHERE typ = 'ausgabenkonto' AND verstecker = '0' ORDER BY typ, name ASC";
+    $Abfrage6 = mysqli_query($link, $Anfrage6);
+    $Anzahl6 = mysqli_num_rows($Abfrage6);
+    $AusgabenkontoCounter = 0;
+    $AusgabenkontoItems = table_row_builder(table_header_builder('Wart!n').table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder('Aktionen'));
+    for ($f = 1; $f <= $Anzahl6;$f++) {
+        $Ergebnis6 = mysqli_fetch_assoc($Abfrage6);
+        $AusgabenkontoCounter++;
+    }
+    if ($AusgabenkontoCounter > 0){
+        $BigItems .= collapsible_item_builder('Ausgabenkonten', table_builder($AusgabenkontoItems), 'money_off');
+    } else{
+        $BigItems .= collapsible_item_builder('Ausgabenkonten', 'Bislang keine Ausgabenkonten angelegt!', 'money_off');
+    }
 
     //Neutralkonten
+    $Anfrage7 = "SELECT * FROM finanz_konten WHERE typ = 'neutralkonto' AND verstecker = '0' ORDER BY typ, name ASC";
+    $Abfrage7 = mysqli_query($link, $Anfrage7);
+    $Anzahl7 = mysqli_num_rows($Abfrage7);
+    $NeutralkontoCounter = 0;
+    $NeutralkontoItems = table_row_builder(table_header_builder('Wart!n').table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder('Aktionen'));
+    for ($g = 1; $g <= $Anzahl7;$g++) {
+        $Ergebnis7 = mysqli_fetch_assoc($Abfrage7);
+        $NeutralkontoCounter++;
+    }
+    if ($NeutralkontoCounter > 0){
+        $BigItems .= collapsible_item_builder('Neutralkonten', table_builder($NeutralkontoItems), 'iso');
+    } else{
+        $BigItems .= collapsible_item_builder('Neutralkonten', 'Bislang keine Neutralkonten angelegt!', 'iso');
+    }
 
     //Wartkonten
     $Users = get_sorted_user_array_with_user_meta_fields('nachname');
