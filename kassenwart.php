@@ -78,7 +78,7 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
         foreach ($Forderungen as $Forderung){
             $ForderungenSumme = $ForderungenSumme + $Forderung['betrag'];
             $Einnahme = lade_einnahmen_forderung($Forderung['id']);
-            $EinnahmenSumme = $EinnahmenSumme + $Einnahme['betrag'];
+            $EinnahmenSumme = $EinnahmenSumme + $Einnahme;
         }
         $Differenz = $EinnahmenSumme - $ForderungenSumme;
         if (floatval($Differenz) >= 0){
@@ -100,9 +100,24 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     $Abfrage6 = mysqli_query($link, $Anfrage6);
     $Anzahl6 = mysqli_num_rows($Abfrage6);
     $AusgabenkontoCounter = 0;
-    $AusgabenkontoItems = table_row_builder(table_header_builder('Wart!n').table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder('Aktionen'));
+    $AusgabenkontoItems = table_row_builder(table_header_builder('Konto').table_header_builder('Geplant').table_header_builder('Ausgegeben').table_header_builder('Differenz').table_header_builder('Aktionen'));
     for ($f = 1; $f <= $Anzahl6;$f++) {
         $Ergebnis6 = mysqli_fetch_assoc($Abfrage6);
+        $Ausgleiche = ausgleiche_konto($Ergebnis6['id'], $YearGlobal);
+        $AUSgleichSumme = 0.0;
+        $AusgabeSumme = 0.0;
+        foreach ($Ausgleiche as $Ausgleich){
+            $AUSgleichSumme = $AUSgleichSumme + $Ausgleich['betrag'];
+            $Ausgabe = lade_ausgaben_ausgleich($Ausgleich['id']);
+            $AusgabeSumme = $AusgabeSumme + $Ausgabe;
+        }
+        $Differenz = $AUSgleichSumme - $AusgabeSumme;
+        if (floatval($Differenz) >= 0){
+            $StyleGUV = "class=\"green lighten-2\"";
+        } else {
+            $StyleGUV = "class=\"red lighten-1\"";
+        }
+        $AusgabenkontoItems .= table_row_builder(table_data_builder($Ergebnis6['name']).table_data_builder($AUSgleichSumme.'&euro;').table_data_builder($AusgabeSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder(''));
         $AusgabenkontoCounter++;
     }
     if ($AusgabenkontoCounter > 0){
@@ -116,9 +131,10 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     $Abfrage7 = mysqli_query($link, $Anfrage7);
     $Anzahl7 = mysqli_num_rows($Abfrage7);
     $NeutralkontoCounter = 0;
-    $NeutralkontoItems = table_row_builder(table_header_builder('Wart!n').table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder('Aktionen'));
+    $NeutralkontoItems = table_row_builder(table_header_builder('Konto').table_header_builder('Aktueller Kontostand').table_header_builder('Aktionen'));
     for ($g = 1; $g <= $Anzahl7;$g++) {
         $Ergebnis7 = mysqli_fetch_assoc($Abfrage7);
+        $NeutralkontoItems .= table_row_builder(table_data_builder($Ergebnis7['name']).table_data_builder($Ergebnis7['wert_akt'].'&euro;').table_data_builder(''));
         $NeutralkontoCounter++;
     }
     if ($NeutralkontoCounter > 0){

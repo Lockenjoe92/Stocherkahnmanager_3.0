@@ -314,6 +314,21 @@ function forderungen_konto($Konto, $Jahr){
     return $ReturnArray;
 }
 
+function ausgleiche_konto($Konto, $Jahr){
+
+    $link = connect_db();
+    $AnfangJahr = "".$Jahr."-01-01 00:00:01";
+    $EndeJahr = "".$Jahr."-12-31 23:59:59";
+    $Anfrage = "SELECT * FROM finanz_ausgleiche WHERE von_konto = ".$Konto." AND timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $ReturnArray = array();
+    for($a=1;$a<=$Anzahl;$a++){
+        array_push($ReturnArray, mysqli_fetch_assoc($Abfrage));
+    }
+    return $ReturnArray;
+}
+
 function lade_gezahlte_summe_forderung($ForderungID){
 
     $link = connect_db();
@@ -512,4 +527,21 @@ function ausgabe_hinzufuegen($Betrag, $Steuersatz, $Ausgleich, $Konto){
     }
 
     return $Antwort;
+}
+
+function lade_ausgaben_ausgleich($Ausgleich){
+
+    $link = connect_db();
+    $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_ausgaben WHERE ausgleich_id = '".$Ausgleich."' AND storno_user = '0'";
+    $AbfrageSucheNachZahlungen = mysqli_query($link, $AnfrageSucheNachZahlungen);
+    $AnzahlSucheNachZahlungen = mysqli_num_rows($AbfrageSucheNachZahlungen);
+
+    $Einnahmenzaehler = 0;
+    for ($b = 1; $b <= $AnzahlSucheNachZahlungen; $b++){
+        $Zahlung = mysqli_fetch_assoc($AbfrageSucheNachZahlungen);
+        $Einnahmenzaehler = $Einnahmenzaehler + $Zahlung['betrag'];
+    }
+
+    return $Einnahmenzaehler;
+
 }
