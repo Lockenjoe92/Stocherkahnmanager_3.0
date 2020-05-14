@@ -105,7 +105,7 @@ function lade_kontostand($Empfangskonto){
     $Abfrage = mysqli_query($link, $Anfrage);
     $Ergebnis = mysqli_fetch_assoc($Abfrage);
 
-    return intval($Ergebnis['wert_aktuell']);
+    return floatval($Ergebnis['wert_aktuell']);
 }
 
 function lade_forderung_res($ResID){
@@ -272,7 +272,7 @@ function lade_gezahlte_summe_forderung($ForderungID){
     for ($a = 1; $a <= $AnzahlLadeZahlungen; $a++){
 
         $Einnahme = mysqli_fetch_assoc($AbfrageLadeZahlungen);
-        $Zaehler = $Zaehler + intval($Einnahme['betrag']);
+        $Zaehler = $Zaehler + floatval($Einnahme['betrag']);
     }
 
     return $Zaehler;
@@ -287,7 +287,7 @@ function einnahme_festhalten($Forderung, $Empfangskonto, $Betrag, $Steuersatz){
 
         //Konto aktualisieren
         $KontoAktuell = lade_kontostand($Empfangskonto);
-        $KontoNeu = intval($KontoAktuell) + intval($Betrag);
+        $KontoNeu = floatval($KontoAktuell) + floatval($Betrag);
         update_kontostand($Empfangskonto, $KontoNeu);
 
         return true;
@@ -367,13 +367,13 @@ function nachzahlung_reservierung_festhalten($IDres, $Betrag, $Wart){
     //Forderung schon beglichen
     $Forderung = lade_forderung_res($IDres);
     $BisherigeZahlungen = lade_gezahlte_summe_forderung($Forderung['id']);
-    if ($BisherigeZahlungen > intval($Forderung['betrag'])){
+    if ($BisherigeZahlungen > floatval($Forderung['betrag'])){
         $DAUcounter++;
         $DAUerror .= "Forderung wurde inzwischen vollst&auml;ndig beglichen!<br>";
     }
 
     //Zuviel geld
-    $Differenz = intval($Forderung['betrag']) - $BisherigeZahlungen;
+    $Differenz = floatval($Forderung['betrag']) - $BisherigeZahlungen;
     $DifferenzBetrag = $Betrag - $Differenz;
     if ($DifferenzBetrag > 20){
         $DAUcounter++;

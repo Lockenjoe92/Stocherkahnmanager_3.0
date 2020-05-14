@@ -1210,4 +1210,23 @@ function listenelement_offene_forderung_generieren($Forderung){
     $Icon = 'payment';
     return collapsible_item_builder($Titel, $Content, $Icon);
 }
+
+function listenelement_offene_forderung_durchfuehren_generieren($Forderung, $Summe){
+
+    $User = lade_user_meta($Forderung['von_user']);
+    $Bucher = lade_user_meta($Forderung['bucher']);
+    $Titel = $Forderung['referenz'].' - '.$Forderung['betrag'].'&euro;';
+    $Content = table_row_builder(table_header_builder('Forderung').table_data_builder($Forderung['referenz']));
+    $Content .= table_row_builder(table_header_builder('Forderung-ID').table_data_builder($Forderung['id']));
+    $Content .= table_row_builder(table_header_builder('Betrifft User').table_data_builder('<a href="benutzermanagement_wart.php?user='.$User['id'].'">'.$User['vorname'].' '.$User['nachname'].'</a>'));
+    $Content .= table_row_builder(table_header_builder('Betrag').table_data_builder($Forderung['betrag'].'&euro;'));
+    $Content .= table_row_builder(table_header_builder('Einnahmen bislang').table_data_builder($Summe.'&euro;'));
+    $Content .= table_row_builder(table_header_builder('Zahlbar bis').table_data_builder(date('d.m.Y', strtotime($Forderung['zahlbar_bis']))));
+    $Content .= table_row_builder(table_header_builder('Angelegt von').table_data_builder($Bucher['vorname'].' '.$Bucher['nachname']));
+    $Content .= table_form_string_item('Einnahmebetrag (Format: 12.34)', 'einnahme_forderung_'.$Forderung['id'].'', $_POST['einnahme_forderung'], false);
+    $Content .= table_row_builder(table_header_builder(form_button_builder('einnahme_forderung_'.$Forderung['id'].'_festhalten', 'Festhalten', 'action', 'send', '')).table_data_builder(''));
+    $Content = table_builder($Content);
+    $Icon = 'payment';
+    return collapsible_item_builder($Titel, $Content, $Icon);
+}
 ?>

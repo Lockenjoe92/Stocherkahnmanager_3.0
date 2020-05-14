@@ -17,11 +17,14 @@ if(isset($Parser['meldung'])){
     $HTML .= "<h5 class='center-align'>".$Parser['meldung']."</h5>";
 }
 
-$HTML .= section_wartkasse($UserID);
-$HTML .= section_vergangene_transaktionen($UserID);
+$HTML .= form_builder(section_wartkasse($UserID), '#', 'post');
+$HTML .= form_builder(section_vergangene_transaktionen($UserID), '#', 'post');
+
+$HTML .= "<h4 class='center-align'>Offene Forderungen</h4>";
+$HTML .= section_offene_forderungen();
 $HTML .= section_forderung_an_user_anlegen($UserID);
 
-$HTML = container_builder(form_builder($HTML, '#', 'post'));
+$HTML = container_builder($HTML);
 
 # Output site
 echo site_header($Header);
@@ -35,16 +38,28 @@ function wartfinanzen_parser($UserID){
 
     for($a=1;$a<=100000;$a++){
         if(isset($_POST['delete_einnahme_'.$a.''])){
+            var_dump($_POST['delete_einnahme_'.$a.'']);
             $Antwort = einnahme_loeschen($a);
         }
         if(isset($_POST['delete_ausgabe_'.$a.''])){
+            var_dump($_POST['delete_ausgabe_'.$a.'']);
             $Antwort = ausgabe_loeschen($a);
+        }
+        if(isset($_POST['einnahme_forderung_'.$a.'_festhalten'])){
+            if(is_numeric($_POST['einnahme_forderung_'.$a.''])){
+                $Forderung = lade_forderung($a);
+                $Konto = lade_konto_user(lade_user_id());
+                $Antwort = einnahme_festhalten($a, $Konto['id'], $_POST['einnahme_forderung_'.$a.''], $Forderung['steuersatz']);
+            } else {
+                $Antwort['success'] = false;
+                $Antwort['meldung'] = 'Bitte gib einen validen Betrag ein!';
+            }
         }
     }
 
     if(isset($_POST['action_add_forderung'])){
         if(is_numeric($_POST['betrag'])){
-            $Till = $_POST['date'].' 00:00:01';
+            $Till = $_POST['datum'].' 00:00:01';
             $Antwort = forderung_generieren($_POST['betrag'], $_POST['steuer'], $_POST['user'], '', '', $_POST['reason'], $Till, lade_user_id());
         } else {
             $Antwort['success'] = false;
@@ -139,18 +154,41 @@ function section_vergangene_transaktionen($UserID){
     return $HTML;
 }
 
+function section_offene_forderungen(){
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM finanz_forderungen WHERE storno_user = 0";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl>1){
+        $ReturnHTML = '';
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            $Summe = lade_gezahlte_summe_forderung($Ergebnis['id']);
+            if($Summe<$Ergebnis['betrag']){
+                if($Ergebnis['referenz']!=''){
+                    $ReturnHTML .= listenelement_offene_forderung_durchfuehren_generieren($Ergebnis, $Summe);
+                }
+            }
+        }
+        return form_builder(collapsible_builder($ReturnHTML), '#', 'post', 'open_forderungen');
+    } else {
+        return null;
+    }
+}
+
 function section_forderung_an_user_anlegen($UserID){
 
     $Table = table_form_string_item('Forderungsgrund', 'reason', $_POST['reason'], false);
     $Table .= table_form_dropdown_menu_user('Von Nutzer', 'user', $_POST['user']);
     $Table .= table_form_string_item('Betrag (Format: 12.34)', 'betrag', $_POST['betrag'], false);
     $Table .= table_form_select_item('Steuersatz', 'steuer', 0, 99, 19, '%', '', '');
-    $Table .= table_form_datepicker_reservation_item('Zahlbar bis', 'date', $_POST['date'], false, true);
+    $Table .= table_form_datepicker_reservation_item('Zahlbar bis', 'datum', $_POST['datum'], false, true);
     $Table .= table_row_builder(table_header_builder(form_button_builder('action_add_forderung', 'Anlegen', 'action', 'send')).table_data_builder(''));
     $Table = table_builder($Table);
 
-    $HTML = "<h4>Forderung anlegen</h4>";
-    $HTML .= collapsible_builder(collapsible_item_builder('Forderung anlegen', $Table, 'add_new'));
+    $HTML = collapsible_item_builder('Forderung anlegen', $Table, 'add_new');
 
-    return $HTML;
+    return form_builder(collapsible_builder($HTML), '#', 'post', 'add_forderungen');
 }
