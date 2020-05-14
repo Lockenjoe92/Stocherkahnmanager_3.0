@@ -279,6 +279,26 @@ function gesamtausgaben_jahr($Jahr){
     return $Ausgaben;
 }
 
+function gesamtausgaben_jahr_konto($Jahr, $KontoID){
+
+    $link = connect_db();
+
+    $AnfangJahr = "".$Jahr."-01-01 00:00:01";
+    $EndeJahr = "".$Jahr."-12-31 23:59:59";
+
+    $Anfrage = "SELECT id, betrag FROM finanz_ausgaben WHERE konto_id = ".$KontoID." AND timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $Ausgaben = 0;
+
+    for ($a = 1; $a <= $Anzahl; $a++){
+        $Ausgabe = mysqli_fetch_assoc($Abfrage);
+        $Ausgaben = $Ausgaben + $Ausgabe['betrag'];
+    }
+
+    return $Ausgaben;
+}
+
 function lade_gezahlte_summe_forderung($ForderungID){
 
     $link = connect_db();

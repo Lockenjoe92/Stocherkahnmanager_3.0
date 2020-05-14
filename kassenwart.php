@@ -17,7 +17,7 @@ if(isset($Parser['meldung'])){
 }
 
 $HTML .= uebersicht_section_vereinskasse($YearGlobal);
-$HTML .= kontos_section_vereinskasse($YearGlobal);
+$HTML .= kontos_section_vereinskasse($YearGlobal, $Parser);
 $HTML .= forderungen_section_vereinskasse();
 $HTML .= ausgaben_section_vereinskasse();
 $HTML .= history_transactions_section_vereinskasse();
@@ -29,7 +29,16 @@ echo site_header($Header);
 echo site_body($HTML);
 
 function vereinskasse_parser($YearGlobal){
-    return null;
+
+    $Antwort = array();
+
+    for($a=1;$a<=100000;$a++){
+        if(isset($_POST['highlight_user_actions_'.$a.''])){
+            $Antwort['highlight_user']=$a;
+        }
+    }
+
+    return $Antwort;
 }
 
 function uebersicht_section_vereinskasse($YearGlobal){
@@ -38,14 +47,14 @@ function uebersicht_section_vereinskasse($YearGlobal){
     $Gesamtausgaben = gesamtausgaben_jahr($YearGlobal);
     $Differenz = $Gesamteinnahmen - $Gesamtausgaben;
 
-    $HTML = "<h3 class='center-align'>Jahresstatistik</h3>";
+    $HTML = "<h3 class='center-align'>Jahresstatistik ".$YearGlobal."</h3>";
     $Table = table_row_builder(table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder(form_select_item('year_global', 2017, date('Y'), $_POST['year_global'], '', 'Betrachtungsjahr', '')));
     $Table .= table_row_builder(table_data_builder($Gesamteinnahmen."&euro;").table_data_builder($Gesamtausgaben."&euro;").table_data_builder($Differenz."&euro;").table_data_builder(form_button_builder('change_betrachtungsjahr', 'wechseln', 'action', 'send')));
     $HTML .= form_builder(table_builder($Table), '#', 'post', 'jahresstats');
 
     return section_builder($HTML);
 }
-function kontos_section_vereinskasse($YearGlobal){
+function kontos_section_vereinskasse($YearGlobal, $Parser){
 
     $BigItems = '';
 
@@ -62,7 +71,16 @@ function kontos_section_vereinskasse($YearGlobal){
     foreach ($Users as $User){
         if ($User['ist_wart'] == 'true') {
             $Konto = lade_konto_user($User['id']);
-            $WartkontoItems .= table_row_builder(table_data_builder($User['vorname'].'&nbsp;'.$User['nachname']).table_data_builder(gesamteinnahmen_jahr_konto($YearGlobal,$Konto['id']).'&euro;').table_data_builder('').table_data_builder('').table_data_builder(''));
+            $Einnahmen = gesamteinnahmen_jahr_konto($YearGlobal,$Konto['id']);
+            $Ausgaben = gesamtausgaben_jahr_konto($YearGlobal,$Konto['id']);
+            $Differenz = $Einnahmen-$Ausgaben;
+            if($Parser['highlight_user']==$User['id']){
+                $Highlight = 'class="blue lighten-2"';
+            } else {
+                $Highlight = '';
+            }
+            $AktionLinks = form_button_builder('highlight_user_actions_'.$User['id'].'', 'hervorheben', 'action', 'highlight');
+            $WartkontoItems .= table_row_builder(table_data_builder('<p '.$Highlight.'>'.$User['vorname'].'&nbsp;'.$User['nachname'].'</p>').table_data_builder($Einnahmen.'&euro;').table_data_builder($Ausgaben.'&euro;').table_data_builder($Differenz.'&euro;').table_data_builder($AktionLinks));
             $WartkontoCounter++;
         }
     }
