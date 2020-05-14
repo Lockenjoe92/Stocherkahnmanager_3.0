@@ -175,7 +175,8 @@ function add_termin_parser($Mode){
                 if($_POST['type_termin']=='andere'){
                     $Antwort = termin_anlegen($_POST['user_termin'], lade_user_id(), $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], $_POST['type_termin_eigen'], '', $Kommentar);
                 } elseif ($_POST['type_termin']=='Geldrückgabe'){
-                    $Antwort = termin_anlegen($_POST['user_termin'], lade_user_id(), $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], 'ausgleich', $_POST['res_termin_rueckzahlung'], $Kommentar);
+                    $Ausgleich = lade_offene_ausgleiche_res($_POST['res_termin_rueckzahlung']);
+                    $Antwort = termin_anlegen($_POST['user_termin'], lade_user_id(), $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], 'ausgleich', $Ausgleich['id'], $Kommentar);
                 }
             }
         }
@@ -187,7 +188,8 @@ function add_termin_parser($Mode){
             if(isset($_POST['user_add_rueckzahlung_final'])){
                 $Reservierung = lade_reservierung($_POST['res_termin_rueckzahlung']);
                 $Terminangebot = lade_terminangebot($_POST['terminangebot_add_termin']);
-                $Antwort = termin_anlegen($Reservierung['user'], $Terminangebot['wart'], $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], 'ausgleich', $_POST['res_termin_rueckzahlung'], $Kommentar);
+                $Ausgleich = lade_offene_ausgleiche_res($Reservierung);
+                $Antwort = termin_anlegen($Reservierung['user'], $Terminangebot['wart'], $_POST['terminangebot_add_termin'], $_POST['termin_uhrzeit_select'], 'ausgleich', $Ausgleich['id'], $Kommentar);
             }
         }
     }

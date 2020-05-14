@@ -601,9 +601,8 @@ function rueckzahlung_ausgleich_durchfuehren($TerminID, $Summe){
         $Antwort['success']=false;
         $Antwort['meldung']='Datenbankfehler';
     } else {
-        $Ausgleich = lade_ausgleich($Termin['id_grund']);
         $Konto = lade_konto_user(lade_user_id());
-        $Ausgabe = ausgabe_hinzufuegen($Summe, 19, $Ausgleich['id'], $Konto['id']);
+        $Ausgabe = ausgabe_hinzufuegen($Summe, 19, $Termin['id_grund'], $Konto['id']);
         if($Ausgabe['success']){
             $Antwort = termin_durchfuehren($TerminID);
         } else {

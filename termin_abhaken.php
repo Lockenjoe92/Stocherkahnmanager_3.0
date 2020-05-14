@@ -49,7 +49,7 @@ function termin_abhaken_formular($TerminID){
     $User = lade_user_meta($Termin['user']);
 
     if($Termin['grund']=='ausgleich'){
-        $Ausgleich = lade_offene_ausgleiche_res($Termin['id_grund']);
+        $Ausgleich = lade_ausgleich($Termin['id_grund']);
         $BisherigeAuszahlungen = lade_gezahlte_betraege_ausgleich($Ausgleich['id']);
 
         $Class="Geldrückzahlung";
