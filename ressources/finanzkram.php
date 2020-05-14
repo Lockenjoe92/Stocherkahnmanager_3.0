@@ -399,6 +399,76 @@ function wartkonto_anlegen($User){
     return $Abfrage;
 }
 
+function konto_anlegen($Name, $Typ, $STartwert){
+
+    $link = connect_db();
+    $DAUcount = 0;
+    $DAUerr = '';
+
+    if($Name==''){
+        $DAUcount++;
+        $DAUerr .= 'Bitte gib dem Konto einen Namen!<br>';
+    } else{
+        if (!($stmt = $link->prepare("SELECT id FROM finanz_konten WHERE name = ? AND verstecker = 0"))) {
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        if (!$stmt->bind_param("s",$Name)) {
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+
+        if (!$stmt->execute()) {
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        $res = $stmt->get_result();
+        $Anzahl = mysqli_num_rows($res);
+        if($Anzahl>0){
+            $DAUcount++;
+            $DAUerr .= 'Ein Konto mit diesem Namen existiert bereits!<br>';
+        }
+    }
+    if($Typ==''){
+        $DAUcount++;
+        $DAUerr .= 'Bitte wähle einen Kontotyp aus!<br>';
+    }
+    if($STartwert!=''){
+        if(!is_numeric($STartwert)){
+            $DAUcount++;
+            $DAUerr .= 'Bitte gib eine valide Zahl (Format 12.34) als Startwert an!<br>';
+        }
+    } else {
+        $STartwert = 0.0;
+    }
+
+    if($DAUcount>0){
+        $Antwort['success']=false;
+        $Antwort['meldung']=$DAUerr;
+    } else {
+        if (!($stmt = $link->prepare("INSERT INTO finanz_konten (name, wert_start, wert_aktuell, typ, ersteller, erstellt, verstecker, versteckt) VALUES (?,?,?,?,?,?, 0, '0000-00-00 00:00:00')"))) {
+            $Antwort['success']=false;
+            $Antwort['meldung']='Datenbankfehler!';
+            #echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        if (!$stmt->bind_param("ssssis",$Name, $STartwert, $STartwert, $Typ, lade_user_id(), timestamp())) {
+            $Antwort['success']=false;
+            $Antwort['meldung']='Datenbankfehler!';
+            #echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+
+        if (!$stmt->execute()) {
+            $Antwort['success']=false;
+            $Antwort['meldung']='Datenbankfehler!';
+            #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        } else {
+            $Antwort['success']=true;
+            $Antwort['meldung']='Konto erfolgreich angelegt!';
+        }
+    }
+
+    return $Antwort;
+}
+
 function lade_gezahlte_betraege_ausgleich($AusgleichID){
 
     $link = connect_db();

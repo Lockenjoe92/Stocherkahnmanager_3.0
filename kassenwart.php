@@ -38,6 +38,10 @@ function vereinskasse_parser($YearGlobal){
         }
     }
 
+    if(isset($_POST['action_add_konto'])){
+        $Antwort = konto_anlegen($_POST['new_konto_name'], $_POST['new_konto_typ'], $_POST['new_konto_initial']);
+    }
+
     return $Antwort;
 }
 
@@ -174,6 +178,8 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
         $BigItems .= collapsible_item_builder('Wartkonten', 'Bislang keine Wartkonten angelegt!', 'android');
     }
 
+    $BigItems .= konto_anlegen_formular();
+
     $HTML = '<h3 class="center-align">Konten</h3>';
     $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post');
 
@@ -187,4 +193,13 @@ function ausgaben_section_vereinskasse(){
 }
 function history_transactions_section_vereinskasse(){
     return null;
+}
+function konto_anlegen_formular(){
+
+    $Table = table_form_string_item('Kontoname', 'new_konto_name', $_POST['new_konto_name']);
+    $Table .= table_row_builder(table_header_builder('Kontotyp').table_data_builder(dropdown_kontotyp_waehlen('new_konto_typ', $_POST['new_konto_typ'])));
+    $Table .= table_form_string_item('Anfangswert', 'new_konto_initial', $_POST['new_konto_initial']);
+    $Table .= table_row_builder(table_header_builder(form_button_builder('action_add_konto', 'Anlegen', 'action', 'send')).table_data_builder(''));
+    $Table = table_builder($Table);
+    return collapsible_item_builder('Konto anlegen', $Table, 'add_new');
 }
