@@ -42,10 +42,32 @@ function vereinskasse_parser($YearGlobal){
     $Antwort = array();
     $Antwort['ansicht']=null;
 
-    for($a=1;$a<=500;$a++){
+    for($a=1;$a<=10000;$a++){
         if(isset($_POST['konto_details_'.$a.''])){
             $Antwort['konto_id']=$a;
             $Antwort['ansicht']='konto_details';
+        }
+        if(isset($_POST['einnahme_stornieren_'.$a])){
+            $Result = einnahme_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']='list_all_forderungen';
+        }
+        if(isset($_POST['einnahme_storno_aufheben_'.$a])){
+            $Result = undo_einnahme_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']='list_all_forderungen';
+        }
+        if(isset($_POST['delete_forderung_'.$a])){
+            $Result = forderung_stornieren($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='list_all_forderungen';
+        }
+        if(isset($_POST['undo_storno_forderung_'.$a])){
+            $Result = undo_forderung_stornieren($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='list_all_forderungen';
         }
     }
 
@@ -307,6 +329,7 @@ function forderungen_section_vereinskasse($YearGlobal){
             }else{
                 $sBegin="";
                 $sEnd="";
+                $EinnahmeSumme = $EinnahmeSumme + $Einnahme['betrag'];
                 $EinnahmeAktions .= form_button_builder('einnahme_stornieren_'.$Einnahme['id'].'', 'Storno', 'action', '')."<br>";
             }
             $KontoEinnahme = lade_konto_via_id($Einnahme['konto_id']);
@@ -318,7 +341,6 @@ function forderungen_section_vereinskasse($YearGlobal){
             }
             $EinnahmeDatum .= $sBegin.date("d.m.Y", strtotime($Einnahme['timestamp'])).$sEnd."<br>";
             $EinnahmeBetrag .= $sBegin.$Einnahme['betrag'].'&euro;'.$sEnd."<br>";
-            $EinnahmeSumme = $EinnahmeSumme + $Einnahme['betrag'];
         }
         if(sizeof($Einnahmen)==0){
             $EinnahmeDatum = '-';

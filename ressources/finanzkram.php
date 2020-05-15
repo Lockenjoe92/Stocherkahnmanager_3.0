@@ -94,6 +94,18 @@ function forderung_stornieren($ForderungID){
     }
 }
 
+function undo_forderung_stornieren($ForderungID){
+
+    $link = connect_db();
+
+    $AnfrageForederungStornieren = "UPDATE finanz_forderungen SET storno_user = '0', storno_time = '0000-00-00 00:00:00' WHERE id = '".$ForderungID."'";
+    if(mysqli_query($link, $AnfrageForederungStornieren)){
+        return true;
+    } else {
+        return false;
+    }
+}
+
 function lade_zielkonto_einnahmen_forderungen_id(){
 
     $Link = connect_db();
@@ -242,6 +254,21 @@ function einnahme_loeschen($ID){
     $Anfrage = "UPDATE finanz_einnahmen SET storno = '".timestamp()."', storno_user = ".lade_user_id()." WHERE id = '$ID'";
     if(mysqli_query($link, $Anfrage)){
         $NeuerKontostand = $Konto['wert_aktuell']-$Einnahme['betrag'];
+        return update_kontostand($Einnahme['konto_id'], $NeuerKontostand);
+    } else{
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler beim Löschen';
+        return $Antwort;
+    }
+}
+
+function undo_einnahme_loeschen($ID){
+    $link = connect_db();
+    $Einnahme = lade_einnahme($ID);
+    $Konto = lade_konto_via_id($Einnahme['konto_id']);
+    $Anfrage = "UPDATE finanz_einnahmen SET storno = '0000-00-00 00:00:00', storno_user = 0 WHERE id = '$ID'";
+    if(mysqli_query($link, $Anfrage)){
+        $NeuerKontostand = $Konto['wert_aktuell']+$Einnahme['betrag'];
         return update_kontostand($Einnahme['konto_id'], $NeuerKontostand);
     } else{
         $Antwort['success']=false;
