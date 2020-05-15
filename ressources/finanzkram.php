@@ -406,6 +406,25 @@ function lade_alle_forderungen_jahr($Jahr, $InklStorno=true){
     return $ReturnArray;
 }
 
+function lade_alle_ausgleiche_jahr($Jahr, $InklStorno=true){
+
+    $link = connect_db();
+    $AnfangJahr = "".$Jahr."-01-01 00:00:01";
+    $EndeJahr = "".$Jahr."-12-31 23:59:59";
+    if($InklStorno){
+        $Anfrage = "SELECT * FROM finanz_ausgleiche WHERE timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' ORDER BY timestamp ASC";
+    }else{
+        $Anfrage = "SELECT * FROM finanz_ausgleiche WHERE timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' AND storno_user = '0' ORDER BY timestamp ASC";
+    }
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $ReturnArray = array();
+    for($a=1;$a<=$Anzahl;$a++){
+        array_push($ReturnArray, mysqli_fetch_assoc($Abfrage));
+    }
+    return $ReturnArray;
+}
+
 function ausgleiche_konto($Konto, $Jahr){
 
     $link = connect_db();
@@ -690,19 +709,29 @@ function ausgabe_hinzufuegen($Betrag, $Steuersatz, $Ausgleich, $Konto){
     return $Antwort;
 }
 
-function lade_ausgaben_ausgleich($Ausgleich){
+function lade_ausgaben_ausgleich($Ausgleich, $ReturnArrayMode=false){
 
     $link = connect_db();
-    $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_ausgaben WHERE ausgleich_id = '".$Ausgleich."' AND storno_user = '0'";
+    if($ReturnArrayMode){
+        $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_ausgaben WHERE ausgleich_id = '".$Ausgleich."'";
+    }else{
+        $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_ausgaben WHERE ausgleich_id = '".$Ausgleich."' AND storno_user = '0'";
+    }
     $AbfrageSucheNachZahlungen = mysqli_query($link, $AnfrageSucheNachZahlungen);
     $AnzahlSucheNachZahlungen = mysqli_num_rows($AbfrageSucheNachZahlungen);
 
     $Einnahmenzaehler = 0;
+    $Einnahmen = array();
     for ($b = 1; $b <= $AnzahlSucheNachZahlungen; $b++){
         $Zahlung = mysqli_fetch_assoc($AbfrageSucheNachZahlungen);
+        array_push($Einnahmen, $Zahlung);
         $Einnahmenzaehler = $Einnahmenzaehler + $Zahlung['betrag'];
     }
 
-    return $Einnahmenzaehler;
+    if($ReturnArrayMode){
+        return $Einnahmen;
+    }elseif (!$ReturnArrayMode){
+        return $Einnahmenzaehler;
+    }
 
 }

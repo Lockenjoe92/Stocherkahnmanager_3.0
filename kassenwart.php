@@ -393,8 +393,91 @@ function forderungen_section_vereinskasse($YearGlobal){
     return form_builder($HTML, '#', 'post', 'forderungen_section_form');
 }
 function ausgaben_section_vereinskasse($YearGlobal){
-    $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
-    return $HTML;
+    $Ausgleiche = lade_alle_ausgleiche_jahr($YearGlobal);
+
+    $TableResAusgleiche = table_row_builder(table_header_builder('#').table_header_builder('Res.-Infos').table_header_builder('User').table_header_builder('Betrag').table_header_builder('Ausgabe').table_header_builder('Betrag').table_header_builder('Zahler!n').table_header_builder('Differenz').table_header_builder('Aktionen'));
+    $TableAndereAusgleiche = table_row_builder(table_header_builder('#').table_header_builder('Referenz').table_header_builder('Betrag').table_header_builder('Aktionen').table_header_builder('Ausgabe').table_header_builder('Betrag').table_header_builder('Zahler!n').table_header_builder('Differenz').table_header_builder('Aktionen'));
+
+    foreach ($Ausgleiche as $Ausgleich){
+        $UserMeta = lade_user_meta($Ausgleich['fuer_user']);
+
+        //Parse Einnahmen
+        $Ausgaben = lade_ausgaben_ausgleich($Ausgleich['id'],true);
+        $AusgabeDatum = '';
+        $AusgabeBetrag = '';
+        $AusgabeWart = '';
+        $AusgabeSumme = 0.0;
+        $AusgabeAktions = '';
+        foreach ($Ausgaben as $Ausgabe){
+            if($Ausgabe['storno_user']>0){
+                $sBegin="<s>";
+                $sEnd="</s>";
+                $AusgabeAktions .= form_button_builder('ausgabe_storno_aufheben_'.$Ausgabe['id'].'', 'Aufheben', 'action', '')."<br>";
+            }else{
+                $sBegin="";
+                $sEnd="";
+                $AusgabeSumme = $AusgabeSumme + $Ausgabe['betrag'];
+                $AusgabeAktions .= form_button_builder('ausgabe_stornieren_'.$Ausgabe['id'].'', 'Storno', 'action', '')."<br>";
+            }
+            $KontoAusgabe = lade_konto_via_id($Ausgabe['konto_id']);
+            if($KontoAusgabe['typ']=='wartkonto'){
+                $WartMeta = lade_user_meta($KontoAusgabe['name']);
+                $AusgabeWart .= $sBegin.$WartMeta['vorname'].'&nbsp;'.$WartMeta['nachname'].$sEnd."<br>";
+            }elseif ($KontoAusgabe['typ']=='neutralkonto'){
+                $AusgabeWart .= $sBegin.$KontoAusgabe['name'].$sEnd."<br>";
+            }
+            $AusgabeDatum .= $sBegin.date("d.m.Y", strtotime($Ausgabe['timestamp'])).$sEnd."<br>";
+            $AusgabeBetrag .= $sBegin.$Ausgabe['betrag'].'&euro;'.$sEnd."<br>";
+        }
+        if(sizeof($Ausgaben)==0){
+            $AusgabeDatum = '-';
+            $AusgabeBetrag = '-';
+            $AusgabeWart = '-';
+            $AusgabeAktions = '-';
+        }
+        if(sizeof($Ausgaben)>1){
+            $AusgabeBetrag .= "----<br>".$AusgabeSumme.'&euro;';
+            $AusgabeDatum .= "<br><br>";
+            $AusgabeWart .= "<br><br>";
+        }
+
+        $Differenz = $AusgabeSumme - $Ausgabe['betrag'];
+        if (floatval($Differenz) >= 0){
+            $StyleGUV = "class=\"green lighten-2\"";
+        } else {
+            $StyleGUV = "class=\"red lighten-1\"";
+        }
+
+        if($Ausgleich['referenz_res']>0){       //Forderung betrifft ne reservierung
+            if($Ausgabe['storno_user']>0) {
+                $TableResAusgleiche .= table_row_builder(table_data_builder('<s>'.$Ausgleich['id'].'</s>') . table_data_builder('<s>'.$Ausgleich['referenz_res'].'</s>') . table_data_builder('<s>'.$UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname'].'</s>') . table_data_builder('<s>'.$Ausgleich['betrag'].'&euro;</s>') . table_data_builder($AusgabeDatum) . table_data_builder($AusgabeBetrag) . table_data_builder($AusgabeWart) . table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>') . table_data_builder($AusgabeAktions));
+            }else{
+                $TableResAusgleiche .= table_row_builder(table_data_builder($Ausgleich['id']) . table_data_builder($Ausgleich['referenz_res']) . table_data_builder($UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname']) . table_data_builder($Ausgleich['betrag'].'&euro;') . table_data_builder($AusgabeDatum) . table_data_builder($AusgabeBetrag) . table_data_builder($AusgabeWart) . table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>') . table_data_builder($AusgabeAktions));
+            }
+        } else {                                //Forderung betrifft was anderes
+            if($Ausgabe['storno_user']>0) {
+                $AktionButtonForderung = form_button_builder('undo_storno_ausgleich_'.$Ausgleich['id'].'', 'Reaktivieren', 'action', '');
+                $TableAndereAusgleiche .= table_row_builder(table_data_builder('<s>'.$Ausgleich['id'].'</s>').table_data_builder('<s>'.$Ausgleich['referenz'].'</s>').table_data_builder('<s>'.$UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname'].'</s>').table_data_builder('<s>'.$Ausgleich['betrag'].'&euro;</s>').table_data_builder($AktionButtonForderung).table_data_builder($AusgabeDatum).table_data_builder($AusgabeBetrag).table_data_builder($AusgabeWart).table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($AusgabeAktions));
+            } else {
+                $AktionButtonForderung = form_button_builder('delete_ausgleich_'.$Ausgleich['id'].'', 'Stornieren', 'action', '');
+                $TableAndereAusgleiche .= table_row_builder(table_data_builder($Ausgleich['id']).table_data_builder($Ausgleich['referenz']).table_data_builder($UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname']).table_data_builder($Ausgleich['betrag'].'&euro;').table_data_builder($AktionButtonForderung).table_data_builder($AusgabeDatum).table_data_builder($AusgabeBetrag).table_data_builder($AusgabeWart).table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($AusgabeAktions));
+            }
+        }
+    }
+
+
+
+    $ResFordContent = table_builder($TableResAusgleiche);
+    $AndFordContent = table_builder($TableAndereAusgleiche);
+
+    $Items = collapsible_item_builder('Auszahlungen zu Reservierungen', $ResFordContent, 'today');
+    $Items .= collapsible_item_builder('Andere Ausgaben', $AndFordContent, 'toll');
+
+    $HTML = '<h3 class="center-align">Alle Ausgaben '.$YearGlobal.'</h3>';
+    $HTML .= section_builder(collapsible_builder($Items));
+    $HTML .= section_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'));
+
+    return form_builder($HTML, '#', 'post', 'ausgleiche_section_form');
 }
 function konto_details($YearGlobal, $Konto){
     $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
