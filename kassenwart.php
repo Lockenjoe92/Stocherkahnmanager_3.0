@@ -16,11 +16,20 @@ if(isset($Parser['meldung'])){
     $HTML .= "<h5 class='center-align'>".$Parser['meldung']."</h5>";
 }
 
-$HTML .= uebersicht_section_vereinskasse($YearGlobal);
-$HTML .= kontos_section_vereinskasse($YearGlobal, $Parser);
-$HTML .= forderungen_section_vereinskasse();
-$HTML .= ausgaben_section_vereinskasse();
-$HTML .= history_transactions_section_vereinskasse();
+if($Parser['ansicht']==null){
+    $HTML .= uebersicht_section_vereinskasse($YearGlobal);
+    $HTML .= kontos_section_vereinskasse($YearGlobal, $Parser);
+    $HTML .= add_transaktions_vereinskasse();
+    $HTML .= choose_views_vereinskasse();
+} elseif ($Parser['ansicht']=='guv'){
+    $HTML .= guv_rechnung_jahr($YearGlobal);
+} elseif ($Parser['ansicht']=='konto_details'){
+    $HTML .= konto_details($YearGlobal, $Parser['konto_id']);
+} elseif ($Parser['ansicht']=='list_all_forderungen'){
+    $HTML .= forderungen_section_vereinskasse($YearGlobal);
+} elseif ($Parser['ansicht']=='list_all_ausgaben'){
+    $HTML .= ausgaben_section_vereinskasse($YearGlobal);
+}
 
 $HTML = container_builder($HTML);
 
@@ -31,18 +40,102 @@ echo site_body($HTML);
 function vereinskasse_parser($YearGlobal){
 
     $Antwort = array();
+    $Antwort['ansicht']=null;
 
-    for($a=1;$a<=100000;$a++){
-        if(isset($_POST['highlight_user_actions_'.$a.''])){
-            $Antwort['highlight_user']=$a;
+    for($a=1;$a<=500;$a++){
+        if(isset($_POST['konto_details_'.$a.''])){
+            $Antwort['konto_id']=$a;
+            $Antwort['ansicht']='konto_details';
         }
     }
 
     if(isset($_POST['action_add_konto'])){
         $Antwort = konto_anlegen($_POST['new_konto_name'], $_POST['new_konto_typ'], $_POST['new_konto_initial']);
+        $Antwort['ansicht']=null;
+    }
+
+    if(isset($_POST['activate_guv'])){
+        $Antwort['ansicht']='guv';
+    }
+
+    if(isset($_POST['activate_list_all_forderungen'])){
+        $Antwort['ansicht']='list_all_forderungen';
+    }
+
+    if(isset($_POST['activate_list_all_ausgaben'])){
+        $Antwort['ansicht']='list_all_ausgaben';
+    }
+    if(isset($_POST['reset_view'])){
+        $Antwort['ansicht']=null;
     }
 
     return $Antwort;
+}
+function guv_rechnung_jahr($YearGlobal){
+
+    $link = connect_db();
+
+    //Einnahmenkonten
+    $Anfrage5 = "SELECT * FROM finanz_konten WHERE typ = 'einnahmenkonto' AND verstecker = '0' ORDER BY typ, name ASC";
+    $Abfrage5 = mysqli_query($link, $Anfrage5);
+    $Anzahl5 = mysqli_num_rows($Abfrage5);
+
+    $Anfrage6 = "SELECT * FROM finanz_konten WHERE typ = 'ausgabenkonto' AND verstecker = '0' ORDER BY typ, name ASC";
+    $Abfrage6 = mysqli_query($link, $Anfrage6);
+    $Anzahl6 = mysqli_num_rows($Abfrage6);
+
+    //Berechne Zahl nötiger Zeilen
+    if($Anzahl5>$Anzahl6){
+        $Runs = $Anzahl5;
+    }elseif ($Anzahl5<$Anzahl6){
+        $Runs = $Anzahl6;
+    }else{
+        $Runs = $Anzahl5;
+    }
+
+    $kontoItems = table_row_builder(table_header_builder('Ausgabenkonten').table_header_builder('Ausgaben').table_header_builder('Einnahmenkonten').table_header_builder('Einnahmen'));
+    //Iterate over konten
+    $AusgabenSumme=0.0;
+    $EinnahmenSumme=0.0;
+    for($a=1;$a<=$Runs;$a++){
+        //Ausgabenkonto
+        if($a<=$Anzahl6){
+            $Ergebnis6 = mysqli_fetch_assoc($Abfrage6);
+            $Ausgleiche = ausgleiche_konto($Ergebnis6['id'], $YearGlobal);
+            $AusgabenKonto=0.0;
+            foreach ($Ausgleiche as $Ausgleich){
+                $AusgabenKonto = $AusgabenKonto + lade_gezahlte_betraege_ausgleich($Ausgleich['id']);
+            }
+            $AusgabenSumme = $AusgabenSumme + $AusgabenKonto;
+            $ItemsAusgabenkonten = table_data_builder($Ergebnis6['name']).table_data_builder($AusgabenKonto.'&euro;');
+        }else{
+            $ItemsAusgabenkonten = table_data_builder('').table_data_builder('');
+        }
+        //Einnahmenkonto
+        if($a<=$Anzahl5){
+            $Ergebnis5 = mysqli_fetch_assoc($Abfrage5);
+            $Forderungen = forderungen_konto($Ergebnis5['id'], $YearGlobal);
+            $EinnahmenKonto=0.0;
+            foreach ($Forderungen as $Forderung){
+                $EinnahmenKonto = $EinnahmenKonto + lade_einnahmen_forderung($Forderung['id']);
+            }
+            $EinnahmenSumme = $EinnahmenSumme + $EinnahmenKonto;
+            $ItemsEinnahmenkonten = table_data_builder($Ergebnis5['name']).table_data_builder($EinnahmenKonto.'&euro;');
+        }else{
+            $ItemsEinnahmenkonten = table_data_builder('').table_data_builder('');
+        }
+        $kontoItems .= table_row_builder($ItemsAusgabenkonten.$ItemsEinnahmenkonten);
+    }
+    $kontoItems .= table_row_builder(table_data_builder('').table_data_builder('Summe: '.$AusgabenSumme.'&euro;').table_data_builder('').table_data_builder('Summe: '.$EinnahmenSumme.'&euro;'));
+    $Differenz = $EinnahmenSumme-$AusgabenSumme;
+
+    $contentHTML = section_builder(table_builder($kontoItems));
+    $contentHTML .= section_builder(table_builder(table_row_builder(table_header_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back')).table_header_builder('Gewinn/Verlust: '.$Differenz.'&euro;'))));
+    $contentHTML .= "<input type='hidden' name='year_global' value='".$_POST['year_global']."'>";
+
+    $HTML = "<h3 class='center-align'>GUV-Rechnung ".$YearGlobal."</h3>";
+    $HTML .= form_builder($contentHTML, '#', 'post');
+    return $HTML;
 }
 function uebersicht_section_vereinskasse($YearGlobal){
 
@@ -89,7 +182,7 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
         } else {
             $StyleGUV = "class=\"red lighten-1\"";
         }
-        $Buttons = form_button_builder('show_details_konto_'.$Ergebnis5['id'].'', 'Details', 'action', 'search');
+        $Buttons = form_button_builder('konto_details_'.$Ergebnis5['id'].'', 'Details', 'action', 'search');
         $EinnahmenkontoItems .= table_row_builder(table_data_builder($Ergebnis5['name']).table_data_builder($ForderungenSumme.'&euro;').table_data_builder($EinnahmenSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($Buttons));
         $EinnahmenkontoCounter++;
     }
@@ -121,7 +214,7 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
         } else {
             $StyleGUV = "class=\"red lighten-1\"";
         }
-        $Buttons = form_button_builder('show_details_konto_'.$Ergebnis6['id'].'', 'Details', 'action', 'search');
+        $Buttons = form_button_builder('konto_details_'.$Ergebnis6['id'].'', 'Details', 'action', 'search');
         $AusgabenkontoItems .= table_row_builder(table_data_builder($Ergebnis6['name']).table_data_builder($AUSgleichSumme.'&euro;').table_data_builder($AusgabeSumme.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($Buttons));
         $AusgabenkontoCounter++;
     }
@@ -139,7 +232,7 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     $NeutralkontoItems = table_row_builder(table_header_builder('Konto').table_header_builder('Aktueller Kontostand').table_header_builder('Aktionen'));
     for ($g = 1; $g <= $Anzahl7;$g++) {
         $Ergebnis7 = mysqli_fetch_assoc($Abfrage7);
-        $Buttons = form_button_builder('show_details_konto_'.$Ergebnis7['id'].'', 'Details', 'action', 'search');
+        $Buttons = form_button_builder('konto_details_'.$Ergebnis7['id'].'', 'Details', 'action', 'search');
         $NeutralkontoItems .= table_row_builder(table_data_builder($Ergebnis7['name']).table_data_builder($Ergebnis7['wert_akt'].'&euro;').table_data_builder($Buttons));
         $NeutralkontoCounter++;
     }
@@ -169,9 +262,9 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
             } else {
                 $Highlight = '';
             }
-            $Buttons = form_button_builder('show_details_konto_'.$Konto['id'].'', 'Details', 'action', 'search');
-            $AktionLinks = form_button_builder('highlight_user_actions_'.$User['id'].'', 'hervorheben', 'action', 'highlight');
-            $WartkontoItems .= table_row_builder(table_data_builder('<p '.$Highlight.'>'.$User['vorname'].'&nbsp;'.$User['nachname'].'</p>').table_data_builder($Einnahmen.'&euro;').table_data_builder($Ausgaben.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($AktionLinks.'&nbsp;'.$Buttons));
+            $Buttons = form_button_builder('konto_details_'.$Konto['id'].'', 'Details', 'action', 'search');
+            #$AktionLinks = form_button_builder('highlight_user_actions_'.$User['id'].'', 'hervorheben', 'action', 'highlight');
+            $WartkontoItems .= table_row_builder(table_data_builder('<p '.$Highlight.'>'.$User['vorname'].'&nbsp;'.$User['nachname'].'</p>').table_data_builder($Einnahmen.'&euro;').table_data_builder($Ausgaben.'&euro;').table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($Buttons));
             $WartkontoCounter++;
         }
     }
@@ -182,20 +275,24 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     }
 
     $BigItems .= konto_anlegen_formular();
+    $BigItems .= "<input type='hidden' name='year_global' value='".$_POST['year_global']."'>";
 
     $HTML = '<h3 class="center-align">Konten</h3>';
     $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post');
 
     return section_builder($HTML);
 }
-function forderungen_section_vereinskasse(){
-    return null;
+function forderungen_section_vereinskasse($YearGlobal){
+    $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
+    return $HTML;
 }
-function ausgaben_section_vereinskasse(){
-    return null;
+function ausgaben_section_vereinskasse($YearGlobal){
+    $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
+    return $HTML;
 }
-function history_transactions_section_vereinskasse(){
-    return null;
+function konto_details($YearGlobal, $Konto){
+    $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
+    return $HTML;
 }
 function konto_anlegen_formular(){
 
@@ -205,4 +302,40 @@ function konto_anlegen_formular(){
     $Table .= table_row_builder(table_header_builder(form_button_builder('action_add_konto', 'Anlegen', 'action', 'send')).table_data_builder(''));
     $Table = table_builder($Table);
     return collapsible_item_builder('Konto anlegen', $Table, 'add_new');
+}
+function add_transaktions_vereinskasse(){
+    $BigItems = ausgleich_anlegen_formular();
+    $BigItems .= ausgabe_eintragen_formular();
+    $BigItems .= forderung_anlegen_formular();
+    $BigItems .= einnahmen_eintragen_formular();
+    $BigItems .= umbuchen_formular();
+    $HTML = '<h3 class="center-align">Transaktionen durchführen</h3>';
+    $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post');
+
+    return section_builder($HTML);
+}
+function umbuchen_formular(){
+    $Text = '';
+    return collapsible_item_builder('Umbuchung eintragen', $Text, 'swap_horiz');
+}
+function einnahmen_eintragen_formular(){
+    $Text = '';
+    return collapsible_item_builder('Einnahme eintragen', $Text, 'toll');
+}
+function forderung_anlegen_formular(){
+    $Text = '';
+    return collapsible_item_builder('Forderung anlegen', $Text, 'playlist_add');
+}
+function ausgabe_eintragen_formular(){
+    $Text = '';
+    return collapsible_item_builder('Geldausgabe eintragen', $Text, 'payment');
+}
+function ausgleich_anlegen_formular(){
+    $Text = '';
+    return collapsible_item_builder('Ausgabe planen', $Text, 'playlist_add');
+}
+function choose_views_vereinskasse(){
+    $HTML = "<h3 class='center-align'>Weitere Ansichten</h3>";
+    $HTML .= form_builder(table_builder(table_row_builder(table_header_builder(form_button_builder('activate_guv', 'GUV-Rechnung', 'action', 'iso', '')).table_header_builder(form_button_builder('activate_list_all_ausgaben', 'Alle Ausgaben', 'action', 'money_off', '')).table_header_builder(form_button_builder('activate_list_all_forderungen', 'Alle Forderungen', 'action', 'attach_money', ''))))."<input type='hidden' name='year_global' value='".$_POST['year_global']."'>", '#', 'post', 'view_changer_form');
+    return section_builder($HTML);
 }
