@@ -119,7 +119,7 @@ function lade_zielkonto_einnahmen_forderungen_id(){
 function lade_ausgleiche_fuer_res_zielkonto(){
     $Link = connect_db();
 
-    $Anfrage = "SELECT id FROM finanz_konten WHERE verstecker = 0 AND name = 'Auszahlungen zu Reservierungen'";
+    $Anfrage = "SELECT id FROM finanz_konten WHERE storno_user = 0 AND name = 'Auszahlungen zu Reservierungen'";
     $Abfrage = mysqli_query($Link, $Anfrage);
     $Ergebnis = mysqli_fetch_assoc($Abfrage);
     return $Ergebnis['id'];
@@ -127,7 +127,13 @@ function lade_ausgleiche_fuer_res_zielkonto(){
 
 function ausgleich_loeschen($Ausgleich){
     $Link = connect_db();
-    $Anfrage = "UPDATE finanz_ausgleiche SET verstecker = '".lade_user_id()."' WHERE id = ".$Ausgleich."";
+    $Anfrage = "UPDATE finanz_ausgleiche SET storno_user = '".lade_user_id()."', storno_time = '".timestamp()."' WHERE id = ".$Ausgleich."";
+    return mysqli_query($Link, $Anfrage);
+}
+
+function undo_ausgleich_loeschen($Ausgleich){
+    $Link = connect_db();
+    $Anfrage = "UPDATE finanz_ausgleiche SET storno_user = '0', storno_time = '0000-00-00 00:00:00' WHERE id = ".$Ausgleich."";
     return mysqli_query($Link, $Anfrage);
 }
 
@@ -284,6 +290,21 @@ function ausgabe_loeschen($ID){
     $Anfrage = "UPDATE finanz_ausgaben SET storno = '".timestamp()."', storno_user = ".lade_user_id()." WHERE id = '$ID'";
     if(mysqli_query($link, $Anfrage)){
         $NeuerKontostand = $Konto['wert_aktuell']+$Ausgabe['betrag'];
+        return update_kontostand($Ausgabe['konto_id'], $NeuerKontostand);
+    } else{
+        $Antwort['success']=false;
+        $Antwort['meldung']='Datenbankfehler beim Löschen';
+        return $Antwort;
+    }
+}
+
+function undo_ausgabe_loeschen($ID){
+    $link = connect_db();
+    $Ausgabe = lade_ausgabe($ID);
+    $Konto = lade_konto_via_id($Ausgabe['konto_id']);
+    $Anfrage = "UPDATE finanz_ausgaben SET storno = '0000-00-00 00:00:00', storno_user = 0 WHERE id = '$ID'";
+    if(mysqli_query($link, $Anfrage)){
+        $NeuerKontostand = $Konto['wert_aktuell']-$Ausgabe['betrag'];
         return update_kontostand($Ausgabe['konto_id'], $NeuerKontostand);
     } else{
         $Antwort['success']=false;

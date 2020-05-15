@@ -69,6 +69,27 @@ function vereinskasse_parser($YearGlobal){
             $Antwort['success']=$Result['success'];
             $Antwort['ansicht']='list_all_forderungen';
         }
+        if(isset($_POST['delete_ausgleich_'.$a])){
+            $Result = ausgleich_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='list_all_ausgaben';
+        }
+        if(isset($_POST['undo_storno_ausgleich_'.$a])){
+            $Result = undo_ausgleich_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='list_all_ausgaben';
+        }
+        if(isset($_POST['ausgabe_stornieren_'.$a])){
+            $Result = ausgabe_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='list_all_ausgaben';
+        }
+        if(isset($_POST['ausgabe_stornieren_'.$a])){
+            $Result = undo_ausgabe_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']='list_all_ausgaben';
+        }
     }
 
     if(isset($_POST['action_add_konto'])){
