@@ -360,6 +360,25 @@ function forderungen_konto($Konto, $Jahr){
     return $ReturnArray;
 }
 
+function lade_alle_forderungen_jahr($Jahr, $InklStorno=true){
+
+    $link = connect_db();
+    $AnfangJahr = "".$Jahr."-01-01 00:00:01";
+    $EndeJahr = "".$Jahr."-12-31 23:59:59";
+    if($InklStorno){
+        $Anfrage = "SELECT * FROM finanz_forderungen WHERE timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' ORDER BY timestamp ASC";
+    }else{
+        $Anfrage = "SELECT * FROM finanz_forderungen WHERE timestamp > '$AnfangJahr' AND timestamp < '$EndeJahr' AND storno_user = '0' ORDER BY timestamp ASC";
+    }
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $ReturnArray = array();
+    for($a=1;$a<=$Anzahl;$a++){
+        array_push($ReturnArray, mysqli_fetch_assoc($Abfrage));
+    }
+    return $ReturnArray;
+}
+
 function ausgleiche_konto($Konto, $Jahr){
 
     $link = connect_db();

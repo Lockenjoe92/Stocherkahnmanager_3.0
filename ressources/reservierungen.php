@@ -1123,20 +1123,30 @@ function lade_offene_forderung_res($ResID){
     return $Array;
 }
 
-function lade_einnahmen_forderung($ForderungID){
+function lade_einnahmen_forderung($ForderungID, $ReturnArrayMode=false){
 
     $link = connect_db();
-    $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_einnahmen WHERE forderung_id = '".$ForderungID."' AND storno_user = '0'";
+    if($ReturnArrayMode){
+        $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_einnahmen WHERE forderung_id = '".$ForderungID."'";
+    }else{
+        $AnfrageSucheNachZahlungen = "SELECT * FROM finanz_einnahmen WHERE forderung_id = '".$ForderungID."' AND storno_user = '0'";
+    }
     $AbfrageSucheNachZahlungen = mysqli_query($link, $AnfrageSucheNachZahlungen);
     $AnzahlSucheNachZahlungen = mysqli_num_rows($AbfrageSucheNachZahlungen);
 
     $Einnahmenzaehler = 0;
+    $Einnahmen = array();
     for ($b = 1; $b <= $AnzahlSucheNachZahlungen; $b++){
         $Zahlung = mysqli_fetch_assoc($AbfrageSucheNachZahlungen);
+        array_push($Einnahmen, $Zahlung);
         $Einnahmenzaehler = $Einnahmenzaehler + $Zahlung['betrag'];
     }
 
-    return $Einnahmenzaehler;
+    if($ReturnArrayMode){
+        return $Einnahmen;
+    }elseif (!$ReturnArrayMode){
+        return $Einnahmenzaehler;
+    }
 }
 
 function lade_offene_ausgleiche_res($ResID){

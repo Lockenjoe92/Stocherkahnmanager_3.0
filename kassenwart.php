@@ -283,8 +283,92 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     return section_builder($HTML);
 }
 function forderungen_section_vereinskasse($YearGlobal){
-    $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
-    return $HTML;
+
+    $Forderungen = lade_alle_forderungen_jahr($YearGlobal);
+
+    $TableResForderungen = table_row_builder(table_header_builder('#').table_header_builder('Res.-Infos').table_header_builder('User').table_header_builder('Betrag').table_header_builder('Einnahme').table_header_builder('Betrag').table_header_builder('Empfänger!n').table_header_builder('Differenz').table_header_builder('Aktionen'));
+    $TableAndereForderungen = table_row_builder(table_header_builder('#').table_header_builder('Referenz').table_header_builder('User').table_header_builder('Betrag').table_header_builder('Aktionen').table_header_builder('Einnahme').table_header_builder('Betrag').table_header_builder('Empfänger!n').table_header_builder('Differenz').table_header_builder('Aktionen'));
+
+    foreach ($Forderungen as $Forderung){
+        $UserMeta = lade_user_meta($Forderung['von_user']);
+
+        //Parse Einnahmen
+        $Einnahmen = lade_einnahmen_forderung($Forderung['id'],true);
+        $EinnahmeDatum = '';
+        $EinnahmeBetrag = '';
+        $EinnahmeWart = '';
+        $EinnahmeSumme = 0.0;
+        $EinnahmeAktions = '';
+        foreach ($Einnahmen as $Einnahme){
+            if($Einnahme['storno_user']>0){
+                $sBegin="<s>";
+                $sEnd="</s>";
+                $EinnahmeAktions .= form_button_builder('einnahme_storno_aufheben_'.$Einnahme['id'].'', 'Aufheben', 'action', '')."<br>";
+            }else{
+                $sBegin="";
+                $sEnd="";
+                $EinnahmeAktions .= form_button_builder('einnahme_stornieren_'.$Einnahme['id'].'', 'Storno', 'action', '')."<br>";
+            }
+            $KontoEinnahme = lade_konto_via_id($Einnahme['konto_id']);
+            if($KontoEinnahme['typ']=='wartkonto'){
+                $WartMeta = lade_user_meta($KontoEinnahme['name']);
+                $EinnahmeWart .= $sBegin.$WartMeta['vorname'].'&nbsp;'.$WartMeta['nachname'].$sEnd."<br>";
+            }elseif ($KontoEinnahme['typ']=='neutralkonto'){
+                $EinnahmeWart .= $sBegin.$KontoEinnahme['name'].$sEnd."<br>";
+            }
+            $EinnahmeDatum .= $sBegin.date("d.m.Y", strtotime($Einnahme['timestamp'])).$sEnd."<br>";
+            $EinnahmeBetrag .= $sBegin.$Einnahme['betrag'].'&euro;'.$sEnd."<br>";
+            $EinnahmeSumme = $EinnahmeSumme + $Einnahme['betrag'];
+        }
+        if(sizeof($Einnahmen)==0){
+            $EinnahmeDatum = '-';
+            $EinnahmeBetrag = '-';
+            $EinnahmeWart = '-';
+            $EinnahmeAktions = '-';
+        }
+        if(sizeof($Einnahmen)>1){
+            $EinnahmeBetrag .= "----<br>".$EinnahmeSumme.'&euro;';
+            $EinnahmeDatum .= "<br><br>";
+            $EinnahmeWart .= "<br><br>";
+        }
+
+        $Differenz = $EinnahmeSumme - $Forderung['betrag'];
+        if (floatval($Differenz) >= 0){
+            $StyleGUV = "class=\"green lighten-2\"";
+        } else {
+            $StyleGUV = "class=\"red lighten-1\"";
+        }
+
+        if($Forderung['referenz_res']>0){       //Forderung betrifft ne reservierung
+            if($Forderung['storno_user']>0) {
+                $TableResForderungen .= table_row_builder(table_data_builder('<s>'.$Forderung['id'].'</s>') . table_data_builder('<s>'.$Forderung['referenz_res'].'</s>') . table_data_builder('<s>'.$UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname'].'</s>') . table_data_builder('<s>'.$Forderung['betrag'].'&euro;</s>') . table_data_builder($EinnahmeDatum) . table_data_builder($EinnahmeBetrag) . table_data_builder($EinnahmeWart) . table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>') . table_data_builder($EinnahmeAktions));
+            }else{
+                $TableResForderungen .= table_row_builder(table_data_builder($Forderung['id']) . table_data_builder($Forderung['referenz_res']) . table_data_builder($UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname']) . table_data_builder($Forderung['betrag'].'&euro;') . table_data_builder($EinnahmeDatum) . table_data_builder($EinnahmeBetrag) . table_data_builder($EinnahmeWart) . table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>') . table_data_builder($EinnahmeAktions));
+            }
+        } else {                                //Forderung betrifft was anderes
+            if($Forderung['storno_user']>0) {
+                $AktionButtonForderung = form_button_builder('undo_storno_forderung_'.$Forderung['id'].'', 'Reaktivieren', 'action', '');
+                $TableAndereForderungen .= table_row_builder(table_data_builder('<s>'.$Forderung['id'].'</s>').table_data_builder('<s>'.$Forderung['referenz'].'</s>').table_data_builder('<s>'.$UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname'].'</s>').table_data_builder('<s>'.$Forderung['betrag'].'&euro;</s>').table_data_builder($AktionButtonForderung).table_data_builder($EinnahmeDatum).table_data_builder($EinnahmeBetrag).table_data_builder($EinnahmeWart).table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($EinnahmeAktions));
+            } else {
+                $AktionButtonForderung = form_button_builder('delete_forderung_'.$Forderung['id'].'', 'Stornieren', 'action', '');
+                $TableAndereForderungen .= table_row_builder(table_data_builder($Forderung['id']).table_data_builder($Forderung['referenz']).table_data_builder($UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname']).table_data_builder($Forderung['betrag'].'&euro;').table_data_builder($AktionButtonForderung).table_data_builder($EinnahmeDatum).table_data_builder($EinnahmeBetrag).table_data_builder($EinnahmeWart).table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($EinnahmeAktions));
+            }
+        }
+    }
+
+
+
+    $ResFordContent = table_builder($TableResForderungen);
+    $AndFordContent = table_builder($TableAndereForderungen);
+
+    $Items = collapsible_item_builder('Forderungen aus Reservierungen', $ResFordContent, 'today');
+    $Items .= collapsible_item_builder('Andere Forderungen', $AndFordContent, 'toll');
+
+    $HTML = '<h3 class="center-align">Alle Forderungen '.$YearGlobal.'</h3>';
+    $HTML .= section_builder(collapsible_builder($Items));
+    $HTML .= section_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'));
+
+    return form_builder($HTML, '#', 'post', 'forderungen_section_form');
 }
 function ausgaben_section_vereinskasse($YearGlobal){
     $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
