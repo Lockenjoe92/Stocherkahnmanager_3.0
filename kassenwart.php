@@ -133,6 +133,17 @@ function vereinskasse_parser($YearGlobal){
         }
 
     }
+
+    if(isset($_POST['action_add_forderung'])){
+        if(is_numeric($_POST['betrag_add_forderung'])){
+            $Till = $_POST['datum_add_forderung'].' 00:00:01';
+            $Antwort = forderung_generieren($_POST['betrag_add_forderung'], $_POST['steuer_add_forderung'], $_POST['user_add_forderung'], '', lade_zielkonto_einnahmen_forderungen_id(), '', $_POST['reason_add_forderung'], $Till, lade_user_id());
+        } else {
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = 'Bitte gib einen validen Betrag ein!';
+        }
+    }
+
     if(isset($_POST['reset_view'])){
         $Antwort['ansicht']=null;
     }
@@ -565,8 +576,19 @@ function einnahmen_eintragen_formular(){
     return collapsible_item_builder('Einnahme eintragen', $Text, 'toll');
 }
 function forderung_anlegen_formular(){
-    $Text = '';
-    return collapsible_item_builder('Forderung anlegen', $Text, 'playlist_add');
+
+    if($_POST['steuer_add_forderung']!=''){$Steuersatz = $_POST['steuer_add_forderung'];} else {$Steuersatz = 19;}
+    $Table = table_form_string_item('Forderungsgrund', 'reason_add_forderung', $_POST['reason_add_forderung'], false);
+    $Table .= table_form_dropdown_menu_user('Von Nutzer', 'user_add_forderung', $_POST['user_add_forderung']);
+    $Table .= table_form_string_item('Betrag (Format: 12.34)', 'betrag_add_forderung', $_POST['betrag_add_forderung'], false);
+    $Table .= table_form_select_item('Steuersatz', 'steuer_add_forderung', 0, 99, $Steuersatz, '%', '', '');
+    $Table .= table_form_datepicker_reservation_item('Zahlbar bis', 'datum_add_forderung', $_POST['datum_add_forderung'], false, true);
+    $Table .= table_row_builder(table_header_builder(form_button_builder('action_add_forderung', 'Anlegen', 'action', 'send')).table_data_builder(''));
+    $Table = table_builder($Table);
+
+    $HTML = collapsible_item_builder('Forderung anlegen', $Table, 'add_new');
+
+    return $HTML;
 }
 function ausgabe_eintragen_formular(){
     if($_POST['ausgabe_eintragen_steuersatz']!=''){$Steuersatz = $_POST['ausgabe_eintragen_steuersatz'];} else {$Steuersatz = 19;}
