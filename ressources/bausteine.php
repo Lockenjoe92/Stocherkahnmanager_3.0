@@ -1323,6 +1323,41 @@ function table_form_offene_ausgleiche($Titel, $NameElement, $Selected){
 
 }
 
+function table_form_dropdown_einnahmenkonten($Titel, $NameElement, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM finanz_konten WHERE typ = 'einnahmenkonto' AND verstecker = '0' ORDER BY name ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl>0){
+        //Startwert
+        if($Selected == ''){
+            $Ausgabe .= "<option value='' selected>wählen</option>";
+        } else {
+            $Ausgabe .= "<option value=''>wählen</option>";
+        }
+
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            if($Ergebnis['id']==$Selected){
+                $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$Ergebnis['name']."</option>";
+            } else {
+                $Ausgabe .= "<option value='".$Ergebnis['id']."'>".$Ergebnis['name']."</option>";
+            }
+        }
+    } else {
+        $Ausgabe .= "<option value='' selected>Keine Einnahmenkonten angelegt!</option>";
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+
+}
+
 function table_form_dropdown_ausgabenkonten($Titel, $NameElement, $Selected){
 
     $Ausgabe = "<tr><th>".$Titel."</th><td>";
@@ -1390,4 +1425,29 @@ function listenelement_offene_forderung_durchfuehren_generieren($Forderung, $Sum
     $Icon = 'payment';
     return collapsible_item_builder($Titel, $Content, $Icon);
 }
-?>
+
+function listenelement_offene_forderung_kassenwart_durchfuehren_generieren($Forderung, $Summe, $Mode){
+
+    $User = lade_user_meta($Forderung['von_user']);
+    $Bucher = lade_user_meta($Forderung['bucher']);
+    if($Mode=='andere'){
+        $Titel = $Forderung['referenz'].' - '.$User['vorname'].' '.$User['nachname'].' - '.$Forderung['betrag'].'&euro;';
+        $Content = table_row_builder(table_header_builder('Forderung').table_data_builder($Forderung['referenz']));
+    } elseif ($Mode=='reservierung'){
+        $Titel = 'Res. #'.$Forderung['referenz_res'].' - '.$User['vorname'].' '.$User['nachname'].' - '.$Forderung['betrag'].'&euro;';
+        $Content = table_row_builder(table_header_builder('Forderung für Reservierung').table_data_builder($Forderung['referenz_res']));
+    }
+    $Content .= table_row_builder(table_header_builder('Forderung-ID').table_data_builder($Forderung['id']));
+    $Content .= table_row_builder(table_header_builder('Betrifft User').table_data_builder('<a href="benutzermanagement_wart.php?user='.$User['id'].'">'.$User['vorname'].' '.$User['nachname'].'</a>'));
+    $Content .= table_row_builder(table_header_builder('Betrag').table_data_builder($Forderung['betrag'].'&euro;'));
+    $Content .= table_row_builder(table_header_builder('Einnahmen bislang').table_data_builder($Summe.'&euro;'));
+    $Content .= table_row_builder(table_header_builder('Zahlbar bis').table_data_builder(date('d.m.Y', strtotime($Forderung['zahlbar_bis']))));
+    $Content .= table_row_builder(table_header_builder('Angelegt von').table_data_builder($Bucher['vorname'].' '.$Bucher['nachname']));
+    $Content .= table_form_neutralkonten_dropdown('Einnahme in Neutralkonto buchen', 'neutralkonto_einnahme_forderung_'.$Forderung['id'].'', $_POST['neutralkonto_einnahme_forderung_'.$Forderung['id'].'']);
+    $Content .= table_row_builder(table_header_builder('Einnahme in Wartkonto buchen').table_data_builder(dropdown_menu_wart('wartkonto_einnahme_forderung_'.$Forderung['id'].'', $_POST['wartkonto_einnahme_forderung_'.$Forderung['id'].''])));
+    $Content .= table_form_string_item('Einnahmebetrag (Format: 12.34)', 'einnahme_forderung_'.$Forderung['id'].'', $_POST['einnahme_forderung_'.$Forderung['id'].''], false);
+    $Content .= table_row_builder(table_header_builder(form_button_builder('einnahme_forderung_'.$Forderung['id'].'_festhalten', 'Festhalten', 'action', 'send', '')).table_data_builder(''));
+    $Content = table_builder($Content);
+    $Icon = 'payment';
+    return collapsible_item_builder($Titel, $Content, $Icon);
+}

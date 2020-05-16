@@ -90,6 +90,27 @@ function vereinskasse_parser($YearGlobal){
             $Antwort['meldung']=$Result['meldung'];
             $Antwort['ansicht']='list_all_ausgaben';
         }
+        if(isset($_POST['einnahme_forderung_'.$a.'_festhalten'])){
+            if(is_numeric($_POST['einnahme_forderung_'.$a.''])){
+                if(($_POST['wartkonto_einnahme_forderung_'.$a.''] != '') AND ($_POST['neutralkonto_einnahme_forderung_'.$a.''] != '')){
+                    $Antwort['success']=false;
+                    $Antwort['meldung']='Du darfst nicht ein Wart- und ein Neutralkonto in einer Buchung gleichzeitig verwenden!';
+                    $Antwort['ansicht']=null;
+                } else {
+                    if($_POST['wartkonto_einnahme_forderung_'.$a.''] != ''){
+                        $KontoID = $_POST['wartkonto_einnahme_forderung_'.$a.''];
+                    }
+                    if($_POST['neutralkonto_einnahme_forderung_'.$a.''] != ''){
+                        $KontoID = $_POST['neutralkonto_einnahme_forderung_'.$a.''];
+                    }
+                    $Forderung = lade_forderung($a);
+                    $Antwort = einnahme_festhalten($a, $KontoID, $_POST['einnahme_forderung_' . $a . ''], $Forderung['steuersatz']);
+                }
+            } else {
+                $Antwort['success'] = false;
+                $Antwort['meldung'] = 'Bitte gib einen validen Betrag ein!';
+            }
+        }
     }
 
     if(isset($_POST['action_add_konto'])){
@@ -563,7 +584,7 @@ function add_transaktions_vereinskasse(){
     $BigItems .= einnahmen_eintragen_formular();
     $BigItems .= umbuchen_formular();
     $HTML = '<h3 class="center-align">Transaktionen durchführen</h3>';
-    $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post');
+    $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post', 'kassenwart_transactions_form');
 
     return section_builder($HTML);
 }
@@ -572,8 +593,39 @@ function umbuchen_formular(){
     return collapsible_item_builder('Umbuchung eintragen', $Text, 'swap_horiz');
 }
 function einnahmen_eintragen_formular(){
-    $Text = '';
-    return collapsible_item_builder('Einnahme eintragen', $Text, 'toll');
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM finanz_forderungen WHERE storno_user = 0";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl>1){
+        $ReturnHTML = '';
+        $Counter=0;
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            $Summe = lade_gezahlte_summe_forderung($Ergebnis['id']);
+            if($Summe<$Ergebnis['betrag']){
+                if($Ergebnis['referenz']!=''){
+                    $ReturnHTML .= listenelement_offene_forderung_kassenwart_durchfuehren_generieren($Ergebnis, $Summe, 'andere');
+                    $Counter++;
+                } elseif ($Ergebnis['referenz']==''){
+                    $ReturnHTML .= listenelement_offene_forderung_kassenwart_durchfuehren_generieren($Ergebnis, $Summe, 'reservierung');
+                    $Counter++;
+                }
+            }
+        }
+        if($Counter==0){
+            $ReturnHTML = 'Derzeit keine offenen Forderungen!';
+        }else{
+            $ReturnHTML= collapsible_builder($ReturnHTML);
+        }
+        $HTML = collapsible_item_builder('Einnahme eintragen', $ReturnHTML, 'toll');
+    } elseif ($Anzahl==0) {
+        $HTML = collapsible_item_builder('Einnahme eintragen', 'Keine Forderungen angelegt!', 'toll');
+    }
+
+    return $HTML;
 }
 function forderung_anlegen_formular(){
 
