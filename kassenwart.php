@@ -84,7 +84,7 @@ function vereinskasse_parser($YearGlobal){
             $Antwort['success']=$Result['success'];
             $Antwort['ansicht']='list_all_ausgaben';
         }
-        if(isset($_POST['ausgabe_stornieren_'.$a])){
+        if(isset($_POST['ausgabe_storno_aufheben_'.$a])){
             $Result = undo_ausgabe_loeschen($a);
             $Antwort['success']=$Result['success'];
             $Antwort['meldung']=$Result['meldung'];
