@@ -1,9 +1,9 @@
 <?php
 include_once "./ressources/ressourcen.php";
+
 session_manager('ist_kasse');
 $Header = "Vereinskasse - " . lade_db_einstellung('site_name');
 $HTML = section_builder("<h1 class='center-align'>Vereinskasse</h1>");
-
 if($_POST['year_global']!=''){
    $YearGlobal = $_POST['year_global'];
 } else {
@@ -468,7 +468,13 @@ function ausgaben_section_vereinskasse($YearGlobal){
             $AusgabeWart .= "<br><br>";
         }
 
-        $Differenz = $AusgabeSumme - $Ausgleich['betrag'];
+        if($Ausgleich['storno_user']>0){
+            $Ausgleichbetrag = 0;
+        } else {
+            $Ausgleichbetrag = $Ausgleich['betrag'];
+        }
+
+        $Differenz = $AusgabeSumme - $Ausgleichbetrag;
         if (floatval($Differenz) >= 0){
             $StyleGUV = "class=\"green lighten-2\"";
         } else {
@@ -476,14 +482,14 @@ function ausgaben_section_vereinskasse($YearGlobal){
         }
 
         if($Ausgleich['referenz_res']>0){       //Ausgleich betrifft ne reservierung
-            if($Ausgabe['storno_user']>0) {
+            if($Ausgleich['storno_user']>0) {
                 $TableResAusgleiche .= table_row_builder(table_data_builder('<s>'.$Ausgleich['id'].'</s>') . table_data_builder('<s>'.$Ausgleich['referenz_res'].'</s>') . table_data_builder('<s>'.$UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname'].'</s>') . table_data_builder('<s>'.$Ausgleich['betrag'].'&euro;</s>') . table_data_builder($AusgabeDatum) . table_data_builder($AusgabeBetrag) . table_data_builder($AusgabeWart) . table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>') . table_data_builder($AusgabeAktions));
             }else{
                 $TableResAusgleiche .= table_row_builder(table_data_builder($Ausgleich['id']) . table_data_builder($Ausgleich['referenz_res']) . table_data_builder($UserMeta['vorname'].'&nbsp;'.$UserMeta['nachname']) . table_data_builder($Ausgleich['betrag'].'&euro;') . table_data_builder($AusgabeDatum) . table_data_builder($AusgabeBetrag) . table_data_builder($AusgabeWart) . table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>') . table_data_builder($AusgabeAktions));
             }
         } else {                                //Ausgleich betrifft was anderes
             $KontoAusgleich = lade_konto_via_id($Ausgleich['von_konto']);
-            if($Ausgabe['storno_user']>0) {
+            if($Ausgleich['storno_user']>0) {
                 $AktionButtonForderung = form_button_builder('undo_storno_ausgleich_'.$Ausgleich['id'].'', 'Reaktivieren', 'action', '');
                 $TableAndereAusgleiche .= table_row_builder(table_data_builder('<s>'.$Ausgleich['id'].'</s>').table_data_builder('<s>'.$KontoAusgleich['name'].'</s>').table_data_builder('<s>'.$Ausgleich['referenz'].'</s>').table_data_builder('<s>'.$Ausgleich['betrag'].'&euro;</s>').table_data_builder($AktionButtonForderung).table_data_builder($AusgabeDatum).table_data_builder($AusgabeBetrag).table_data_builder($AusgabeWart).table_data_builder('<p '.$StyleGUV.'>'.$Differenz.'&euro;</p>').table_data_builder($AusgabeAktions));
             } else {
