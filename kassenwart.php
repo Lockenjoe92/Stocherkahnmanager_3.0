@@ -550,7 +550,14 @@ function forderung_anlegen_formular(){
     return collapsible_item_builder('Forderung anlegen', $Text, 'playlist_add');
 }
 function ausgabe_eintragen_formular(){
-    $Text = '';
+
+    $Text = table_form_offene_ausgleiche('Ausgabe wählen', 'ausgabe_eintragen_ausgleich', $_POST['ausgabe_eintragen_ausgleich']);
+    $Text .= table_form_string_item('Betrag (Fprmat 12.34)', 'ausgabe_eintragen_betrag', $_POST['ausgabe_eintragen_betrag']);
+    $Text .= table_row_builder(table_header_builder('Von Wartkonto ausgeben').table_data_builder(dropdown_menu_wart('ausgabe_eintragen_wart', $_POST['ausgabe_eintragen_wart'])));
+    $Text .= table_form_neutralkonten_dropdown('Von Wartkonto ausgeben', 'ausgabe_eintragen_neutralkonto', $_POST['ausgabe_eintragen_neutralkonto']);
+    $Text .= table_row_builder(table_header_builder(form_button_builder('action_ausgabe_durchfuehren', 'Eintragen', 'action', 'send')).table_data_builder(''));
+    $Text = table_builder($Text);
+
     return collapsible_item_builder('Geldausgabe eintragen', $Text, 'payment');
 }
 function ausgleich_anlegen_formular(){

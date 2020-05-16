@@ -1234,6 +1234,95 @@ function table_form_res_mit_ausgleichen($Titel, $NameElement, $UserID, $Selected
 
 }
 
+function table_form_neutralkonten_dropdown($Titel, $NameElement, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM finanz_konten WHERE typ = 'neutralkonto' AND verstecker = '0' ORDER BY name ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl>0){
+        //Startwert
+        if($Selected == ''){
+            $Ausgabe .= "<option value='' selected>wählen</option>";
+        } else {
+            $Ausgabe .= "<option value=''>wählen</option>";
+        }
+
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            if($Ergebnis['id']==$Selected){
+                $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$Ergebnis['name']."</option>";
+            } else {
+                $Ausgabe .= "<option value='".$Ergebnis['id']."'>".$Ergebnis['name']."</option>";
+            }
+        }
+    } else {
+        $Ausgabe .= "<option value='' selected>Keine Neutralkonten angelegt!</option>";
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+
+}
+
+function table_form_offene_ausgleiche($Titel, $NameElement, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM finanz_ausgleiche WHERE storno_user = '0' ORDER BY timestamp ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl>0){
+        //Startwert
+        if($Selected == ''){
+            $Ausgabe .= "<option value='' selected>wählen</option>";
+        } else {
+            $Ausgabe .= "<option value=''>wählen</option>";
+        }
+
+        $Counter = 0;
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            $Ausgaben = lade_gezahlte_betraege_ausgleich($Ergebnis['id']);
+
+            if($Ausgaben<$Ergebnis['betrag']){
+                if($Ergebnis['id']==$Selected){
+                    if($Ergebnis['referenz']!=''){
+                        $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$Ergebnis['referenz']." - ".$Ergebnis['betrag']."&euro;</option>";
+                    } else {
+                        $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>Res. #".$Ergebnis['referenz_res']." - ".$Ergebnis['betrag']."&euro;</option>";
+                    }
+                } else {
+                    if($Ergebnis['referenz']!='') {
+                        $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>" . $Ergebnis['referenz'] . " - " . $Ergebnis['betrag'] . "&euro;</option>";
+                    } else {
+                        $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>Res. #" . $Ergebnis['referenz_res'] . " - " . $Ergebnis['betrag'] . "&euro;</option>";
+                    }
+                }
+                $Counter++;
+            }
+        }
+
+        if($Counter==0){
+            $Ausgabe .= "<option value='' selected>Keine offenen Ausgaben gefunden!</option>";
+        }
+
+    } else {
+        $Ausgabe .= "<option value='' selected>Keine Ausgleiche angelegt!</option>";
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+
+}
+
 function table_form_dropdown_ausgabenkonten($Titel, $NameElement, $Selected){
 
     $Ausgabe = "<tr><th>".$Titel."</th><td>";
