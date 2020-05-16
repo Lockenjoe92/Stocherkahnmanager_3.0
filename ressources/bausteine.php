@@ -1234,6 +1234,41 @@ function table_form_res_mit_ausgleichen($Titel, $NameElement, $UserID, $Selected
 
 }
 
+function table_form_dropdown_ausgabenkonten($Titel, $NameElement, $Selected){
+
+    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM finanz_konten WHERE typ = 'ausgabenkonto' AND verstecker = '0' ORDER BY name ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl>0){
+        //Startwert
+        if($Selected == ''){
+            $Ausgabe .= "<option value='' selected>wählen</option>";
+        } else {
+            $Ausgabe .= "<option value=''>wählen</option>";
+        }
+
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            if($Ergebnis['id']==$Selected){
+                $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$Ergebnis['name']."</option>";
+            } else {
+                $Ausgabe .= "<option value='".$Ergebnis['id']."'>".$Ergebnis['name']."</option>";
+            }
+        }
+    } else {
+        $Ausgabe .= "<option value='' selected>Keine Ausgabenkonten angelegt!</option>";
+    }
+
+    $Ausgabe .= "</select></td></tr>";
+    return $Ausgabe;
+
+}
+
 function listenelement_offene_forderung_generieren($Forderung){
 
     $User = lade_user_meta($Forderung['bucher']);

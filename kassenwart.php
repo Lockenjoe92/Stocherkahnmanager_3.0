@@ -108,6 +108,12 @@ function vereinskasse_parser($YearGlobal){
     if(isset($_POST['activate_list_all_ausgaben'])){
         $Antwort['ansicht']='list_all_ausgaben';
     }
+    if(isset($_POST['ausgleich_anlegen'])){
+        $Result = ausgleich_hinzufuegen($_POST['neu_ausgleich_konto'], $_POST['neu_ausgleich_referenz'], $_POST['neu_ausgleich_betrag'], $_POST['neu_ausgleich_steuersatz']);
+        $Antwort['success']=$Result['success'];
+        $Antwort['meldung']=$Result['meldung'];
+        $Antwort['ansicht']=null;
+    }
     if(isset($_POST['reset_view'])){
         $Antwort['ansicht']=null;
     }
@@ -541,7 +547,14 @@ function ausgabe_eintragen_formular(){
     return collapsible_item_builder('Geldausgabe eintragen', $Text, 'payment');
 }
 function ausgleich_anlegen_formular(){
-    $Text = '';
+
+    if($_POST['neu_ausgleich_steuersatz']!=''){$Steuersatz = $_POST['neu_ausgleich_steuersatz'];} else {$Steuersatz = 19;}
+    $Text = table_form_dropdown_ausgabenkonten('Ausgabenkonto','neu_ausgleich_konto', $_POST['neu_ausgleich_konto']);
+    $Text .= table_form_string_item('Referenz', 'neu_ausgleich_referenz', $_POST['neu_ausgleich_referenz']);
+    $Text .= table_form_string_item('Betrag (Format: 12.34)', 'neu_ausgleich_betrag', $_POST['neu_ausgleich_betrag']);
+    $Text .= table_form_select_item('Steuersatz', 'neu_ausgleich_steuersatz', 0, 99, $Steuersatz, '%', '', '');
+    $Text .= table_row_builder(table_header_builder(form_button_builder('ausgleich_anlegen', 'Anlegen', 'action', 'send')).table_data_builder(''));
+    $Text = table_builder($Text);
     return collapsible_item_builder('Ausgabe planen', $Text, 'playlist_add');
 }
 function choose_views_vereinskasse(){

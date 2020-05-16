@@ -1323,6 +1323,55 @@ function reservierung_auf_gratis_setzen($IDreservierung){
     }
 }
 
+function ausgleich_hinzufuegen($Konto, $Referenz, $Betrag, $Steuersatz){
+    $link = connect_db();
+    $Antwort = array();
+
+    //DAU
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+
+    if(($Konto == "") OR ($Konto == 0)){
+        $DAUcounter++;
+        $DAUerror .= "Du musst eine Ausgabenkonto angew&auml;hlt haben!<br>";
+    }
+
+    if(($Referenz == "")){
+        $DAUcounter++;
+        $DAUerror .= "Du musst eine Referenz zur Ausgabe angeben!<br>";
+    }
+
+    if(($Betrag == "") OR ($Betrag == 0)){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen Ausgleichsbetrag angeben!<br>";
+    }
+
+    if(($Steuersatz == "")){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen Steuersatz angeben!<br>";
+    }
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else {
+
+        $Anfrage = "INSERT INTO finanz_ausgleiche (betrag, steuersatz, fuer_user, fuer_konto, von_konto, referenz, referenz_res, timestamp, anleger, update_time, update_user, storno_time, storno_user) VALUES ('$Betrag', '$Steuersatz', '', '0', ".$Konto.", '$Referenz', '', '".timestamp()."', '".lade_user_id()."', '0000-00-00 00:00:00', '0', '0000-00-00 00:00:00', '0')";
+
+        if (mysqli_query($link, $Anfrage)){
+            $Antwort['success'] = TRUE;
+            $Antwort['meldung'] = "Ausgleich erfolgreich vermerkt!";
+        } else {
+            $Antwort['success'] = FALSE;
+            $Antwort['meldung'] = "Datenbankfehler!";
+        }
+
+    }
+
+    return $Antwort;
+}
+
 function ausgleich_hinzufuegen_res($ResID, $Betrag, $Steuersatz){
 
     $link = connect_db();
