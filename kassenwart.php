@@ -110,9 +110,28 @@ function vereinskasse_parser($YearGlobal){
     }
     if(isset($_POST['ausgleich_anlegen'])){
         $Result = ausgleich_hinzufuegen($_POST['neu_ausgleich_konto'], $_POST['neu_ausgleich_referenz'], $_POST['neu_ausgleich_betrag'], $_POST['neu_ausgleich_steuersatz']);
-        $Antwort['success']=$Result['success'];
-        $Antwort['meldung']=$Result['meldung'];
+        $Antwort['success']=$Result;
         $Antwort['ansicht']=null;
+    }
+    if(isset($_POST['action_ausgabe_durchfuehren'])){
+
+        if(($_POST['ausgabe_eintragen_wart'] != '') AND ($_POST['ausgabe_eintragen_neutralkonto'] != '')){
+            $Antwort['success']=false;
+            $Antwort['meldung']='Du darfst nicht ein Wart- und ein Neutralkonto in einer Buchung gleichzeitig verwenden!';
+            $Antwort['ansicht']=null;
+        } else {
+            if($_POST['ausgabe_eintragen_wart'] != ''){
+                $KontoID = $_POST['ausgabe_eintragen_wart'];
+            }
+            if($_POST['ausgabe_eintragen_neutralkonto'] != ''){
+                $KontoID = $_POST['ausgabe_eintragen_neutralkonto'];
+            }
+            $Result = ausgabe_hinzufuegen($_POST['ausgabe_eintragen_betrag'], $_POST['ausgabe_eintragen_steuersatz'], $_POST['ausgabe_eintragen_ausgleich'], $KontoID);
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']=null;
+        }
+
     }
     if(isset($_POST['reset_view'])){
         $Antwort['ansicht']=null;
@@ -282,7 +301,7 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     for ($g = 1; $g <= $Anzahl7;$g++) {
         $Ergebnis7 = mysqli_fetch_assoc($Abfrage7);
         $Buttons = form_button_builder('konto_details_'.$Ergebnis7['id'].'', 'Details', 'action', 'search');
-        $NeutralkontoItems .= table_row_builder(table_data_builder($Ergebnis7['name']).table_data_builder($Ergebnis7['wert_akt'].'&euro;').table_data_builder($Buttons));
+        $NeutralkontoItems .= table_row_builder(table_data_builder($Ergebnis7['name']).table_data_builder($Ergebnis7['wert_aktuell'].'&euro;').table_data_builder($Buttons));
         $NeutralkontoCounter++;
     }
     if ($NeutralkontoCounter > 0){
@@ -550,9 +569,10 @@ function forderung_anlegen_formular(){
     return collapsible_item_builder('Forderung anlegen', $Text, 'playlist_add');
 }
 function ausgabe_eintragen_formular(){
-
+    if($_POST['ausgabe_eintragen_steuersatz']!=''){$Steuersatz = $_POST['ausgabe_eintragen_steuersatz'];} else {$Steuersatz = 19;}
     $Text = table_form_offene_ausgleiche('Ausgabe wählen', 'ausgabe_eintragen_ausgleich', $_POST['ausgabe_eintragen_ausgleich']);
     $Text .= table_form_string_item('Betrag (Fprmat 12.34)', 'ausgabe_eintragen_betrag', $_POST['ausgabe_eintragen_betrag']);
+    $Text .= table_form_select_item('Steuersatz', 'ausgabe_eintragen_steuersatz', 0, 99, $Steuersatz, '%', '', '');
     $Text .= table_row_builder(table_header_builder('Von Wartkonto ausgeben').table_data_builder(dropdown_menu_wart('ausgabe_eintragen_wart', $_POST['ausgabe_eintragen_wart'])));
     $Text .= table_form_neutralkonten_dropdown('Von Wartkonto ausgeben', 'ausgabe_eintragen_neutralkonto', $_POST['ausgabe_eintragen_neutralkonto']);
     $Text .= table_row_builder(table_header_builder(form_button_builder('action_ausgabe_durchfuehren', 'Eintragen', 'action', 'send')).table_data_builder(''));
