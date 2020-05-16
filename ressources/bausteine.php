@@ -1291,19 +1291,19 @@ function table_form_offene_ausgleiche($Titel, $NameElement, $Selected){
         for($a=1;$a<=$Anzahl;$a++){
             $Ergebnis = mysqli_fetch_assoc($Abfrage);
             $Ausgaben = lade_gezahlte_betraege_ausgleich($Ergebnis['id']);
-
             if($Ausgaben<$Ergebnis['betrag']){
+                $Differenz = $Ergebnis['betrag']-$Ausgaben;
                 if($Ergebnis['id']==$Selected){
                     if($Ergebnis['referenz']!=''){
-                        $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$Ergebnis['referenz']." - ".$Ergebnis['betrag']."&euro;</option>";
+                        $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>".$Ergebnis['referenz']." - ".$Ergebnis['betrag']."&euro; (".$Differenz."&euro; verbleibend)</option>";
                     } else {
-                        $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>Res. #".$Ergebnis['referenz_res']." - ".$Ergebnis['betrag']."&euro;</option>";
+                        $Ausgabe .= "<option value='".$Ergebnis['id']."' selected>Res. #".$Ergebnis['referenz_res']." - ".$Ergebnis['betrag']."&euro; (".$Differenz."&euro; verbleibend)</option>";
                     }
                 } else {
                     if($Ergebnis['referenz']!='') {
-                        $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>" . $Ergebnis['referenz'] . " - " . $Ergebnis['betrag'] . "&euro;</option>";
+                        $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>" . $Ergebnis['referenz'] . " - " . $Ergebnis['betrag'] . "&euro; (".$Differenz."&euro; verbleibend)</option>";
                     } else {
-                        $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>Res. #" . $Ergebnis['referenz_res'] . " - " . $Ergebnis['betrag'] . "&euro;</option>";
+                        $Ausgabe .= "<option value='" . $Ergebnis['id'] . "'>Res. #" . $Ergebnis['referenz_res'] . " - " . $Ergebnis['betrag'] . "&euro; (".$Differenz."&euro; verbleibend)</option>";
                     }
                 }
                 $Counter++;
