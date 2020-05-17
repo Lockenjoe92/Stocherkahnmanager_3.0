@@ -58,7 +58,7 @@ function lade_user_meta($UserID){
 
     return $Result;
 }
-function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, $Mail, $PSWD, $Rollen){
+function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, $Mail, $PSWD, $Rollen, $TransferMode=false){
 
     $link = connect_db();
 
@@ -103,20 +103,24 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         #echo "adding user meta";
         add_user_meta($Ergebnis['id'], 'vorname', $Vorname);
         add_user_meta($Ergebnis['id'], 'nachname', $Nachname);
-        add_user_meta($Ergebnis['id'], 'strasse', $Strasse);
-        add_user_meta($Ergebnis['id'], 'hausnummer', $Hausnummer);
-        add_user_meta($Ergebnis['id'], 'plz', $PLZ);
-        add_user_meta($Ergebnis['id'], 'stadt', $Stadt);
+        if(!$TransferMode){
+            add_user_meta($Ergebnis['id'], 'strasse', $Strasse);
+            add_user_meta($Ergebnis['id'], 'hausnummer', $Hausnummer);
+            add_user_meta($Ergebnis['id'], 'plz', $PLZ);
+            add_user_meta($Ergebnis['id'], 'stadt', $Stadt);
+        }
 
         #Rollen eingeben
         foreach($Rollen as $Rolle => $Wert){
             add_user_meta($Ergebnis['id'], $Rolle, $Wert);
         }
 
-        $MailArray = array();
-        $MailArray['[vorname_empfaenger]'] = $Vorname;
-        $MailArray['[verify_link]'] = lade_xml_einstellung('site_url')."/login.php?register_code=".$ID_hash."";
-        mail_senden('registrierung_user', $Mail, $MailArray);
+        if(!$TransferMode) {
+            $MailArray = array();
+            $MailArray['[vorname_empfaenger]'] = $Vorname;
+            $MailArray['[verify_link]'] = lade_xml_einstellung('site_url') . "/login.php?register_code=" . $ID_hash . "";
+            mail_senden('registrierung_user', $Mail, $MailArray);
+        }
 
         $Antwort['erfolg'] = True;
         $Antwort['meldung'] = "Dein Useraccount wurde erfolgreich angelegt!<br>Du erh&auml;ltst noch eine EMail, die den Vorgang best&auml;tigt!<br>Bitte best&auml;tige die Anmeldung indem du auf den Link in der Mail klickst!:)";
@@ -362,7 +366,7 @@ function reset_user_pswd($Mail, $Mode='selbst'){
     $link = connect_db();
 
     #echo "selecting user id";
-    if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
+    if (!($stmt = $link->prepare("SELECT * FROM users WHERE mail = ?"))) {
         $Antwort['erfolg'] = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
@@ -387,7 +391,7 @@ function reset_user_pswd($Mail, $Mode='selbst'){
             $PSWD_hash = generateRandomString(32);
             $PSWD_hashed = password_hash($PSWD_hash, PASSWORD_DEFAULT);
             if($PSWD_hashed == false){
-                var_dump('Hashing Fail');
+                #var_dump('Hashing Fail');
                 return false;
             } else {
                 $Anfrage = "UPDATE users SET secret = '".$PSWD_hashed."', pswd_needs_change = 1 WHERE id = ".$Ergebnis['id']."";
@@ -396,31 +400,34 @@ function reset_user_pswd($Mail, $Mode='selbst'){
                     $MailInfos = array();
                     $MailInfos['[vorname_user]']=$UserMeta['vorname'];
                     $MailInfos['[passwort]']=$PSWD_hash;
+                    $MailInfos['[verify_link]'] = lade_xml_einstellung('site_url') . "/login.php?register_code=" . $Ergebnis['register_secret'] . "";
                     if($Mode=='selbst'){
                         if(mail_senden('passwort-zurueckgesetzt-selbst', $Mail, $MailInfos)){
                             return true;
                         }else{
-                            var_dump('MAIL fail');
+                            #var_dump('MAIL fail');
                             return false;
                         }
                     } elseif($Mode=='wart'){
                         if(mail_senden('passwort-zurueckgesetzt-wart', $Mail, $MailInfos)){
                             return true;
                         }else{
-                            var_dump('MAIL fail');
+                            #var_dump('MAIL fail');
                             return false;
                         }
+                    } elseif($Mode=='transfer'){
+                        return true;
                     }
 
                 } else {
-                    var_dump($Anfrage);
-                    var_dump('UPDATE fail');
+                    #var_dump($Anfrage);
+                    #var_dump('UPDATE fail');
                     return false;
                 }
             }
         }
     } else {
-        var_dump('too many users');
+        #var_dump('too many users');
         return false;
     }
 }

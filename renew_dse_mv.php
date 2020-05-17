@@ -15,6 +15,8 @@ if($Mode == 'dse'){
     $Erklaerungheader = 'Ausleihvertrag';
 } elseif ($Mode == 'pswd'){
     $Erklaerungheader = 'Passwort';
+} elseif ($Mode == 'addresse'){
+    $Erklaerungheader = 'Addresse';
 } else {
     header('Location: ./index.php');
     die();
@@ -35,6 +37,10 @@ if($Mode == 'dse'){
     $PageTitle = '<h1 class="hide-on-med-and-down">'.$Erklaerungheader.' ändern</h1>';
     $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' ändern</h1>';
     $Erklaerungheader = "Nachdem dein Passwort zurückgesetzt wurde, musst du nun ein eigenes neues wählen!";
+} elseif ($Mode == 'addresse'){
+    $PageTitle = '<h1 class="hide-on-med-and-down">'.$Erklaerungheader.' ändern</h1>';
+    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' ändern</h1>';
+    $Erklaerungheader = "Wir benötigen diese Informationen für das Finanzamt - bitte trage diese daher nach:)";
 }
 $HTML .= section_builder($PageTitle);
 
@@ -43,6 +49,8 @@ if($Mode == 'dse'){
 } elseif ($Mode == 'mv'){
     $Infos = lade_mietvertrag(aktuellen_mietvertrag_id_laden());
 } elseif ($Mode == 'pswd'){
+    $Infos = lade_user_id();
+} elseif ($Mode == 'addresse'){
     $Infos = lade_user_id();
 }
 
@@ -64,6 +72,7 @@ echo site_body($HTML);
 function renew_dse_mv_parser($Mode){
 
     $UserID = lade_user_id();
+    $UserMeta=lade_user_meta($ID);
 
     if($Mode == 'dse'){
         $Continiue = user_needs_dse();
@@ -71,6 +80,10 @@ function renew_dse_mv_parser($Mode){
         $Continiue = user_needs_mv();
     } elseif($Mode == 'pswd'){
         $Continiue = user_needs_pswd_change($UserID);
+    } elseif($Mode == 'addresse'){
+        if($UserMeta['strasse']==''){
+            $Continiue = true;
+        }
     } else {
         $Continiue = false;
     }
@@ -97,10 +110,37 @@ function renew_dse_mv_parser($Mode){
             $Antwort = change_pswd_user($UserID, $_POST['change_pswd'], $_POST['change_pswd_verify']);
         }
 
+        if(isset($_POST['action_addresse'])){
+
+            $DAUcount = 0;
+            if($_POST['strasse']==''){
+                $DAUcount++;
+            }
+            if($_POST['hausnummer']==''){
+                $DAUcount++;
+            }
+            if($_POST['stadt']==''){
+                $DAUcount++;
+            }
+            if($_POST['plz']==''){
+                $DAUcount++;
+            }
+            if($DAUcount>0){
+                $Antwort = false;
+            } else {
+                $UserID = lade_user_id();
+                update_user_meta($UserID, 'strasse', $_POST['strasse']);
+                update_user_meta($UserID, 'hausnummer', $_POST['hausnummer']);
+                update_user_meta($UserID, 'stadt', $_POST['stadt']);
+                update_user_meta($UserID, 'plz', $_POST['plz']);
+                $Antwort = true;
+            }
+
+        }
+
         return $Antwort;
     }
 }
-
 function renew_dse_mv_form($Mode, $Erklaerungheader, $Infos){
 
     if($Mode == 'dse'){
@@ -113,6 +153,12 @@ function renew_dse_mv_form($Mode, $Erklaerungheader, $Infos){
         $Icon = 'vpn_key';
         $TableHTML = table_form_password_item('Neues Passwort wählen', 'change_pswd', 'Passwort', false);
         $TableHTML .= table_form_password_item('Passwort wiederholen', 'change_pswd_verify', 'Passwort', false);
+    } elseif($Mode == 'addresse') {
+        $Icon = 'home';
+        $TableHTML = table_form_string_item('Straße', 'strasse', $_POST['strasse']);
+        $TableHTML .= table_form_string_item('Hausnummer', 'hausnummer', $_POST['hausnummer']);
+        $TableHTML .= table_form_string_item('Stadt', 'stadt', $_POST['stadt']);
+        $TableHTML .= table_form_string_item('Postleitzahl', 'plz', $_POST['plz']);
     }
 
     $HTML = "";

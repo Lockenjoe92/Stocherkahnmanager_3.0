@@ -18,11 +18,11 @@ function mietvertrag_unterschreiben($User, $DSid){
     $UserString = $Meta['vorname'].' '.$Meta['nachname'].' - '.$Meta['strasse'].''.$Meta['hausnummer'].' '.$Meta['stadt'].' '.$Meta['plz'];
     $Timestamp = timestamp();
 
-    if (!($stmt = $link->prepare("INSERT INTO ausleihvertrag_unterzeichnungen (vertrag, user_id, user_string, timestamp) VALUES (?,?,?)"))) {
+    if (!($stmt = $link->prepare("INSERT INTO ausleihvertrag_unterzeichnungen (vertrag, user_id, user_string, timestamp) VALUES (?,?,?,?)"))) {
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
 
-    if (!$stmt->bind_param("iis",$DSid, $User, $UserString, $Timestamp)) {
+    if (!$stmt->bind_param("iiss",$DSid, $User, $UserString, $Timestamp)) {
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
 

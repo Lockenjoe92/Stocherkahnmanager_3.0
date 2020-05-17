@@ -189,11 +189,11 @@ function ds_unterschreiben($User, $DSid){
     $UserString = $Meta['vorname'].' '.$Meta['nachname'];
     $Timestamp = timestamp();
 
-    if (!($stmt = $link->prepare("INSERT INTO ds_unterzeichnungen (ds_id, user_id, user_string, timestamp) VALUES (?,?,?)"))) {
+    if (!($stmt = $link->prepare("INSERT INTO ds_unterzeichnungen (ds_id, user_id, user_string, timestamp) VALUES (?,?,?,?)"))) {
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
 
-    if (!$stmt->bind_param("iis",$DSid, $User, $UserString, $Timestamp)) {
+    if (!$stmt->bind_param("iiss",$DSid, $User, $UserString, $Timestamp)) {
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
 
@@ -242,18 +242,22 @@ function user_needs_dse(){
 }
 
 function needs_dse_mv_update(){
+    $ID = lade_user_id();
     if(user_needs_dse()){
         header("Location: ./renew_dse_mv.php?mode=dse");
+        die();
+    }
+    if(user_needs_pswd_change($ID)){
+        header("Location: ./renew_dse_mv.php?mode=pswd");
+        die();
+    }
+    $UserMeta=lade_user_meta($ID);
+    if($UserMeta['strasse']==''){
+        header("Location: ./renew_dse_mv.php?mode=addresse");
         die();
     }
     if(user_needs_mv()) {
         header("Location: ./renew_dse_mv.php?mode=mv");
         die();
     }
-    if(user_needs_pswd_change(lade_user_id())){
-        header("Location: ./renew_dse_mv.php?mode=pswd");
-        die();
-    }
 }
-
-?>
