@@ -756,3 +756,67 @@ function lade_ausgaben_ausgleich($Ausgleich, $ReturnArrayMode=false){
     }
 
 }
+
+function add_transfer($von, $nach, $betrag){
+
+    $Antwort = array();
+    $link = connect_db();
+
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    if ($von == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du musst ein Ausgangskonto ausw&auml;hlen!<br>";
+    }
+
+    if ($nach == ""){
+        $DAUcounter++;
+        $DAUerror .= "Du musst ein Zielkonto ausw&auml;hlen!<br>";
+    }
+
+    if(!is_numeric($betrag)){
+        $DAUcounter++;
+        $DAUerror .= "Du musst einen validen Umbuchungsbetrag angeben!<br>";
+    }
+
+    if($betrag<0){
+        $DAUcounter++;
+        $DAUerror .= "Der Umbuchungsbetrag darf nicht negativ sein!<br>";
+    }
+
+    if ($DAUcounter > 0){
+        $Antwort['success'] = FALSE;
+        $Antwort['meldung'] = $DAUerror;
+    } else if ($DAUcounter == 0){
+        $VonKonto = lade_konto_via_id($von);
+        $NachKonto = lade_konto_via_id($nach);
+        $NeuerKontostandVon = $VonKonto['wert_aktuell']-$betrag;
+        $NeuerKontostandNach = $NachKonto['wert_aktuell']+$betrag;
+
+        if (!($stmt = $link->prepare("INSERT INTO finanz_transfer (betrag, von, nach, timestamp, durchfuehrender) VALUES (?,?,?,?,?)"))) {
+            #echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+            $Antwort['success']=false;
+            $Antwort['meldung']='Datenbankfehler';
+        }
+
+        if (!$stmt->bind_param("siisi", $betrag, $von, $nach, timestamp(), lade_user_id())) {
+            #echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            $Antwort['success']=false;
+            $Antwort['meldung']='Datenbankfehler';
+        }
+
+        if (!$stmt->execute()) {
+            #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            $Antwort['success']=false;
+            $Antwort['meldung']='Datenbankfehler';
+        } else {
+            update_kontostand($von, $NeuerKontostandVon);
+            update_kontostand($nach, $NeuerKontostandNach);
+            $Antwort['success']=true;
+            $Antwort['meldung']='Umbuchung erfolgreich eingetragen!';
+        }
+    }
+
+    return $Antwort;
+}

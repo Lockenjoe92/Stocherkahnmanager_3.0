@@ -165,6 +165,13 @@ function vereinskasse_parser($YearGlobal){
         }
     }
 
+    if(isset($_POST['action_transfer'])){
+        $Result = add_transfer($_POST['von_konto_transfer'], $_POST['nach_konto_transfer'], $_POST['betrag_transfer']);
+        $Antwort['success']=$Result['success'];
+        $Antwort['meldung']=$Result['meldung'];
+        $Antwort['ansicht']=null;
+    }
+
     if(isset($_POST['reset_view'])){
         $Antwort['ansicht']=null;
     }
@@ -589,7 +596,13 @@ function add_transaktions_vereinskasse(){
     return section_builder($HTML);
 }
 function umbuchen_formular(){
-    $Text = '';
+
+    $Table = table_form_dropdown_transferkonten('Von Konto', 'von_konto_transfer', $_POST['von_konto_transfer']);
+    $Table .= table_form_dropdown_transferkonten('Nach Konto', 'nach_konto_transfer', $_POST['von_konto_transfer']);
+    $Table .= table_form_string_item('Betrag (Format 12.34)', 'betrag_transfer', $_POST['betrag_transfer']);
+    $Table .= table_row_builder(table_header_builder(form_button_builder('action_transfer', 'Eintragen', 'action', 'send')).table_data_builder(''));
+    $Text = table_builder($Table);
+
     return collapsible_item_builder('Umbuchung eintragen', $Text, 'swap_horiz');
 }
 function einnahmen_eintragen_formular(){
