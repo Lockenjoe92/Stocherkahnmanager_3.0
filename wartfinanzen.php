@@ -163,18 +163,24 @@ function section_offene_forderungen(){
 
     if($Anzahl>1){
         $ReturnHTML = '';
+        $counter=0;
         for($a=1;$a<=$Anzahl;$a++){
             $Ergebnis = mysqli_fetch_assoc($Abfrage);
             $Summe = lade_gezahlte_summe_forderung($Ergebnis['id']);
             if($Summe<$Ergebnis['betrag']){
                 if($Ergebnis['referenz']!=''){
+                    $counter++;
                     $ReturnHTML .= listenelement_offene_forderung_durchfuehren_generieren($Ergebnis, $Summe);
                 }
             }
         }
-        return form_builder(collapsible_builder($ReturnHTML), '#', 'post', 'open_forderungen');
+        if($counter>0){
+            return form_builder(collapsible_builder($ReturnHTML), '#', 'post', 'open_forderungen');
+        }else{
+            return collapsible_builder(collapsible_item_builder('Keine offenen Forderungen', '', ''));
+        }
     } else {
-        return null;
+        return collapsible_builder(collapsible_item_builder('Keine offenen Forderungen', '', ''));
     }
 }
 
