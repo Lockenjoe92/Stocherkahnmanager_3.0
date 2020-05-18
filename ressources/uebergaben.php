@@ -122,7 +122,7 @@ function uebergabe_stornieren($ID, $Begruendung){
 
                 //SMS
                 if ($Usersettings['sms_uebergabe_storno'] == "true"){
-                    if (lade_xml_einstellung('sms-active') == "true"){
+                    if (lade_xml_einstellung('sms-active') == "on"){
                         sms_senden('uebergabe-storniert', $BausteineWartmails, $Uebergabe['wart'], NULL);
                     }
                 }
@@ -279,7 +279,7 @@ function uebergabe_hinzufuegen($Res, $Wart, $Termin, $Beginn, $Kommentar, $Creat
 
             //SMS        <text>Neue Übergabe: Wann? [zeitpunkt_uebergabe], Wo? [ort_uebergabe], Wer? [name_user] - [tel_user]:) [kommentar_user]
             if ($Warteinstellungen['sms-bei-uebergabe'] == "true"){
-                if (lade_xml_einstellung('sms-active') == "true"){
+                if (lade_xml_einstellung('sms-active') == "on"){
                     $Bausteine['[zeitpunkt_uebergabe]']=strftime("%A, %d. %B %G", strtotime($Beginn)).' '.date('G:i', strtotime($Beginn)).' Uhr';
                     $Bausteine['[ort_uebergabe]']=$Terminangebot['ort'];
                     $Bausteine['[name_user]']=$UserMeta['vorname'].' '.$UserMeta['nachname'];

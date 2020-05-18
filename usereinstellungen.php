@@ -227,7 +227,7 @@ function spalte_infos_erhalten($UserMeta){
     $Table1 .= table_form_swich_item('Email erhalten wenn eine &Uuml;bernahme kurzfristig storniert wird', 'mail_uebernahme_kurzfristig', 'Nein', 'Ja', $MailUebernahmeKurzfristigStorniert);
     $HTML .= section_builder(table_builder($Table1));
 
-    if (lade_xml_einstellung('sms-active') == "true"){
+    if (lade_xml_einstellung('sms-active') == "on"){
         $HTML .= "<h5 class='middle'>SMS</h5>";
         $Table2 = table_form_swich_item('SMS erhalten bei neuer &Uuml;bergabe', 'sms_uebergabe_erhalten', 'Nein', 'Ja', $SMSUebergabeErhalten);
         $Table2 .= table_form_swich_item('SMS erhalten wenn &Uuml;bergabe storniert wird', 'sms_uebergabe_storno', 'Nein', 'Ja', $SMSUebergabeStorno);

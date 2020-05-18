@@ -886,7 +886,7 @@ function uebergabewesen($ID, $Ansicht='user'){
                         $Antwort = "Nix ausgemacht!";
                     }
 
-                    if (lade_xml_einstellung('uebernahmefunktion-global-aktiv') === "true"){
+                    if (lade_xml_einstellung('uebernahmefunktion-global-aktiv') === "on"){
                         if($Ansicht == 'user'){
                             $Antwort .= "<a href='uebernahme_ausmachen.php?res=".$ID."'>Du kannst auch einfach den Schl&uuml;ssel von der Gruppe vor dir &uuml;bernehmen.</a>";
                         } elseif ($Ansicht == 'wart'){

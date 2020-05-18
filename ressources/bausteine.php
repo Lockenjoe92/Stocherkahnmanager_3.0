@@ -478,7 +478,7 @@ function form_html_area_item($ItemName, $Placeholdertext='', $Disabled=false){
     }
 
     $HTML = "<div class='input-field col s12'>";
-    $HTML .= "<textarea id='".$ItemName."' name='".$ItemName."' class='materialize-textarea' placeholder='".$Placeholdertext."' ".$DisabledCommand.">";
+    $HTML .= "<textarea id='".$ItemName."' name='".$ItemName."' class='materialize-textarea' ".$DisabledCommand.">";
     $HTML .= "<pre><code>";
     $HTML .= $Placeholdertext;
     $HTML .= "</code></pre>";

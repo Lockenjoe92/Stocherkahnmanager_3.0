@@ -39,11 +39,20 @@ function update_xml_einstellung($NameEinstellung, $WertEinstellung, $mode='globa
     if($mode == 'global'){
         $xml = simplexml_load_file("./ressources/settings.xml");
         $xml->$NameEinstellung = $WertEinstellung;
-        $xml->asXML("./ressourcen/settings.xml");
+        $xml->asXML("./ressources/settings.xml");
     } elseif ($mode == 'db'){
         $xml = simplexml_load_file("./ressources/local_db_settings.xml");
         $xml->$NameEinstellung = $WertEinstellung;
-        $xml->asXML("./ressourcen/local_db_settings.xml");
+        $xml->asXML("./ressources/local_db_settings.xml");
+    } elseif ($mode == 'cdata'){
+        $xml = simplexml_load_file("./ressources/settings.xml");
+        $Einstellung = $xml->$NameEinstellung;
+        $xmlDoc = new DOMDocument();
+        $xmlDoc->load("./ressources/settings.xml");
+        $y=$xmlDoc->getElementsByTagName($NameEinstellung)[0];
+        $cdata = $y->firstChild;
+        $cdata->replaceData(0,strlen($Einstellung),utf8_decode($WertEinstellung));
+        $xmlDoc->save("./ressources/settings.xml");
     }
 
 }
@@ -139,7 +148,7 @@ function slider_setting_interpreter($SettingValue){
 }
 
 ### Parser Logic
-function admin_settings_parser($SettingsArray){
+function admin_db_settings_parser($SettingsArray){
 
     if (isset($_POST['admin_settings_action'])){
 
@@ -155,6 +164,55 @@ function admin_settings_parser($SettingsArray){
             $SettingValue = str_replace('</pre>','',$SettingValue);
 
             update_db_setting($Setting, $SettingValue);
+
+        }
+
+        #return toast('Einstellungen erfolgreich gespeichert.');
+    }
+
+}
+
+### Parser Logic
+function admin_xml_settings_parser($SettingsArray){
+
+    if (isset($_POST['admin_settings_action'])){
+
+        for($x=0;$x<sizeof($SettingsArray);$x++){
+
+            $Setting = $SettingsArray[$x];
+            $SettingValue = $_POST[$Setting];
+
+            #Remove certain HTML Tags from HTML-Textarea-Input
+            $SettingValue = str_replace('<pre>','',$SettingValue);
+            $SettingValue = str_replace('<code>','',$SettingValue);
+            $SettingValue = str_replace('</code>','',$SettingValue);
+            $SettingValue = str_replace('</pre>','',$SettingValue);
+
+            update_xml_einstellung($Setting, $SettingValue);
+
+        }
+
+        #return toast('Einstellungen erfolgreich gespeichert.');
+    }
+
+}
+
+function admin_xml_cdata_settings_parser($SettingsArray){
+
+    if (isset($_POST['admin_settings_action'])){
+
+        for($x=0;$x<sizeof($SettingsArray);$x++){
+
+            $Setting = $SettingsArray[$x];
+            $SettingValue = $_POST[$Setting];
+
+            #Remove certain HTML Tags from HTML-Textarea-Input
+            $SettingValue = str_replace('<pre>','',$SettingValue);
+            $SettingValue = str_replace('<code>','',$SettingValue);
+            $SettingValue = str_replace('</code>','',$SettingValue);
+            $SettingValue = str_replace('</pre>','',$SettingValue);
+
+            update_xml_einstellung($Setting, $SettingValue, 'cdata');
 
         }
 
