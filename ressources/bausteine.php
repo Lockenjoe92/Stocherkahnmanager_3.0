@@ -941,7 +941,7 @@ function dropdown_ende_reservierung_verschieben($NameElement, $MoegicheStundenFr
     return $Ausgabe;
 }
 
-function dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Mode='user'){
+function dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Nutzergruppen, $Mode='user'){
     $Ausgabe = "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     //Startwert
@@ -951,7 +951,6 @@ function dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Mode='user'){
         $Ausgabe .= "<option value=''>wählen</option>";
     }
 
-    $Nutzergruppen = lade_alle_nutzgruppen();
     foreach ($Nutzergruppen as $Nutzergruppe){
         $Name = $Nutzergruppe['name'];
         $ID = $Nutzergruppe['id'];
@@ -980,10 +979,10 @@ function dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Mode='user'){
     return $Ausgabe;
 }
 
-function table_form_dropdown_nutzergruppen_waehlen($ItemTitle, $NameElement, $Selected, $Mode){
+function table_form_dropdown_nutzergruppen_waehlen($ItemTitle, $NameElement, $Selected, $Nutzergruppen, $Mode){
 
     $TableRowContents = table_header_builder($ItemTitle);
-    $TableRowContents .= table_data_builder(dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Mode));
+    $TableRowContents .= table_data_builder(dropdown_nutzergruppen_waehlen($NameElement, $Selected, $Nutzergruppen, $Mode));
     $TableRow = table_row_builder($TableRowContents);
 
     return $TableRow;

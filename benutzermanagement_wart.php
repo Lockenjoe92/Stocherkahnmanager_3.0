@@ -36,6 +36,7 @@ function seiteninhalt_liste_user($Sortierung){
         $HTML .= "<h5 class='center-align'>Um die Kontaktdaten von ".$UserMetaToast['vorname']." ".$UserMetaToast['nachname']." zu sehen, musst du einfach runter scrollen:)</h5>";
     }
 
+    $Nutzergruppen = lade_alle_nutzgruppen();
     $AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);
     benutzermanagement_parser($AllUsers);
 
@@ -48,10 +49,10 @@ function seiteninhalt_liste_user($Sortierung){
     foreach ($AllUsers as $User){
         if($User['ist_gesperrt']!='true'){
             $Counter++;
-            $ListHTML .= listenobjekt_user_generieren($User, $UserIDchosen);
+            $ListHTML .= listenobjekt_user_generieren($User, $UserIDchosen, $Nutzergruppen);
         } elseif ($User['ist_gesperrt']=='true') {
             $GesperrtCounter++;
-            $GesperrtListHTML .= listenobjekt_user_generieren($User, $UserIDchosen);
+            $GesperrtListHTML .= listenobjekt_user_generieren($User, $UserIDchosen, $Nutzergruppen);
         }
     }
 
@@ -70,7 +71,7 @@ function seiteninhalt_liste_user($Sortierung){
     return $HTML;
 }
 
-function listenobjekt_user_generieren($UserID, $UserIDchosen){
+function listenobjekt_user_generieren($UserID, $UserIDchosen, $Nutzergruppen){
 
     $UserMeta = $UserID;
     $UserID = $UserMeta['id'];
@@ -89,7 +90,6 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen){
     $VerificationResult = "";
     $ShowVerifyButton = false;
     $NebennutzergruppenCounter = 0;
-    $Nutzergruppen = lade_alle_nutzgruppen();
     foreach ($Nutzergruppen as $Nutzergruppe){
         if($UserMeta[$Nutzergruppe['name']] == 'true'){
             if($Nutzergruppe['visible_for_user'] == "false"){
@@ -218,9 +218,9 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen){
                     $HTML .= "<h5>Nutzergruppe(n)</h5>";
                         $TableHTML = table_row_builder(table_header_builder('Hauptnutzergruppe').table_data_builder($UserMeta['ist_nutzergruppe']));
                         $TableHTML .= table_row_builder(table_header_builder('Verifizierung').table_data_builder($VerificationResult));
-                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], 'wart_visibles');
+                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], $Nutzergruppen,'wart_visibles');
                         $TableHTML .= table_row_builder(table_header_builder('Zusätzliche Nutzergruppen').table_data_builder($Nebennutzergruppen));
-                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], 'wart_unvisibles');
+                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], $Nutzergruppen,'wart_unvisibles');
                         $AktuellerUser = lade_user_meta(lade_user_id());
                         if($AktuellerUser['ist_admin']=='true'){
                             $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrollen').table_data_builder($BuchungstoolRollen));
