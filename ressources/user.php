@@ -103,6 +103,7 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         #echo "adding user meta";
         add_user_meta($Ergebnis['id'], 'vorname', $Vorname);
         add_user_meta($Ergebnis['id'], 'nachname', $Nachname);
+
         if(!$TransferMode){
             add_user_meta($Ergebnis['id'], 'strasse', $Strasse);
             add_user_meta($Ergebnis['id'], 'hausnummer', $Hausnummer);
@@ -366,7 +367,7 @@ function reset_user_pswd($Mail, $Mode='selbst'){
     $link = connect_db();
 
     #echo "selecting user id";
-    if (!($stmt = $link->prepare("SELECT * FROM users WHERE mail = ?"))) {
+    if (!($stmt = $link->prepare("SELECT * FROM users WHERE mail = ? AND deaktiviert = 0"))) {
         $Antwort['erfolg'] = false;
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
@@ -385,14 +386,14 @@ function reset_user_pswd($Mail, $Mode='selbst'){
         $Ergebnis = mysqli_fetch_assoc($res);
         $UserMeta = lade_user_meta($Ergebnis['id']);
         if($UserMeta['ist_gesperrt'] == 'true'){
-            return false;
+            return 'gesperrt';
         } else {
             $ID_hash = generateRandomString(32);
             $PSWD_hash = generateRandomString(32);
             $PSWD_hashed = password_hash($PSWD_hash, PASSWORD_DEFAULT);
             if($PSWD_hashed == false){
                 #var_dump('Hashing Fail');
-                return false;
+                return 'hash kaputt';
             } else {
                 $Anfrage = "UPDATE users SET secret = '".$PSWD_hashed."', pswd_needs_change = 1 WHERE id = ".$Ergebnis['id']."";
                 $Abfrage = mysqli_query($link, $Anfrage);
@@ -422,13 +423,13 @@ function reset_user_pswd($Mail, $Mode='selbst'){
                 } else {
                     #var_dump($Anfrage);
                     #var_dump('UPDATE fail');
-                    return false;
+                    return 'update fail';
                 }
             }
         }
     } else {
         #var_dump('too many users');
-        return false;
+        return 'zu viele user';
     }
 }
 function user_needs_pswd_change($UserID){

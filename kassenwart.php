@@ -19,8 +19,8 @@ if(isset($Parser['meldung'])){
 if($Parser['ansicht']==null){
     $HTML .= uebersicht_section_vereinskasse($YearGlobal);
     $HTML .= kontos_section_vereinskasse($YearGlobal, $Parser);
-    $HTML .= add_transaktions_vereinskasse();
-    $HTML .= choose_views_vereinskasse();
+    #$HTML .= add_transaktions_vereinskasse();
+    #$HTML .= choose_views_vereinskasse();
 } elseif ($Parser['ansicht']=='guv'){
     $HTML .= guv_rechnung_jahr($YearGlobal);
 } elseif ($Parser['ansicht']=='konto_details'){
@@ -355,6 +355,7 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     $WartkontoItems = table_row_builder(table_header_builder('Wart!n').table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder('Aktionen'));
     foreach ($Users as $User){
         if ($User['ist_wart'] == 'true') {
+            var_dump($User['id']);
             $Konto = lade_konto_user($User['id']);
             $Einnahmen = gesamteinnahmen_jahr_konto($YearGlobal,$Konto['id']);
             $Ausgaben = gesamtausgaben_jahr_konto($YearGlobal,$Konto['id']);
