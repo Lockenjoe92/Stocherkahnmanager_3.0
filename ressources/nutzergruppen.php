@@ -244,12 +244,14 @@ function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_fo
             $Ergebnis = mysqli_fetch_assoc($res);
 
             //Kostentabelle in nutzer_meta reinhacken
-            $Counter=1;
-            foreach ($array_kosten_pro_stunde as $Kosten_Stunde_Paar){
-                $Operator = 'kosten_'.$Counter.'_h';
-                $Kosten = $Kosten_Stunde_Paar[$Operator];
-                add_nutzergruppe_meta($Ergebnis['id'], $Operator,$Kosten);
-                $Counter++;
+            if($Alle_res_gratis!='true'){
+                $Counter=1;
+                foreach ($array_kosten_pro_stunde as $Kosten_Stunde_Paar){
+                    $Operator = 'kosten_'.$Counter.'_h';
+                    $Kosten = $Kosten_Stunde_Paar[$Operator];
+                    add_nutzergruppe_meta($Ergebnis['id'], $Operator,$Kosten);
+                    $Counter++;
+                }
             }
 
             $Antwort = true;
