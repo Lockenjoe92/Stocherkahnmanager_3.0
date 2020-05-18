@@ -1269,13 +1269,20 @@ function table_form_neutralkonten_dropdown($Titel, $NameElement, $Selected){
 
 }
 
-function table_form_offene_ausgleiche($Titel, $NameElement, $Selected){
+function table_form_offene_ausgleiche($Titel, $NameElement, $Selected, $YearGlobal=''){
+
+    if($YearGlobal==''){
+        $YearGlobal = date('Y-m-d');
+    }
+
+    $AnfangJahr = "".$YearGlobal."-01-01 00:00:01";
+    $EndeJahr = "".$YearGlobal."-12-31 23:59:59";
 
     $Ausgabe = "<tr><th>".$Titel."</th><td>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     $link = connect_db();
-    $Anfrage = "SELECT * FROM finanz_ausgleiche WHERE storno_user = '0' ORDER BY timestamp ASC";
+    $Anfrage = "SELECT * FROM finanz_ausgleiche WHERE storno_user = '0' AND timestamp >= '".$AnfangJahr."' AND timestamp <= '".$EndeJahr."' ORDER BY timestamp ASC";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
 

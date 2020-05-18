@@ -19,8 +19,8 @@ if(isset($Parser['meldung'])){
 if($Parser['ansicht']==null){
     $HTML .= uebersicht_section_vereinskasse($YearGlobal);
     $HTML .= kontos_section_vereinskasse($YearGlobal, $Parser);
-    #$HTML .= add_transaktions_vereinskasse();
-    #$HTML .= choose_views_vereinskasse();
+    $HTML .= add_transaktions_vereinskasse($YearGlobal);
+    $HTML .= choose_views_vereinskasse();
 } elseif ($Parser['ansicht']=='guv'){
     $HTML .= guv_rechnung_jahr($YearGlobal);
 } elseif ($Parser['ansicht']=='konto_details'){
@@ -355,7 +355,6 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     $WartkontoItems = table_row_builder(table_header_builder('Wart!n').table_header_builder('Einnahmen').table_header_builder('Ausgaben').table_header_builder('Überschuss').table_header_builder('Aktionen'));
     foreach ($Users as $User){
         if ($User['ist_wart'] == 'true') {
-            var_dump($User['id']);
             $Konto = lade_konto_user($User['id']);
             $Einnahmen = gesamteinnahmen_jahr_konto($YearGlobal,$Konto['id']);
             $Ausgaben = gesamtausgaben_jahr_konto($YearGlobal,$Konto['id']);
@@ -585,11 +584,11 @@ function konto_anlegen_formular(){
     $Table = table_builder($Table);
     return collapsible_item_builder('Konto anlegen', $Table, 'add_new');
 }
-function add_transaktions_vereinskasse(){
+function add_transaktions_vereinskasse($YearGlobal){
     $BigItems = ausgleich_anlegen_formular();
     $BigItems .= ausgabe_eintragen_formular();
     $BigItems .= forderung_anlegen_formular();
-    $BigItems .= einnahmen_eintragen_formular();
+    $BigItems .= einnahmen_eintragen_formular($YearGlobal);
     $BigItems .= umbuchen_formular();
     $HTML = '<h3 class="center-align">Transaktionen durchführen</h3>';
     $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post', 'kassenwart_transactions_form');
@@ -606,10 +605,13 @@ function umbuchen_formular(){
 
     return collapsible_item_builder('Umbuchung eintragen', $Text, 'swap_horiz');
 }
-function einnahmen_eintragen_formular(){
+function einnahmen_eintragen_formular($YearGlobal){
+
+    $AnfangJahr = "".$YearGlobal."-01-01 00:00:01";
+    $EndeJahr = "".$YearGlobal."-12-31 23:59:59";
 
     $link = connect_db();
-    $Anfrage = "SELECT * FROM finanz_forderungen WHERE storno_user = 0";
+    $Anfrage = "SELECT * FROM finanz_forderungen WHERE storno_user = 0 AND timestamp >= '".$AnfangJahr."' AND timestamp <= '".$EndeJahr."'";
     $Abfrage = mysqli_query($link, $Anfrage);
     $Anzahl = mysqli_num_rows($Abfrage);
 
@@ -656,9 +658,9 @@ function forderung_anlegen_formular(){
 
     return $HTML;
 }
-function ausgabe_eintragen_formular(){
+function ausgabe_eintragen_formular($YearGlobal){
     if($_POST['ausgabe_eintragen_steuersatz']!=''){$Steuersatz = $_POST['ausgabe_eintragen_steuersatz'];} else {$Steuersatz = 19;}
-    $Text = table_form_offene_ausgleiche('Ausgabe wählen', 'ausgabe_eintragen_ausgleich', $_POST['ausgabe_eintragen_ausgleich']);
+    $Text = table_form_offene_ausgleiche('Ausgabe wählen', 'ausgabe_eintragen_ausgleich', $_POST['ausgabe_eintragen_ausgleich'], $YearGlobal);
     $Text .= table_form_string_item('Betrag (Format 12.34)', 'ausgabe_eintragen_betrag', $_POST['ausgabe_eintragen_betrag']);
     $Text .= table_form_select_item('Steuersatz', 'ausgabe_eintragen_steuersatz', 0, 99, $Steuersatz, '%', '', '');
     $Text .= table_row_builder(table_header_builder('Von Wartkonto ausgeben').table_data_builder(dropdown_menu_wart('ausgabe_eintragen_wart', $_POST['ausgabe_eintragen_wart'])));
