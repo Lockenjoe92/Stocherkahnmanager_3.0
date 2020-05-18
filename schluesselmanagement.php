@@ -40,8 +40,7 @@ function spalte_verfuegbare_schluessel(){
     $link = connect_db();
 
     $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
-    $HTML .= "<h5 class='header center-align hide-on-large-only'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
+    $HTML .= "<h5 class='header center-align'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
     $HTML .= "<div class='section'>";
 
     $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
@@ -87,8 +86,7 @@ function spalte_dir_zugeteilte_schluessel(){
     $VerfuegbareSchluessel = wart_verfuegbare_schluessel(lade_user_id());
 
     $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header'>Dir zugeteilte Schl&uuml;ssel</h5>";
-    $HTML .= "<h5 class='header center-align hide-on-large-only'>Dir zugeteilte Schl&uuml;ssel</h5>";
+    $HTML .= "<h5 class='header center-align'>Dir zugeteilte Schl&uuml;ssel</h5>";
     $HTML .= "<div class='section'>";
 
     $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
@@ -160,7 +158,7 @@ function spalte_dir_zugeteilte_schluessel(){
 function spalte_schluessel_verwalten(){
 
     $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header'>Schl&uuml;ssel verwalten</h5>";
+    $HTML .= "<h5 class='center-align'>Schl&uuml;ssel verwalten</h5>";
     $HTML .= "<div class='section'>";
 
     $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
