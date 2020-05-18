@@ -37,6 +37,7 @@ function seiteninhalt_liste_user($Sortierung){
     }
 
     $Nutzergruppen = lade_alle_nutzgruppen();
+    $AktuellerUser = lade_user_meta(lade_user_id());
     $AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);
     benutzermanagement_parser($AllUsers);
 
@@ -49,10 +50,12 @@ function seiteninhalt_liste_user($Sortierung){
     foreach ($AllUsers as $User){
         if($User['ist_gesperrt']!='true'){
             $Counter++;
-            $ListHTML .= listenobjekt_user_generieren($User, $UserIDchosen, $Nutzergruppen);
+            #if($Counter<4){
+                $ListHTML .= listenobjekt_user_generieren($User, $UserIDchosen, $Nutzergruppen, $AktuellerUser);
+            #}
         } elseif ($User['ist_gesperrt']=='true') {
             $GesperrtCounter++;
-            $GesperrtListHTML .= listenobjekt_user_generieren($User, $UserIDchosen, $Nutzergruppen);
+            $GesperrtListHTML .= listenobjekt_user_generieren($User, $UserIDchosen, $Nutzergruppen, $AktuellerUser);
         }
     }
 
@@ -66,12 +69,10 @@ function seiteninhalt_liste_user($Sortierung){
         $HTML .= collapsible_builder($GesperrtListHTML);
     }
 
-    $HTML = form_builder($HTML, '#', 'post');
-
     return $HTML;
 }
 
-function listenobjekt_user_generieren($UserID, $UserIDchosen, $Nutzergruppen){
+function listenobjekt_user_generieren($UserID, $UserIDchosen, $Nutzergruppen, $AktuellerUser){
 
     $UserMeta = $UserID;
     $UserID = $UserMeta['id'];
@@ -201,38 +202,40 @@ function listenobjekt_user_generieren($UserID, $UserIDchosen, $Nutzergruppen){
     $HTML .= "<li>";
         $HTML .= "<div class='collapsible-header".$Active."'><i class='large material-icons'>perm_identity</i>".$UserMeta['vorname']." ".$UserMeta['nachname']."</div>";
         $HTML .= "<div class='collapsible-body'>";
-            $HTML .= "<div class='container'>";
-                    $HTML .= "<h5>Nutzerdaten</h5>";
-                        $UserTableHTML = table_form_string_item('Vorname', 'vorname_user_'.$UserID.'', $Vorname, false);
-                        $UserTableHTML .= table_form_string_item('Nachname', 'nachname_user_'.$UserID.'', $Nachname, false);
-                        $UserTableHTML .= table_row_builder(table_header_builder('Registrierung').table_data_builder($Registrierungsdatum));
-                        $UserTableHTML .= table_row_builder(table_header_builder('Reservierungen dieses Jahr').table_data_builder($AnzahleRes));
-                        $UserTableHTML .= table_form_email_item('Mail', 'mail_user_'.$UserID.'', $Mail, false);
-                        $UserTableHTML .= table_form_string_item('Telefon', 'telefon_user_'.$UserID.'', $Tel, false);
-                        $UserTableHTML .= table_form_string_item('Straße', 'strasse_user_'.$UserID.'', $Strasse, false);
-                        $UserTableHTML .= table_form_string_item('Hausnummer', 'hausnummer_user_'.$UserID.'', $Hausnummer, false);
-                        $UserTableHTML .= table_form_string_item('Stadt', 'stadt_user_'.$UserID.'', $Stadt, false);
-                        $UserTableHTML .= table_form_string_item('Postleitzahl', 'plz_user_'.$UserID.'', $PLZ, false);
-                    $HTML .= table_builder($UserTableHTML);
-                    $HTML .= divider_builder();
-                    $HTML .= "<h5>Nutzergruppe(n)</h5>";
-                        $TableHTML = table_row_builder(table_header_builder('Hauptnutzergruppe').table_data_builder($UserMeta['ist_nutzergruppe']));
-                        $TableHTML .= table_row_builder(table_header_builder('Verifizierung').table_data_builder($VerificationResult));
-                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], $Nutzergruppen,'wart_visibles');
-                        $TableHTML .= table_row_builder(table_header_builder('Zusätzliche Nutzergruppen').table_data_builder($Nebennutzergruppen));
-                        $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], $Nutzergruppen,'wart_unvisibles');
-                        $AktuellerUser = lade_user_meta(lade_user_id());
-                        if($AktuellerUser['ist_admin']=='true'){
-                            $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrollen').table_data_builder($BuchungstoolRollen));
-                            $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrolle hinzufügen').table_data_builder(dropdown_buchungstoolgruppe_waehlen('neue_buchungstoolrolle_'.$UserID.'', $_POST['neue_buchungstoolrolle_'.$UserID.''])));
-                        }
-                        if($UserMeta['ist_gesperrt']=='true'){
-                            $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_unsuspend_user_'.$UserID.'', 'Sperre aufheben', 'action', 'check', '')));
-                        } else {
-                            $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_suspend_user_'.$UserID.'', 'Sperren', 'action', 'block', '')));
-                        }
-                    $HTML .= table_builder($TableHTML);
-            $HTML .= "</div>";
+                $HTMLcontainer = "<div class='container'>";
+                $HTMLcontainer .= "<h5>Nutzerdaten</h5>";
+                $UserTableHTML = table_form_string_item('Vorname', 'vorname_user_'.$UserID.'', $Vorname, false);
+                $UserTableHTML .= table_form_string_item('Nachname', 'nachname_user_'.$UserID.'', $Nachname, false);
+                $UserTableHTML .= table_row_builder(table_header_builder('Registrierung').table_data_builder($Registrierungsdatum));
+                $UserTableHTML .= table_row_builder(table_header_builder('Reservierungen dieses Jahr').table_data_builder($AnzahleRes));
+                $UserTableHTML .= table_form_email_item('Mail', 'mail_user_'.$UserID.'', $Mail, false);
+                $UserTableHTML .= table_form_string_item('Telefon', 'telefon_user_'.$UserID.'', $Tel, false);
+                $UserTableHTML .= table_form_string_item('Straße', 'strasse_user_'.$UserID.'', $Strasse, false);
+                $UserTableHTML .= table_form_string_item('Hausnummer', 'hausnummer_user_'.$UserID.'', $Hausnummer, false);
+                $UserTableHTML .= table_form_string_item('Stadt', 'stadt_user_'.$UserID.'', $Stadt, false);
+                $UserTableHTML .= table_form_string_item('Postleitzahl', 'plz_user_'.$UserID.'', $PLZ, false);
+                $HTMLcontainer .= table_builder($UserTableHTML);
+                $HTMLcontainer .= divider_builder();
+                $HTMLcontainer .= "<h5>Nutzergruppe(n)</h5>";
+                $TableHTML = table_row_builder(table_header_builder('Hauptnutzergruppe').table_data_builder($UserMeta['ist_nutzergruppe']));
+                $TableHTML .= table_row_builder(table_header_builder('Verifizierung').table_data_builder($VerificationResult));
+                $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Hauptnutzergruppe ändern', 'main_usergroup_'.$UserID.'', $_POST['main_usergroup_'.$UserID.''], $Nutzergruppen,'wart_visibles');
+                $TableHTML .= table_row_builder(table_header_builder('Zusätzliche Nutzergruppen').table_data_builder($Nebennutzergruppen));
+                $TableHTML .= table_form_dropdown_nutzergruppen_waehlen('Zusätzliche Nutzergruppe hinzufügen', 'additional_usergroup_'.$UserID.'', $_POST['additional_usergroup_'.$UserID.''], $Nutzergruppen,'wart_unvisibles');
+                if($AktuellerUser['ist_admin']=='true'){
+                    $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrollen').table_data_builder($BuchungstoolRollen));
+                    $TableHTML .= table_row_builder(table_header_builder('Buchungstoolrolle hinzufügen').table_data_builder(dropdown_buchungstoolgruppe_waehlen('neue_buchungstoolrolle_'.$UserID.'', $_POST['neue_buchungstoolrolle_'.$UserID.''])));
+                }
+                if($UserMeta['ist_gesperrt']=='true'){
+                    $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_unsuspend_user_'.$UserID.'', 'Sperre aufheben', 'action', 'check', '')));
+                } else {
+                    $TableHTML .= table_row_builder(table_header_builder(form_button_builder('action_edit_user_'.$UserID.'', 'Bearbeiten', 'action', 'edit', '')." ".form_button_builder('action_pswd_rst_user_'.$UserID.'', 'PSWD RST', 'action', 'replay', '')).table_data_builder(form_button_builder('action_suspend_user_'.$UserID.'', 'Sperren', 'action', 'block', '')));
+                }
+                $HTMLcontainer .= table_builder($TableHTML);
+                $HTMLcontainer .= "</div>";
+
+    $HTML .= form_builder($HTMLcontainer, '#', 'post', 'edit_user_form_'.$UserID.'');
+
         $HTML .= "</div>";
     $HTML .= "</li>";
 

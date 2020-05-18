@@ -306,7 +306,7 @@ function generiere_kontaktinformation_fuer_usermail_wart($IDwart){
 
     return $Antwort;
 }
-function get_sorted_user_array_with_user_meta_fields($orderBy='nachname'){
+function get_sorted_user_array_with_user_meta_fields_old($orderBy='nachname'){
 
     $link = connect_db();
     if($orderBy!='id'){
@@ -358,6 +358,42 @@ function get_sorted_user_array_with_user_meta_fields($orderBy='nachname'){
     $ReturnArray = array();
     foreach ($SortArray as $Array){
         array_push($ReturnArray, lade_user_meta($Array['user']));
+    }
+
+    return $ReturnArray;
+}
+function get_sorted_user_array_with_user_meta_fields($orderBy='nachname'){
+
+    $link = connect_db();
+    if($orderBy!='id'){
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? ORDER BY schluessel ASC"))) {
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        if (!$stmt->bind_param("s",$orderBy)) {
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    } else {
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? ORDER BY id ASC"))) {
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        $Schluesel = 'nachname';
+        if (!$stmt->bind_param("s",$Schluesel)) {
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    }
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $num_user = mysqli_num_rows($res);
+    $ReturnArray = array();
+
+    for ($a = 1; $a <= $num_user; $a++) {
+        $Ergebnis = mysqli_fetch_assoc($res);
+        array_push($ReturnArray, lade_user_meta($Ergebnis['user']));
     }
 
     return $ReturnArray;
