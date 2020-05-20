@@ -491,18 +491,18 @@ function form_html_area_item($ItemName, $Placeholdertext='', $Disabled=false){
 
 function table_form_datepicker_reservation_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false, $Required=true, $SpecialMode = ''){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_datepicker_reservation_item($ItemTitle, $ItemName, $Placeholdertext, $Disabled, $Required, $SpecialMode)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_datepicker_reservation_item($ItemTitle, $ItemName, $Placeholdertext, $Disabled, $Required, $SpecialMode)."</td></tr>";
 
 }
 
 function table_form_file_upload_builder($ItemTitle, $ItemName){
 
-    return "<tr><th>".$ItemTitle."</th><td><input type='file' name='".$ItemName."' id='".$ItemName."'></td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'><input type='file' name='".$ItemName."' id='".$ItemName."'></td></tr>";
 
 }
 
 function table_form_dropdown_menu_user($ItemTitle, $ItemName, $PresetValue){
-    return "<tr><th>".$ItemTitle."</th><td>".form_dropdown_menu_user($ItemName, $PresetValue)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_dropdown_menu_user($ItemName, $PresetValue)."</td></tr>";
 }
 
 function table_form_file_upload_directory_chooser_builder($ItemTitle, $ItemName){
@@ -512,61 +512,61 @@ function table_form_file_upload_directory_chooser_builder($ItemTitle, $ItemName)
     $Select .= "<option value='media/pictures/'>/media/pictures/</option>";
     $Select .= "</select>";
 
-    return "<tr><th>".$ItemTitle."</th><td>".$Select."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".$Select."</td></tr>";
 
 }
 
 function table_form_swich_item($ItemTitle, $ItemName, $OptionLeft='off', $OptionRight='on', $BooleanText='false', $Disabled=false){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_switch_item($ItemName, $OptionLeft, $OptionRight, $BooleanText, $Disabled)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_switch_item($ItemName, $OptionLeft, $OptionRight, $BooleanText, $Disabled)."</td></tr>";
 
 }
 
 function table_form_string_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_string_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_string_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
 
 }
 
 function table_form_email_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_email_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_email_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
 
 }
 
 function table_form_password_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_password_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_password_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
 
 }
 
 function table_form_range_item($ItemTitle, $ItemName, $Min, $Max, $StartValue, $Disabled=false){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_range_item($ItemName, $Min, $Max, $StartValue, $Disabled)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_range_item($ItemName, $Min, $Max, $StartValue, $Disabled)."</td></tr>";
 
 }
 
 function table_form_select_item($ItemTitle, $ItemName, $Min, $Max, $StartValue, $Einheit, $Label, $SpecialMode, $Disabled=false){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_select_item($ItemName, $Min, $Max, $StartValue, $Einheit, $Label, $SpecialMode, $Disabled)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_select_item($ItemName, $Min, $Max, $StartValue, $Einheit, $Label, $SpecialMode, $Disabled)."</td></tr>";
 
 }
 
 function table_form_nutzergruppe_select($ItemTitle, $ItemName, $StartValue, $Mode='normaluser', $Disabled=false, $SpecialMode=''){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_nutzergruppe_select($ItemName, $StartValue, $Mode, $Disabled, $SpecialMode)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_nutzergruppe_select($ItemName, $StartValue, $Mode, $Disabled, $SpecialMode)."</td></tr>";
 
 }
 
 function table_form_nutzergruppe_verification_mode_select($ItemTitle, $ItemName, $StartValue, $Disabled=false, $SpecialMode=''){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_nutzergruppe_verification_mode_select($ItemName, $StartValue, $Disabled, $SpecialMode)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_nutzergruppe_verification_mode_select($ItemName, $StartValue, $Disabled, $SpecialMode)."</td></tr>";
 
 }
 
 function table_form_timepicker_item($ItemTitle, $ItemName, $StartValue, $Disabled=false, $Required=false, $SpecialMode=''){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_timepicker_item($ItemTitle, $ItemName, $StartValue, $Disabled, $Required, $SpecialMode)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_timepicker_item($ItemTitle, $ItemName, $StartValue, $Disabled, $Required, $SpecialMode)."</td></tr>";
 
 }
 
@@ -585,7 +585,7 @@ function form_timepicker_item($ItemTitle, $ItemName, $value='', $Disabled=false,
 
 function table_form_html_area_item($ItemTitle, $ItemName, $Placeholdertext='', $Disabled=false){
 
-    return "<tr><th>".$ItemTitle."</th><td>".form_html_area_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
+    return "<tr><th class='center-align'>".$ItemTitle."</th><td class='center-align'>".form_html_area_item($ItemName, $Placeholdertext, $Disabled)."</td></tr>";
 
 }
 
@@ -651,14 +651,14 @@ function lade_baustein($BausteinID){
 function table_form_dropdown_terminzeitfenster_generieren($TitelElement, $NameElement, $IDtermin, $ZeitfensterSelected){
 
 
-    return "<tr><th>".$TitelElement."</th><td>".dropdown_terminzeitfenster_generieren($NameElement, $IDtermin, $ZeitfensterSelected)."</td></tr>";
+    return "<tr><th class='center-align'>".$TitelElement."</th><td class='center-align'>".dropdown_terminzeitfenster_generieren($NameElement, $IDtermin, $ZeitfensterSelected)."</td></tr>";
 
 }
 
 function table_form_dropdown_aktive_res_spontanuebergabe($TitelElement, $NameElement){
 
 
-    return "<tr><th>".$TitelElement."</th><td>".dropdown_aktive_res_spontanuebergabe($NameElement)."</td></tr>";
+    return "<tr><th class='center-align'>".$TitelElement."</th><td class='center-align'>".dropdown_aktive_res_spontanuebergabe($NameElement)."</td></tr>";
 
 }
 
@@ -1074,7 +1074,7 @@ function dropdown_kontotyp_waehlen($NameElement, $Selected){
 
 function table_form_dropdown_termintyp_waehlen($Titel, $NameElement, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     //Startwert
@@ -1103,7 +1103,7 @@ function table_form_dropdown_termintyp_waehlen($Titel, $NameElement, $Selected){
 
 function table_form_terminangebote_user($Titel, $NameElement, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     //Startwert
@@ -1136,7 +1136,7 @@ function table_form_terminangebote_user($Titel, $NameElement, $Selected){
 
 function table_form_terminangebote_fuer_termine($Titel, $NameElement, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     //Startwert
@@ -1182,7 +1182,7 @@ function table_form_terminangebote_fuer_termine($Titel, $NameElement, $Selected)
 
 function table_form_res_mit_ausgleichen($Titel, $NameElement, $UserID, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     //Startwert
@@ -1235,7 +1235,7 @@ function table_form_res_mit_ausgleichen($Titel, $NameElement, $UserID, $Selected
 
 function table_form_neutralkonten_dropdown($Titel, $NameElement, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     $link = connect_db();
@@ -1277,7 +1277,7 @@ function table_form_offene_ausgleiche($Titel, $NameElement, $Selected, $YearGlob
     $AnfangJahr = "".$YearGlobal."-01-01 00:00:01";
     $EndeJahr = "".$YearGlobal."-12-31 23:59:59";
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     $link = connect_db();
@@ -1331,7 +1331,7 @@ function table_form_offene_ausgleiche($Titel, $NameElement, $Selected, $YearGlob
 
 function table_form_dropdown_einnahmenkonten($Titel, $NameElement, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     $link = connect_db();
@@ -1366,7 +1366,7 @@ function table_form_dropdown_einnahmenkonten($Titel, $NameElement, $Selected){
 
 function table_form_dropdown_ausgabenkonten($Titel, $NameElement, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     $link = connect_db();
@@ -1401,7 +1401,7 @@ function table_form_dropdown_ausgabenkonten($Titel, $NameElement, $Selected){
 
 function table_form_dropdown_transferkonten($Titel, $NameElement, $Selected){
 
-    $Ausgabe = "<tr><th>".$Titel."</th><td>";
+    $Ausgabe = "<tr><th class='center-align'>".$Titel."</th><td class='center-align'>";
     $Ausgabe .= "<select name='" .$NameElement. "' id='".$NameElement."'>";
 
     $link = connect_db();

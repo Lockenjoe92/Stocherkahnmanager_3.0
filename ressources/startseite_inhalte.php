@@ -156,7 +156,7 @@ function kostenstaffel_container_generieren($BausteinID){
 
         $TableHTML = $TableHeader;
         $TableHTML .= $TableBody;
-        $HTML .= "<h3>".$Titel."</h3>";
+        $HTML .= "<h3 class='center-align'>".$Titel."</h3>";
         $HTML .= section_builder(table_builder($TableHTML));
         $HTML .= section_builder($HTMLcontent);
         $HTML .= "</div>";
