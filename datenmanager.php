@@ -96,7 +96,8 @@ function parse_datei_upload_form(){
         } else {
 
             if($_POST['upload_dir'] == '/media/pictures/'){
-                $File = resize_image($_FILES["file_to_upload"]["tmp_name"], 1440, 743);
+                #$File = resize_image($_FILES["file_to_upload"]["tmp_name"], 1440, 743);
+                $File = $_FILES["file_to_upload"]["tmp_name"];
             } else {
                 $File = $_FILES["file_to_upload"]["tmp_name"];
             }

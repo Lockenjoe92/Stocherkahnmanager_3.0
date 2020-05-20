@@ -20,7 +20,7 @@ if(isset($Parser['meldung'])){
 $HTML .= form_builder(section_wartkasse($UserID), '#', 'post');
 $HTML .= form_builder(section_vergangene_transaktionen($UserID), '#', 'post');
 
-$HTML .= "<h4 class='center-align'>Offene Forderungen</h4>";
+$HTML .= "<h4 class='center-align'>Forderungen</h4>";
 $HTML .= section_offene_forderungen();
 $HTML .= section_forderung_an_user_anlegen($UserID);
 
@@ -150,6 +150,44 @@ function section_vergangene_transaktionen($UserID){
     } else {
         $HTML .= '<h4 class="center-align">Keine Ausgaben in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
     }
+
+    $AnfrageTransfers = "SELECT * FROM finanz_transfer WHERE von = ".$Wartkonto['id']." OR nach = ".$Wartkonto['id']." AND storno_user = 0 AND timestamp >= '".$Grenze."' ORDER BY timestamp DESC";
+    $AbfrageTransfers = mysqli_query($link, $AnfrageTransfers);
+    $AnzahlTransfers = mysqli_num_rows($AbfrageTransfers);
+    $TransferItems='';
+    for($c=1;$c<=$AnzahlTransfers;$c++){
+        $ErgebnisTransfer = mysqli_fetch_assoc($AbfrageTransfers);
+        if($ErgebnisTransfer['betrag']!=0){
+            if(intval($ErgebnisTransfer['von'])==$Wartkonto){
+                $AnderesKonto = lade_konto_via_id($ErgebnisTransfer['nach']);
+                if(intval($AnderesKonto['name'])>0){
+                        $AnderesKontoUser = lade_user_meta($AnderesKonto['nach']);
+                        $ForString = $AnderesKontoUser['vorname'].'&nbsp;'.$AnderesKontoUser['nachname'];
+                } else {
+                        $ForString = $AnderesKonto['name'];
+                }
+                $Title = strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($ErgebnisTransfer['timestamp'])).' - '.$ErgebnisTransfer['betrag'].'&euro; von <b>dir</b> zu '.$ForString.'<br>';
+            }elseif (intval($ErgebnisTransfer['nach'])==$Wartkonto){
+                $AnderesKonto = lade_konto_via_id($ErgebnisTransfer['von']);
+                if(intval($AnderesKonto['name'])>0){
+                    $AnderesKontoUser = lade_user_meta($AnderesKonto['nach']);
+                    $ForString = $AnderesKontoUser['vorname'].'&nbsp;'.$AnderesKontoUser['nachname'];
+                } else {
+                    $ForString = $AnderesKonto['name'];
+                }
+                $Title = strftime("%A, %d. %B %G - %H:%M Uhr", strtotime($ErgebnisTransfer['timestamp'])).' - '.$ErgebnisTransfer['betrag'].'&euro; von '.$ForString.' zu <b>dir</b><br>';
+            }
+            $Content = form_button_builder('delete_transfer_'.$ErgebnisAusgaben['id'].'', 'löschen', 'action', 'delete_forever');
+            $TransferItems .= collapsible_item_builder($Title, '', '');
+        }
+    }
+
+    #if($AnzahlTransfers>0){
+        #$HTML .= '<h4 class="center-align">Umbuchungen der letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
+        #$HTML .= collapsible_builder($TransferItems);
+    #} else {
+        #$HTML .= '<h4 class="center-align">Keine Umbuchungen in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
+    #}
 
     return $HTML;
 }

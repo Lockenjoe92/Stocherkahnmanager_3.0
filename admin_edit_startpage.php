@@ -457,7 +457,7 @@ function add_new_site_parser(){
             $Antwort['meldung']=$DAUmessage;
         }else{
 
-            $AnfrageListSites = "SELECT id FROM homepage_sites WHERE rang > 0 AND delete_user = 0";
+            $AnfrageListSites = "SELECT id FROM homepage_sites WHERE menue_rang > 0 AND delete_user = 0";
             $AbfrageListSites = mysqli_query($link,$AnfrageListSites);
             $AktZahlRang = mysqli_num_rows($AbfrageListSites);
             $RangNewPage = $AktZahlRang+1;

@@ -163,12 +163,12 @@ function table_row_builder($ContentHTML){
 
 function table_data_builder($ContentHTML){
 
-    return "<td>".$ContentHTML."</td>";
+    return "<td class='center-align'>".$ContentHTML."</td>";
 }
 
 function table_header_builder($ContentHTML){
 
-    return "<th>".$ContentHTML."</th>";
+    return "<th class='center-align'>".$ContentHTML."</th>";
 }
 
 function form_button_builder($ButtonName, $ButtonMessage, $ButtonMode, $Icon, $SpecialMode=''){

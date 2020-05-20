@@ -17,9 +17,9 @@ if(isset($Parser['meldung'])){
 }
 
 if($Parser['ansicht']==null){
+    #var_dump($_POST);
     $HTML .= uebersicht_section_vereinskasse($YearGlobal);
     $HTML .= kontos_section_vereinskasse($YearGlobal, $Parser);
-    $HTML .= add_transaktions_vereinskasse($YearGlobal);
     $HTML .= choose_views_vereinskasse();
 } elseif ($Parser['ansicht']=='guv'){
     $HTML .= guv_rechnung_jahr($YearGlobal);
@@ -29,6 +29,8 @@ if($Parser['ansicht']==null){
     $HTML .= forderungen_section_vereinskasse($YearGlobal);
 } elseif ($Parser['ansicht']=='list_all_ausgaben'){
     $HTML .= ausgaben_section_vereinskasse($YearGlobal);
+} elseif ($Parser['ansicht']=='transactions'){
+    $HTML .= add_transaktions_vereinskasse($YearGlobal);
 }
 
 $HTML = container_builder($HTML);
@@ -53,11 +55,25 @@ function vereinskasse_parser($YearGlobal){
             $Antwort['meldung']=$Result['meldung'];
             $Antwort['ansicht']='list_all_forderungen';
         }
+        if(isset($_POST['storno_einnahme_konto_details_'.$a])){
+            $Result = einnahme_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']='konto_details';
+            $Antwort['konto_id']=$_POST['konto_id'];
+        }
         if(isset($_POST['einnahme_storno_aufheben_'.$a])){
             $Result = undo_einnahme_loeschen($a);
             $Antwort['success']=$Result['success'];
             $Antwort['meldung']=$Result['meldung'];
             $Antwort['ansicht']='list_all_forderungen';
+        }
+        if(isset($_POST['storno_aufheben_einnahme_konto_details_'.$a])){
+            $Result = undo_einnahme_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']='konto_details';
+            $Antwort['konto_id']=$_POST['konto_id'];
         }
         if(isset($_POST['delete_forderung_'.$a])){
             $Result = forderung_stornieren($a);
@@ -79,10 +95,31 @@ function vereinskasse_parser($YearGlobal){
             $Antwort['success']=$Result['success'];
             $Antwort['ansicht']='list_all_ausgaben';
         }
+
+        if(isset($_POST['storno_transfer_konto_details_'.$a])){
+            $Result = transfer_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='konto_details';
+            $Antwort['konto_id']=$_POST['konto_id'];
+        }
+        if(isset($_POST['storno_aufheben_transfer_konto_details_'.$a])){
+            $Result = undo_transfer_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='konto_details';
+            $Antwort['konto_id']=$_POST['konto_id'];
+        }
+
         if(isset($_POST['ausgabe_stornieren_'.$a])){
             $Result = ausgabe_loeschen($a);
             $Antwort['success']=$Result['success'];
             $Antwort['ansicht']='list_all_ausgaben';
+        }
+        if(isset($_POST['storno_ausgabe_konto_details_'.$a])){
+            $Result = ausgabe_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['ansicht']='list_all_ausgaben';
+            $Antwort['ansicht']='konto_details';
+            $Antwort['konto_id']=$_POST['konto_id'];
         }
         if(isset($_POST['ausgabe_storno_aufheben_'.$a])){
             $Result = undo_ausgabe_loeschen($a);
@@ -90,25 +127,36 @@ function vereinskasse_parser($YearGlobal){
             $Antwort['meldung']=$Result['meldung'];
             $Antwort['ansicht']='list_all_ausgaben';
         }
+        if(isset($_POST['storno_aufheben_ausgabe_konto_details_'.$a])){
+            $Result = undo_ausgabe_loeschen($a);
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']='konto_details';
+            $Antwort['konto_id']=$_POST['konto_id'];
+        }
         if(isset($_POST['einnahme_forderung_'.$a.'_festhalten'])){
             if(is_numeric($_POST['einnahme_forderung_'.$a.''])){
                 if(($_POST['wartkonto_einnahme_forderung_'.$a.''] != '') AND ($_POST['neutralkonto_einnahme_forderung_'.$a.''] != '')){
                     $Antwort['success']=false;
                     $Antwort['meldung']='Du darfst nicht ein Wart- und ein Neutralkonto in einer Buchung gleichzeitig verwenden!';
-                    $Antwort['ansicht']=null;
+                    $Antwort['ansicht']='transactions';
                 } else {
                     if($_POST['wartkonto_einnahme_forderung_'.$a.''] != ''){
-                        $KontoID = $_POST['wartkonto_einnahme_forderung_'.$a.''];
+                        $KontoID = lade_konto_user($_POST['wartkonto_einnahme_forderung_'.$a.'']);
                     }
                     if($_POST['neutralkonto_einnahme_forderung_'.$a.''] != ''){
                         $KontoID = $_POST['neutralkonto_einnahme_forderung_'.$a.''];
                     }
                     $Forderung = lade_forderung($a);
-                    $Antwort = einnahme_festhalten($a, $KontoID, $_POST['einnahme_forderung_' . $a . ''], $Forderung['steuersatz']);
+                    $Result = einnahme_festhalten($a, $KontoID, $_POST['einnahme_forderung_' . $a . ''], $Forderung['steuersatz']);
+                    $Antwort['success']=$Result['success'];
+                    $Antwort['meldung']=$Result['meldung'];
+                    $Antwort['ansicht']='transactions';
                 }
             } else {
                 $Antwort['success'] = false;
                 $Antwort['meldung'] = 'Bitte gib einen validen Betrag ein!';
+                $Antwort['ansicht']='transactions';
             }
         }
     }
@@ -126,20 +174,24 @@ function vereinskasse_parser($YearGlobal){
         $Antwort['ansicht']='list_all_forderungen';
     }
 
+    if(isset($_POST['activate_transactions_view'])){
+        $Antwort['ansicht']='transactions';
+    }
+
     if(isset($_POST['activate_list_all_ausgaben'])){
         $Antwort['ansicht']='list_all_ausgaben';
     }
     if(isset($_POST['ausgleich_anlegen'])){
         $Result = ausgleich_hinzufuegen($_POST['neu_ausgleich_konto'], $_POST['neu_ausgleich_referenz'], $_POST['neu_ausgleich_betrag'], $_POST['neu_ausgleich_steuersatz']);
         $Antwort['success']=$Result;
-        $Antwort['ansicht']=null;
+        $Antwort['ansicht']='transactions';
     }
     if(isset($_POST['action_ausgabe_durchfuehren'])){
 
         if(($_POST['ausgabe_eintragen_wart'] != '') AND ($_POST['ausgabe_eintragen_neutralkonto'] != '')){
             $Antwort['success']=false;
             $Antwort['meldung']='Du darfst nicht ein Wart- und ein Neutralkonto in einer Buchung gleichzeitig verwenden!';
-            $Antwort['ansicht']=null;
+            $Antwort['ansicht']='transactions';
         } else {
             if($_POST['ausgabe_eintragen_wart'] != ''){
                 $KontoID = $_POST['ausgabe_eintragen_wart'];
@@ -150,7 +202,7 @@ function vereinskasse_parser($YearGlobal){
             $Result = ausgabe_hinzufuegen($_POST['ausgabe_eintragen_betrag'], $_POST['ausgabe_eintragen_steuersatz'], $_POST['ausgabe_eintragen_ausgleich'], $KontoID);
             $Antwort['success']=$Result['success'];
             $Antwort['meldung']=$Result['meldung'];
-            $Antwort['ansicht']=null;
+            $Antwort['ansicht']='transactions';
         }
 
     }
@@ -158,10 +210,14 @@ function vereinskasse_parser($YearGlobal){
     if(isset($_POST['action_add_forderung'])){
         if(is_numeric($_POST['betrag_add_forderung'])){
             $Till = $_POST['datum_add_forderung'].' 00:00:01';
-            $Antwort = forderung_generieren($_POST['betrag_add_forderung'], $_POST['steuer_add_forderung'], $_POST['user_add_forderung'], '', lade_zielkonto_einnahmen_forderungen_id(), '', $_POST['reason_add_forderung'], $Till, lade_user_id());
+            $Result = forderung_generieren($_POST['betrag_add_forderung'], $_POST['steuer_add_forderung'], $_POST['user_add_forderung'], '', lade_zielkonto_einnahmen_forderungen_id(), '', $_POST['reason_add_forderung'], $Till, lade_user_id());
+            $Antwort['success']=$Result['success'];
+            $Antwort['meldung']=$Result['meldung'];
+            $Antwort['ansicht']='transactions';
         } else {
             $Antwort['success'] = false;
             $Antwort['meldung'] = 'Bitte gib einen validen Betrag ein!';
+            $Antwort['ansicht']='transactions';
         }
     }
 
@@ -169,7 +225,7 @@ function vereinskasse_parser($YearGlobal){
         $Result = add_transfer($_POST['von_konto_transfer'], $_POST['nach_konto_transfer'], $_POST['betrag_transfer']);
         $Antwort['success']=$Result['success'];
         $Antwort['meldung']=$Result['meldung'];
-        $Antwort['ansicht']=null;
+        $Antwort['ansicht']='transactions';
     }
 
     if(isset($_POST['reset_view'])){
@@ -385,7 +441,7 @@ function kontos_section_vereinskasse($YearGlobal, $Parser){
     $BigItems .= "<input type='hidden' name='year_global' value='".$_POST['year_global']."'>";
 
     $HTML = '<h3 class="center-align">Konten</h3>';
-    $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post');
+    $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post', 'konten_form');
 
     return section_builder($HTML);
 }
@@ -572,7 +628,169 @@ function ausgaben_section_vereinskasse($YearGlobal){
     return form_builder($HTML, '#', 'post', 'ausgleiche_section_form');
 }
 function konto_details($YearGlobal, $Konto){
-    $HTML = form_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'), '#', 'post');
+
+    $AnfangJahr = "".$YearGlobal."-01-01 00:00:01";
+    $EndeJahr = "".$YearGlobal."-12-31 23:59:59";
+    $KontoInfos = lade_konto_via_id($Konto);
+    $link = connect_db();
+
+    $AnfrageAusgaben = "SELECT * FROM finanz_ausgaben WHERE konto_id = ".$Konto." AND timestamp >= '".$AnfangJahr."' AND timestamp <= '".$EndeJahr."'";
+    $AnfrageEinnahmen = "SELECT * FROM finanz_einnahmen WHERE konto_id = ".$Konto." AND timestamp >= '".$AnfangJahr."' AND timestamp <= '".$EndeJahr."'";
+    $AnfrageTransfers = "SELECT * FROM finanz_transfer WHERE ((von = ".$Konto.") OR (nach = ".$Konto.")) AND timestamp >= '".$AnfangJahr."' AND timestamp <= '".$EndeJahr."'";
+
+    $AbfrageAusgaben = mysqli_query($link, $AnfrageAusgaben);
+    $AbfrageEinnahmen = mysqli_query($link, $AnfrageEinnahmen);
+    $AbfrageTransfers = mysqli_query($link, $AnfrageTransfers);
+
+    $AnzahlAusgaben = mysqli_num_rows($AbfrageAusgaben);
+    $AnzahlEinnahmen = mysqli_num_rows($AbfrageEinnahmen);
+    $AnzahlTransfers = mysqli_num_rows($AbfrageTransfers);
+
+    $MinusItems = array();
+    $PlusItems = array();
+
+    for($a=1;$a<=$AnzahlAusgaben;$a++){
+        $ErgebnisAusgaben = mysqli_fetch_assoc($AbfrageAusgaben);
+        $NeuerEintrag = array('id'=>$ErgebnisAusgaben['id'], 'timestamp'=>$ErgebnisAusgaben['timestamp'], 'ausgleich_id'=>$ErgebnisAusgaben['ausgleich_id'], 'betrag'=>$ErgebnisAusgaben['betrag'], 'storno_user'=>$ErgebnisAusgaben['storno_user'], 'typ'=>'ausgabe');
+        array_push($MinusItems, $NeuerEintrag);
+    }
+    for($b=1;$b<=$AnzahlEinnahmen;$b++){
+        $ErgebnisEinnahmen = mysqli_fetch_assoc($AbfrageEinnahmen);
+        $NeuerEintrag = array('id'=>$ErgebnisEinnahmen['id'], 'timestamp'=>$ErgebnisEinnahmen['timestamp'], 'forderung_id'=>$ErgebnisEinnahmen['forderung_id'], 'betrag'=>$ErgebnisEinnahmen['betrag'], 'storno_user'=>$ErgebnisEinnahmen['storno_user'], 'typ'=>'einnahme');
+        array_push($PlusItems, $NeuerEintrag);
+    }
+    for($c=1;$c<=$AnzahlTransfers;$c++){
+        $ErgebnisTransfers = mysqli_fetch_assoc($AbfrageTransfers);
+        if($ErgebnisTransfers['von']==$Konto){
+            $NeuerEintrag = array('id'=>$ErgebnisTransfers['id'], 'timestamp'=>$ErgebnisTransfers['timestamp'], 'other_konto'=>$ErgebnisTransfers['nach'], 'betrag'=>$ErgebnisTransfers['betrag'], 'storno_user'=>$ErgebnisTransfers['storno_user'], 'typ'=>'transfer');
+            array_push($MinusItems, $NeuerEintrag);
+        } else {
+            $NeuerEintrag = array('id'=>$ErgebnisTransfers['id'], 'timestamp'=>$ErgebnisTransfers['timestamp'], 'other_konto'=>$ErgebnisTransfers['von'], 'betrag'=>$ErgebnisTransfers['betrag'], 'storno_user'=>$ErgebnisTransfers['storno_user'], 'typ'=>'transfer');
+            array_push($PlusItems, $NeuerEintrag);
+        }
+    }
+
+    $MinusEintraege = sizeof($MinusItems);
+    $PlusEintraege = sizeof($PlusItems);
+
+    asort($MinusItems);
+    asort($PlusItems);
+
+    if($MinusEintraege>$PlusEintraege){
+        $MaxRuns=$MinusEintraege;
+    }else{
+        $MaxRuns=$PlusEintraege;
+    }
+
+    $TableRows = table_row_builder('<th class="center-align" colspan="5">Ausgaben</th><th class="center-align" colspan="5">Einnahmen</th>');
+    $TableRows .= table_row_builder(table_header_builder('Datum').table_header_builder('Ausgabe').table_header_builder('Für').table_header_builder('Betrag').table_header_builder('Aktionen').table_header_builder('Datum').table_header_builder('Forderung').table_header_builder('Von').table_header_builder('Betrag').table_header_builder('Aktionen'));
+    for($a=0;$a<$MaxRuns;$a++){
+        if(($a+1)>$MinusEintraege){
+            $Ausgaben = table_data_builder('').table_data_builder('').table_data_builder('').table_data_builder('').table_data_builder('');
+        } else {
+            $Ausgabe = $MinusItems[$a];
+
+            if($Ausgabe['typ']=='ausgabe'){
+                $Ausgleich = lade_ausgleich($Ausgabe['ausgleich_id']);
+                if($Ausgleich['referenz_res']>0){
+                    $ForderungVonUser = lade_user_meta($Ausgleich['fuer_user']);
+                    $FuerText = $ForderungVonUser['vorname'].' '.$ForderungVonUser['nachname'];
+                    $ForderungText = 'Res #'.$Ausgleich['referenz_res'];
+                } else {
+                    $AusgabeKonto = lade_konto_via_id($Ausgleich['von_konto']);
+                    $FuerText = $AusgabeKonto['name'];
+                    $ForderungText = $Ausgleich['referenz'];
+                }
+                if($Ausgabe['storno_user']>0){
+                    $HTMLStornoCommandBegin = "<s>";
+                    $HTMLStornoCommandEnd = "</s>";
+                    $Button = form_button_builder('storno_aufheben_ausgabe_konto_details_'.$Ausgabe['id'],'', 'action', 'undo');
+                } else {
+                    $HTMLStornoCommandBegin = "";
+                    $HTMLStornoCommandEnd = "";
+                    $Button = form_button_builder('storno_ausgabe_konto_details_'.$Ausgabe['id'],'', 'action', 'delete_forever');
+                }
+                $Ausgaben = table_data_builder($HTMLStornoCommandBegin.date("d.m.Y", strtotime($Ausgabe['timestamp'])).$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$ForderungText.$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$FuerText.$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$Ausgabe['betrag'].'&euro;'.$HTMLStornoCommandEnd).table_data_builder($Button);
+            }elseif ($Ausgabe['typ']=='transfer'){
+                $VonKonto = lade_konto_via_id($Ausgabe['other_konto']);
+                if(intval($VonKonto['name'])>0){
+                    $TransferVonUser = lade_user_meta($VonKonto['name']);
+                    $VonInfos = $TransferVonUser['vorname'].' '.$TransferVonUser['nachname'];
+                } else {
+                    $VonInfos = $VonKonto['name'];
+                }
+                if($Ausgabe['storno_user']>0){
+                    $HTMLStornoCommandBegin = "<s>";
+                    $HTMLStornoCommandEnd = "</s>";
+                    $Button = form_button_builder('storno_aufheben_transfer_konto_details_'.$Ausgabe['id'],'', 'action', 'undo');
+                } else {
+                    $HTMLStornoCommandBegin = "";
+                    $HTMLStornoCommandEnd = "";
+                    $Button = form_button_builder('storno_transfer_konto_details_'.$Ausgabe['id'],'', 'action', 'delete_forever');
+                }
+                $Ausgaben = table_data_builder($HTMLStornoCommandBegin.date("d.m.Y", strtotime($Ausgabe['timestamp'])).$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.'Umbuchung'.$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$VonInfos.$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$Ausgabe['betrag'].'&euro;'.$HTMLStornoCommandEnd).table_data_builder($Button);
+            }
+        }
+
+        if(($a+1)>$PlusEintraege){
+            $Einnahmen = table_data_builder('').table_data_builder('').table_data_builder('').table_data_builder('').table_data_builder('');
+        } else {
+            $Einnahme = $PlusItems[$a];
+
+            if($Einnahme['typ']=='einnahme'){
+                $Forderung = lade_forderung($Einnahme['forderung_id']);
+                $ForderungVonUser = lade_user_meta($Forderung['von_user']);
+                if($Forderung['referenz_res']>0){
+                    $ForderungText = 'Res #'.$Forderung['referenz_res'];
+                } else {
+                    $ForderungText = $Forderung['referenz'];
+                }
+                if($Einnahme['storno_user']>0){
+                    $HTMLStornoCommandBegin = "<s>";
+                    $HTMLStornoCommandEnd = "</s>";
+                    $Button = form_button_builder('storno_aufheben_einnahme_konto_details_'.$Einnahme['id'],'', 'action', 'undo');
+                } else {
+                    $HTMLStornoCommandBegin = "";
+                    $HTMLStornoCommandEnd = "";
+                    $Button = form_button_builder('storno_einnahme_konto_details_'.$Einnahme['id'],'', 'action', 'delete_forever');
+                }
+                $Einnahmen = table_data_builder($HTMLStornoCommandBegin.date("d.m.Y", strtotime($Einnahme['timestamp'])).$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$ForderungText.$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$ForderungVonUser['vorname'].' '.$ForderungVonUser['nachname'].$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$Einnahme['betrag'].'&euro;'.$HTMLStornoCommandEnd).table_data_builder($Button);
+            }elseif ($Einnahme['typ']=='transfer'){
+                $VonKonto = lade_konto_via_id($Einnahme['other_konto']);
+                if(intval($VonKonto['name'])>0){
+                    $TransferVonUser = lade_user_meta($VonKonto['name']);
+                    $VonInfos = $TransferVonUser['vorname'].' '.$TransferVonUser['nachname'];
+                } else {
+                    $VonInfos = $VonKonto['name'];
+                }
+                if($Einnahme['storno_user']>0){
+                    $HTMLStornoCommandBegin = "<s>";
+                    $HTMLStornoCommandEnd = "</s>";
+                    $Button = form_button_builder('storno_aufheben_transfer_konto_details_'.$Einnahme['id'],'', 'action', 'undo');
+                } else {
+                    $HTMLStornoCommandBegin = "";
+                    $HTMLStornoCommandEnd = "";
+                    $Button = form_button_builder('storno_transfer_konto_details_'.$Einnahme['id'],'', 'action', 'delete_forever');
+                }
+                $Einnahmen = table_data_builder($HTMLStornoCommandBegin.date("d.m.Y", strtotime($Einnahme['timestamp'])).$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.'Umbuchung'.$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$VonInfos.$HTMLStornoCommandEnd).table_data_builder($HTMLStornoCommandBegin.$Einnahme['betrag'].'&euro;'.$HTMLStornoCommandEnd).table_data_builder($Button);
+            }
+        }
+
+        $TableRows .= table_row_builder($Ausgaben.$Einnahmen);
+    }
+
+    if(intval($KontoInfos['name'])>0){
+        $UserKonto = lade_user_meta($KontoInfos['name']);
+        $Kontoangabe = 'Wartkonto '.$UserKonto['vorname'].'&nbsp;'.$UserKonto['nachname'];
+    } else {
+        $Kontoangabe = $KontoInfos['name'];
+    }
+    $FormHTML = "<h3 class='center-align'>Kontodetails ".$Kontoangabe." ".$YearGlobal."</h3>";
+    $FormHTML .= "<h5 class='center-align'>Aktueller Kontostand: ".$KontoInfos['wert_aktuell']."&euro;</h5>";
+    $FormHTML .= section_builder(table_builder($TableRows));
+    $FormHTML .= section_builder(form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back'));
+    $FormHTML .= "<input type='hidden' name='konto_id' value='".$Konto."'>";
+    $HTML = form_builder($FormHTML, '#', 'post', 'konto_details');
     return $HTML;
 }
 function konto_anlegen_formular(){
@@ -586,14 +804,17 @@ function konto_anlegen_formular(){
 }
 function add_transaktions_vereinskasse($YearGlobal){
     $BigItems = ausgleich_anlegen_formular();
-    $BigItems .= ausgabe_eintragen_formular();
+    $BigItems .= ausgabe_eintragen_formular($YearGlobal);
     $BigItems .= forderung_anlegen_formular();
     $BigItems .= einnahmen_eintragen_formular($YearGlobal);
     $BigItems .= umbuchen_formular();
-    $HTML = '<h3 class="center-align">Transaktionen durchführen</h3>';
-    $HTML .= form_builder(collapsible_builder($BigItems), '#', 'post', 'kassenwart_transactions_form');
+    $BigItems = collapsible_builder($BigItems);
+    $BigItems .= form_button_builder('reset_view', 'Zurück', 'action', 'arrow_back');
 
-    return section_builder($HTML);
+    $HTML = '<h3 class="center-align">Transaktionen durchführen</h3>';
+    $HTML .= section_builder(form_builder($BigItems, '#', 'post', 'kassenwart_transactions_form'));
+
+    return $HTML;
 }
 function umbuchen_formular(){
 
@@ -650,7 +871,7 @@ function forderung_anlegen_formular(){
     $Table .= table_form_dropdown_menu_user('Von Nutzer', 'user_add_forderung', $_POST['user_add_forderung']);
     $Table .= table_form_string_item('Betrag (Format: 12.34)', 'betrag_add_forderung', $_POST['betrag_add_forderung'], false);
     $Table .= table_form_select_item('Steuersatz', 'steuer_add_forderung', 0, 99, $Steuersatz, '%', '', '');
-    $Table .= table_form_datepicker_reservation_item('Zahlbar bis', 'datum_add_forderung', $_POST['datum_add_forderung'], false, true);
+    $Table .= table_form_datepicker_reservation_item('Zahlbar bis', 'datum_add_forderung', $_POST['datum_add_forderung'], false, false);
     $Table .= table_row_builder(table_header_builder(form_button_builder('action_add_forderung', 'Anlegen', 'action', 'send')).table_data_builder(''));
     $Table = table_builder($Table);
 
@@ -683,6 +904,6 @@ function ausgleich_anlegen_formular(){
 }
 function choose_views_vereinskasse(){
     $HTML = "<h3 class='center-align'>Weitere Ansichten</h3>";
-    $HTML .= form_builder(table_builder(table_row_builder(table_header_builder(form_button_builder('activate_guv', 'GUV-Rechnung', 'action', 'iso', '')).table_header_builder(form_button_builder('activate_list_all_ausgaben', 'Alle Ausgaben', 'action', 'money_off', '')).table_header_builder(form_button_builder('activate_list_all_forderungen', 'Alle Forderungen', 'action', 'attach_money', ''))))."<input type='hidden' name='year_global' value='".$_POST['year_global']."'>", '#', 'post', 'view_changer_form');
+    $HTML .= form_builder(table_builder(table_row_builder(table_header_builder(form_button_builder('activate_guv', 'GUV-Rechnung', 'action', 'iso', '')).table_header_builder(form_button_builder('activate_transactions_view', 'Transaktionen', 'action', 'swap_horiz', '')).table_header_builder(form_button_builder('activate_list_all_ausgaben', 'Alle Ausgaben', 'action', 'money_off', '')).table_header_builder(form_button_builder('activate_list_all_forderungen', 'Alle Forderungen', 'action', 'attach_money', ''))))."<input type='hidden' name='year_global' value='".$_POST['year_global']."'>", '#', 'post', 'view_changer_form');
     return section_builder($HTML);
 }

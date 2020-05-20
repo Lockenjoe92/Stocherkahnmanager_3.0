@@ -757,6 +757,66 @@ function lade_ausgaben_ausgleich($Ausgleich, $ReturnArrayMode=false){
 
 }
 
+function lade_transfer($ID){
+    $link = connect_db();
+    $AnfrageTransfers = "SELECT * FROM finanz_transfer WHERE id = ".$ID."";
+    $AbfrageTransfers = mysqli_query($link, $AnfrageTransfers);
+    return mysqli_fetch_assoc($AbfrageTransfers);
+}
+
+function transfer_loeschen($ID){
+
+    $Transfer = lade_transfer($ID);
+
+    $KontoVon = lade_konto_via_id($Transfer['von']);
+    $KontoNach = lade_konto_via_id($Transfer['nach']);
+
+    $NeuerKontostandVon = $KontoVon['wert_aktuell']+$Transfer['betrag'];
+    $NeuerKontostandNach = $KontoNach['wert_aktuell']-$Transfer['betrag'];
+
+    $ErfolgCount = 0;
+    if(update_kontostand($KontoVon['id'], $NeuerKontostandVon)){
+        $ErfolgCount++;
+    }
+    if(update_kontostand($KontoNach['id'], $NeuerKontostandNach)){
+        $ErfolgCount++;
+    }
+
+    if($ErfolgCount==2){
+        $link = connect_db();
+        $Anfrage = "UPDATE finanz_transfer SET storno_user = '".lade_user_id()."', storno_time = '".timestamp()."' WHERE id = ".$ID."";
+        return mysqli_query($link, $Anfrage);
+    } else {
+        return false;
+    }
+}
+
+function undo_transfer_loeschen($ID){
+    $Transfer = lade_transfer($ID);
+
+    $KontoVon = lade_konto_via_id($Transfer['von']);
+    $KontoNach = lade_konto_via_id($Transfer['nach']);
+
+    $NeuerKontostandVon = $KontoVon['wert_aktuell']-$Transfer['betrag'];
+    $NeuerKontostandNach = $KontoNach['wert_aktuell']+$Transfer['betrag'];
+
+    $ErfolgCount = 0;
+    if(update_kontostand($KontoVon['id'], $NeuerKontostandVon)){
+        $ErfolgCount++;
+    }
+    if(update_kontostand($KontoNach['id'], $NeuerKontostandNach)){
+        $ErfolgCount++;
+    }
+
+    if($ErfolgCount==2){
+        $link = connect_db();
+        $Anfrage = "UPDATE finanz_transfer SET storno_user = 0, storno_time = '0000-00-00 00:00:00' WHERE id = ".$ID."";
+        return mysqli_query($link, $Anfrage);
+    } else {
+        return false;
+    }
+}
+
 function add_transfer($von, $nach, $betrag){
 
     $Antwort = array();
