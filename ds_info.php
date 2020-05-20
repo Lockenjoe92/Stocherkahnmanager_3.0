@@ -11,8 +11,9 @@ $Header = "Datenschutz - " . lade_db_einstellung('site_name');
 
 #Generate content
 # Page Title
-$PageTitle = '<h1>Datenschutz</h1>';
-$HTML .= section_builder($PageTitle);
+$DSE = lade_ds(aktuelle_ds_id_laden());
+$HTML = section_builder($DSE['inhalt']);
+$HTML = container_builder($HTML);
 
 # Output site
 echo site_header($Header);

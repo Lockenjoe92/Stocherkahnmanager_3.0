@@ -11,12 +11,12 @@ session_manager('ist_wart');
 needs_dse_mv_update();
 $Header = "Wartansicht - " . lade_db_einstellung('site_name');
 
-$HTML = section_builder("<h1>Wartansicht</h1>");
+$HTML = section_builder("<h1 class='center-align'>Wartansicht</h1>");
 
 #ParserStuff
 $Parser = wartwesen_parser();
 if(isset($Parser['meldung'])){
-    $HTML .= "<h5>".$Parser['meldung']."</h5>";
+    $HTML .= "<h5 class='center-align'>".$Parser['meldung']."</h5>";
 }
 
 
@@ -50,8 +50,8 @@ function section_verfuegbare_schluessel(){
     if ($AnzahlLadeVerfuegbareSchluessel > 0){
 
         $HTML = "<div class='section'>";
-        $HTML .= "<h5 class='header hide-on-med-and-down'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
-        $HTML .= "<h5 class='header hide-on-large-only center-align'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
+        $HTML .= "<h5 class='header center-align hide-on-med-and-down'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
+        $HTML .= "<h5 class='header center-align hide-on-large-only center-align'>Verf&uuml;gbare Schl&uuml;ssel</h5>";
 
         $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
 
@@ -186,8 +186,8 @@ function spalte_moegliche_rueckzahlungen(){
 
     if ($Counter > 0){
         $HTMLexport = "<div class='section'>";
-        $HTMLexport .= "<h5 class='header hide-on-med-and-down'>Offene R&uuml;ck-/Nachzahlungen</h5>";
-        $HTMLexport .= "<h5 class='header hide-on-large-only center-align'>R&uuml;ck-/Nachzahlungen</h5>";
+        $HTMLexport .= "<h5 class='header center-align hide-on-med-and-down'>Offene R&uuml;ck-/Nachzahlungen</h5>";
+        $HTMLexport .= "<h5 class='header center-align hide-on-large-only center-align'>R&uuml;ck-/Nachzahlungen</h5>";
         $HTMLexport .= collapsible_builder($HTML);
         $HTMLexport .= "</div>";
     }
@@ -250,8 +250,8 @@ function section_uebergaben(){
     $AnzahlLadeAktiveUebergaben = mysqli_num_rows($AbfrageLadeAktiveUebergaben);
 
     $HTML =  "<div class='section'>";
-    $HTML .= "<h5 class='header hide-on-med-and-down'>Deine Schl&uuml;ssel&uuml;bergaben</h5>";
-    $HTML .= "<h5 class='header hide-on-large-only center-align'>Deine Schl&uuml;ssel&uuml;bergaben</h5>";
+    $HTML .= "<h5 class='header center-align hide-on-med-and-down'>Deine Schl&uuml;ssel&uuml;bergaben</h5>";
+    $HTML .= "<h5 class='header center-align hide-on-large-only center-align'>Deine Schl&uuml;ssel&uuml;bergaben</h5>";
 
     if ($AnzahlLadeAktiveUebergaben == 0){
         $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
@@ -299,8 +299,8 @@ function section_termine(){
     if ($AnzahlLadeAktiveTermine > 0){
 
         $HTML = "<div class='section'>";
-        $HTML .= "<h5 class='header hide-on-med-and-down'>Weitere Termine</h5>";
-        $HTML .= "<h5 class='header hide-on-large-only center-align'>Weitere Termine</h5>";
+        $HTML .= "<h5 class='header center-align hide-on-med-and-down'>Weitere Termine</h5>";
+        $HTML .= "<h5 class='header center-align hide-on-large-only center-align'>Weitere Termine</h5>";
         $HTML .= "<div class='section'>";
         $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
 
@@ -322,8 +322,8 @@ function section_status(){
     $AnzahlTage = tage_schalter_parser();
 
     $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header hide-on-med-and-down'>Kahn&uuml;bersicht</h5>";
-    $HTML .= "<h5 class='header hide-on-large-only center-align'>Kahn&uuml;bersicht</h5>";
+    $HTML .= "<h5 class='header center-align hide-on-med-and-down'>Kahn&uuml;bersicht</h5>";
+    $HTML .= "<h5 class='header center-align hide-on-large-only center-align'>Kahn&uuml;bersicht</h5>";
     $HTML .= "<div class='section'>";
     $HTML .= "<ul class='collapsible popout' data-collapsible='accordion'>";
 
