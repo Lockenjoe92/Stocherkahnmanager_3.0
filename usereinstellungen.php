@@ -66,8 +66,9 @@ if($VerifizierungErklaerung!='false'){
         }
     }
 
+    $Nutzergruppen = lade_alle_nutzgruppen();
     $NutzergruppeTable .= table_row_builder(table_header_builder('Verifizierung').table_data_builder($VerifizierungErklaerung));
-    $NutzergruppeTable .= table_form_dropdown_nutzergruppen_waehlen('Nutzergruppe wechseln', 'nutzergruppe', $_POST['nutzergruppe'], 'user');
+    $NutzergruppeTable .= table_form_dropdown_nutzergruppen_waehlen('Nutzergruppe wechseln', 'nutzergruppe', $_POST['nutzergruppe'], $Nutzergruppen, 'user');
 }
 $NutzergruppeTable .= table_row_builder(table_header_builder('').table_data_builder('Bitte beachte: ein Ändern der Nutzergruppe bedeutet, dass diese in jedem Fall bei der nächsten Schlüsselübergabe überprüft werden muss.'));
 $NutzergruppeHTML .= table_builder($NutzergruppeTable);
