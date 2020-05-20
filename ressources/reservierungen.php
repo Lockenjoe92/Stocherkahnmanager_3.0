@@ -802,7 +802,7 @@ function uebergabewesen($ID, $Ansicht='user'){
 
     $Schluesselrollen = lade_user_meta($Reservierung['user']);
 
-    if (($Schluesselrollen['hat_eig_schluessel'] == 'true') OR ($Schluesselrollen['wg_hat_schluessel'] == 'true')){
+    if (($Schluesselrollen['hat_eigenen_schluessel'] === 'true') OR ($Schluesselrollen['wg_hat_eigenen_schluessel'] === 'true')){
 
         if($Ansicht == 'user'){
             $Antwort = "Du hast einen eigenen Schl&uuml;ssel und brauchst daher keine &Uuml;bergabe. Wir w&uuml;nschen eine gute Fahrt!:)";

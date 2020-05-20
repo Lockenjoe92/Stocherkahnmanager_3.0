@@ -13,6 +13,7 @@ function eigene_reservierungen_user(){
     $link = connect_db();
     $Timestamp = timestamp();
     $UserID = lade_user_id();
+    $UserMeta = lade_user_meta($UserID);
     zeitformat();
 
     //Alle res laden
@@ -59,7 +60,11 @@ function eigene_reservierungen_user(){
                     //Reservierung ist in zukunft und nicht storniert
                     $SpanUebergabeNotwendig = "";
                     if ((res_hat_uebergabe($Reservierung['id']) == FALSE) AND (res_hat_uebernahme($Reservierung['id']) == FALSE)) {
-                        $SpanUebergabeNotwendig = "<span class=\"new badge yellow darken-2\" data-badge-caption=\"Du musst noch eine Schl&uuml;bergabe ausmachen!\"></span>";
+                        if (($UserMeta['hat_eigenen_schluessel'] === 'true') OR ($UserMeta['wg_hat_eigenen_schluessel'] === 'true')){
+                            $SpanUebergabeNotwendig = "";
+                        }else{
+                            $SpanUebergabeNotwendig = "<span class=\"new badge yellow darken-2\" data-badge-caption=\"Du musst noch eine Schl&uuml;bergabe ausmachen!\"></span>";
+                        }
                     }
 
                     $CollpsibleHeader = "Reservierung #" . $Reservierung['id'] . " - " . $DatumHeader . "" . $SpanUebergabeNotwendig . "";
