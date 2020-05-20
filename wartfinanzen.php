@@ -116,12 +116,15 @@ function section_vergangene_transaktionen($UserID){
         }
     }
 
+    $HTML .= '<h4 class="center-align">Einnahmen der letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
     if($AnzahlEinnahmen>0){
-        $HTML .= '<h4 class="center-align">Einnahmen der letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
         $HTML .= collapsible_builder($EinnahmenItems);
     } else {
-        $HTML .= '<h4 class="center-align">Keine Einnahmen in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
+        $EinnahmenItems = collapsible_item_builder('Keine Einnahmen in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen!','','');
+        $HTML .= collapsible_builder($EinnahmenItems);
     }
+
+    $HTML .= divider_builder();
 
     $AnfrageAusgaben = "SELECT * FROM finanz_ausgaben WHERE konto_id = ".$Wartkonto['id']." AND storno_user = 0 AND timestamp >= '".$Grenze."' ORDER BY timestamp DESC";
     $AbfrageAusgaben = mysqli_query($link, $AnfrageAusgaben);
@@ -144,14 +147,17 @@ function section_vergangene_transaktionen($UserID){
         }
     }
 
+    $HTML .= '<h4 class="center-align">Ausgaben der letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
     if($AnzahlAusgaben>0){
-        $HTML .= '<h4 class="center-align">Ausgaben der letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
         $HTML .= collapsible_builder($AusgabenItems);
     } else {
-        $HTML .= '<h4 class="center-align">Keine Ausgaben in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
+        $AusgabenItems = collapsible_item_builder('Keine Ausgaben in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen!', '', '');
+        $HTML .= collapsible_builder($AusgabenItems);
     }
 
-    $AnfrageTransfers = "SELECT * FROM finanz_transfer WHERE von = ".$Wartkonto['id']." OR nach = ".$Wartkonto['id']." AND storno_user = 0 AND timestamp >= '".$Grenze."' ORDER BY timestamp DESC";
+    $HTML .= divider_builder();
+
+    $AnfrageTransfers = "SELECT * FROM finanz_transfer WHERE ((von = ".$Wartkonto['id'].") OR (nach = ".$Wartkonto['id'].")) AND storno_user = 0 AND timestamp >= '".$Grenze."' ORDER BY timestamp DESC";
     $AbfrageTransfers = mysqli_query($link, $AnfrageTransfers);
     $AnzahlTransfers = mysqli_num_rows($AbfrageTransfers);
     $TransferItems='';
@@ -182,12 +188,15 @@ function section_vergangene_transaktionen($UserID){
         }
     }
 
-    #if($AnzahlTransfers>0){
-        #$HTML .= '<h4 class="center-align">Umbuchungen der letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
-        #$HTML .= collapsible_builder($TransferItems);
-    #} else {
-        #$HTML .= '<h4 class="center-align">Keine Umbuchungen in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
-    #}
+    $HTML .= '<h4 class="center-align">Umbuchungen der letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen</h4>';
+    if($AnzahlTransfers>0){
+        $HTML .= collapsible_builder($TransferItems);
+    } else {
+        $TransferItems = collapsible_item_builder('Keine Umbuchungen in den letzten '.lade_xml_einstellung('wochen-vergangenheit-durchgefuehrte-transaktionen').' Wochen!', '', 'swap_horiz');
+        $HTML .= collapsible_builder($TransferItems);
+    }
+
+    $HTML .= divider_builder();
 
     return $HTML;
 }
