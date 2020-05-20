@@ -36,7 +36,7 @@ function spalte_pausen(){
     $AnzahlLadeAktivePausen = mysqli_num_rows($AbfrageLadeAktivePausen);
 
     $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header'>Betriebspausen</h5>";
+    $HTML .= "<h5 class='header center-align'>Betriebspausen</h5>";
 
     if ($AnzahlLadeAktivePausen == 0){
         $HTML .= "<p class='caption'>Derzeit gibt es keine aktiven Betriebspausen! <br><a href='ausfall_hinzufuegen.php?typ=pause'><i class='tiny material-icons'>note_add</i> hinzuf&uuml;gen</a></p>";
@@ -49,9 +49,9 @@ function spalte_pausen(){
                 $Pause = mysqli_fetch_assoc($AbfrageLadeAktivePausen);
                 $Wart = lade_user_meta($Pause['ersteller']);
                 zeitformat();
-                $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Pause['beginn']))."</b> bis <b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Pause['ende']))."</b>";
+                $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Pause['beginn']))."</b>&nbsp;bis&nbsp;<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Pause['ende']))."</b>";
 
-                $Titel = $Pause['titel'];
+                $Titel = '<b>'.$Pause['titel'].'</b>&nbsp;-&nbsp;'.date("d.m.Y G:i",strtotime($Pause['beginn'])).'&nbsp;Uhr&nbsp;bis&nbsp;'.date("d.m.Y G:i",strtotime($Pause['ende'])).'&nbsp;Uhr';
                 $Content = table_row_builder(table_header_builder('Pausentyp').table_data_builder($Pause['typ']));
                 $Content .= table_row_builder(table_header_builder('Zeitraum').table_data_builder($Zeitraum));
                 $Content .= table_row_builder(table_header_builder('Erklärung').table_data_builder($Pause['erklaerung']));
@@ -84,7 +84,7 @@ function spalte_sperrungen(){
     $AnzahlLadeAktiveSperrungen = mysqli_num_rows($AbfrageLadeAktiveSperrungen);
 
     $HTML = "<div class='section'>";
-    $HTML .= "<h5 class='header'>Sperrungen</h5>";
+    $HTML .= "<h5 class='header center-align'>Sperrungen</h5>";
 
     if ($AnzahlLadeAktiveSperrungen == 0){
         $HTML .= "<p class='caption'>Derzeit gibt es keine aktiven Sperrungen! <br><a href='ausfall_hinzufuegen.php?typ=sperrung'><i class='tiny material-icons'>note_add</i> hinzuf&uuml;gen</a></p>";
@@ -97,10 +97,10 @@ function spalte_sperrungen(){
             $Sperrung = mysqli_fetch_assoc($AbfrageLadeAktiveSperrungen);
             $Wart = lade_user_meta($Sperrung['ersteller']);
             zeitformat();
-            $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Sperrung['beginn']))."</b> bis <b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Sperrung['ende']))."</b>";
+            $Zeitraum = "<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Sperrung['beginn']))."</b>&nbsp;bis&nbsp;<b>".strftime("%A, %d. %b %G %H:%M Uhr", strtotime($Sperrung['ende']))."</b>";
 
 
-            $Titel = $Sperrung['titel'];
+            $Titel = '<b>'.$Sperrung['titel'].'</b>&nbsp;-&nbsp;'.date("d.m.Y G:i",strtotime($Sperrung['beginn'])).'&nbsp;Uhr&nbsp;bis&nbsp;'.date("d.m.Y G:i",strtotime($Sperrung['ende'])).'&nbsp;Uhr';
             $Content = table_row_builder(table_header_builder('Sperrungstyp').table_data_builder($Sperrung['typ']));
             $Content .= table_row_builder(table_header_builder('Zeitraum').table_data_builder($Zeitraum));
             $Content .= table_row_builder(table_header_builder('Erklärung').table_data_builder($Sperrung['erklaerung']));
