@@ -28,18 +28,18 @@ $Header = $Erklaerungheader." erneuern - " . lade_db_einstellung('site_name');
 #Generate content
 # Page Title
 if($Mode == 'dse'){
-    $PageTitle = '<h1 class="hide-on-med-and-down">Die '.$Erklaerungheader.' hat sich erneuert</h1>';
-    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
+    $PageTitle = '<h1 class="center-align hide-on-med-and-down">Die '.$Erklaerungheader.' hat sich erneuert</h1>';
+    $PageTitle .= '<h1 class="center-align hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
 } elseif ($Mode == 'mv'){
-    $PageTitle = '<h1 class="hide-on-med-and-down">Der '.$Erklaerungheader.' hat sich erneuert</h1>';
-    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
+    $PageTitle = '<h1 class="center-align hide-on-med-and-down">Der '.$Erklaerungheader.' hat sich erneuert</h1>';
+    $PageTitle .= '<h1 class="center-align hide-on-large-only">'.$Erklaerungheader.' hat sich erneuert</h1>';
 } elseif ($Mode == 'pswd'){
-    $PageTitle = '<h1 class="hide-on-med-and-down">'.$Erklaerungheader.' ändern</h1>';
-    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' ändern</h1>';
+    $PageTitle = '<h1 class="center-align hide-on-med-and-down">'.$Erklaerungheader.' ändern</h1>';
+    $PageTitle .= '<h1 class="center-align hide-on-large-only">'.$Erklaerungheader.' ändern</h1>';
     $Erklaerungheader = "Nachdem dein Passwort zurückgesetzt wurde, musst du nun ein eigenes neues wählen!";
 } elseif ($Mode == 'addresse'){
-    $PageTitle = '<h1 class="hide-on-med-and-down">'.$Erklaerungheader.' ändern</h1>';
-    $PageTitle .= '<h1 class="hide-on-large-only">'.$Erklaerungheader.' ändern</h1>';
+    $PageTitle = '<h1 class="center-align hide-on-med-and-down">'.$Erklaerungheader.' ändern</h1>';
+    $PageTitle .= '<h1 class="center-align hide-on-large-only">'.$Erklaerungheader.' ändern</h1>';
     $Erklaerungheader = "Wir benötigen diese Informationen für das Finanzamt - bitte trage diese daher nach:)";
 }
 $HTML .= section_builder($PageTitle);
@@ -72,7 +72,7 @@ echo site_body($HTML);
 function renew_dse_mv_parser($Mode){
 
     $UserID = lade_user_id();
-    $UserMeta=lade_user_meta($ID);
+    $UserMeta=lade_user_meta($UserID);
 
     if($Mode == 'dse'){
         $Continiue = user_needs_dse();

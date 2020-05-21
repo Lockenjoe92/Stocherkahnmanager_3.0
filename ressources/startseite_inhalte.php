@@ -88,6 +88,8 @@ function generiere_startseite_content($Baustein){
         $HTML .= collapsible_container_generieren($Baustein['id']);
     } elseif ($Baustein['typ'] == 'collection_container'){
         $HTML .= collection_container_generieren($Baustein['id']);
+    } elseif ($Baustein['typ'] == 'slider_mit_ueberschrift'){
+        $HTML .= slider_mit_ueberschrift_container_generieren($Baustein['id']);
     }
 
     return $HTML;
@@ -162,6 +164,45 @@ function kostenstaffel_container_generieren($BausteinID){
         $HTML .= "</div>";
         return container_builder($HTML, 'kostenstaffel', '');
     }
+}
+
+function slider_mit_ueberschrift_container_generieren($BausteinID){
+
+    $link = connect_db();
+
+    #Lade den content
+    $Anfrage = "SELECT * FROM homepage_content WHERE id_baustein = '".$BausteinID."' AND storno_user = '0' ORDER BY rang ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    #Debug
+    if ($Anzahl == 0){
+        $Content = 'Kein Inhalt auffindbar!';
+    } else {
+
+        $HTML = '<div class="slider">';
+        $HTML .= '<ul class="slides">';
+
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+
+            $HTML .= '<li>';
+            $HTML .= '<img src="'.$Ergebnis['uri_bild'].'">';
+            $HTML .= '<div class="caption center-align">';
+            $HTML .= '<h3>'.$Ergebnis['ueberschrift'].'</h3>';
+            $HTML .= '<h5>'.$Ergebnis['zweite_ueberschrift'].'</h5>';
+            $HTML .= '</div>';
+            $HTML .= '</li>';
+        }
+
+        $HTML .= '</ul>';
+        $HTML .= '</div>';
+
+        $Content = section_builder($HTML);
+        $Container = container_builder($Content);
+    }
+
+    return $Container;
 }
 
 function html_container_generieren($BausteinID){
@@ -393,6 +434,8 @@ function startseitenelement_anlegen($Ort, $Typ, $Name){
                 startseiteninhalt_einfuegen($Ergebnis4['id'], 'Neues Element', '', '', '', '<h3>Hello World!</h3>', '', '', '');
             }elseif($Typ == "kostenstaffel_container"){
                 startseiteninhalt_einfuegen($Ergebnis4['id'], 'Aktuelle Preisstaffelung', '', '', 'amber z-depth-3', '<h3>Hello World!</h3>', '', '', '');
+            }elseif($Typ == "slider_mit_ueberschrift"){
+                startseiteninhalt_einfuegen($Ergebnis4['id'], 'Neues Bild mit Überschrift', '', '', '', '', '', '', '');
             }
         } else {
             $Antwort['erfolg'] = false;
@@ -442,6 +485,13 @@ function startseiteninhalt_einfuegen($IDbaustein, $titel, $titel2, $titelColor, 
 
         if($Baustein['typ'] == 'parallax_ohne_text'){
             if($Anzahl>=1){
+                $errorcount++;
+                $errorstr .= 'Du kannst diesem Element keine weiteren Inhalte hinzuf&uuml;gen!<br>';
+            }
+        }
+
+        if($Baustein['typ'] == 'slider_mit_ueberschrift_container_generieren'){
+            if($Anzahl>=4){
                 $errorcount++;
                 $errorstr .= 'Du kannst diesem Element keine weiteren Inhalte hinzuf&uuml;gen!<br>';
             }
@@ -745,6 +795,26 @@ function generate_parallax_change_form($Item){
     $TableRows .= table_form_string_item('Zweite Überschrift', 'second_item_title', $ItemMeta['zweite_ueberschrift'], '');
     $TableRows .= table_form_string_item('Zweite Überschriftfarbe', 'second_item_title_color', $ItemMeta['zweite_ueberschrift_farbe'], '');
     $TableRows .= table_form_html_area_item('Inhalt HTML', 'item_html', $ItemMeta['html_content'], '');
+    $TableRows .= table_form_mediapicker_dropdown('URI Bild', 'item_pic_uri', $ItemMeta['uri_bild'], 'media/pictures', 'Wähle ein Bild aus', '');
+
+    $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));
+    $TableRowContent .= table_header_builder(form_button_builder('action_edit_site_item', 'Bearbeiten', 'action', 'edit', ''));
+    $TableRows .= table_row_builder($TableRowContent);
+    $Table = table_builder($TableRows);
+    $Form = form_builder($Table, '#', 'post', 'item_change_form');
+    $Section = section_builder($Form);
+
+    return $Section;
+}
+
+function generate_slider_change_form($Item){
+
+    $ItemMeta = lade_seiteninhalt($Item);
+
+    $TableRows = table_form_string_item('Überschrift', 'item_title', $ItemMeta['ueberschrift'], '');
+    $TableRows .= table_form_string_item('Überschriftfarbe', 'item_title_color', $ItemMeta['ueberschrift_farbe'], '');
+    $TableRows .= table_form_string_item('Zweite Überschrift', 'second_item_title', $ItemMeta['zweite_ueberschrift'], '');
+    $TableRows .= table_form_string_item('Zweite Überschriftfarbe', 'second_item_title_color', $ItemMeta['zweite_ueberschrift_farbe'], '');
     $TableRows .= table_form_mediapicker_dropdown('URI Bild', 'item_pic_uri', $ItemMeta['uri_bild'], 'media/pictures', 'Wähle ein Bild aus', '');
 
     $TableRowContent = table_data_builder(button_link_creator('Zurück', './admin_edit_startpage.php', 'arrow_back', ''));

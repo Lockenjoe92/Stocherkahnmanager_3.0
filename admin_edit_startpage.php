@@ -148,6 +148,10 @@ function generate_inhalte_views($BausteinID){
                 $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
                 $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
                 $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'slider_mit_ueberschrift'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
             }
 
             $InhalteHTML .= collection_item_builder($Header);
@@ -164,6 +168,10 @@ function generate_inhalte_views($BausteinID){
                 $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
                 $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
                 $InhalteHTML .= collection_item_builder($Header);
+        } elseif (($Baustein['typ'] == 'slider_mit_ueberschrift')){
+            $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
+            $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
+            $InhalteHTML .= collection_item_builder($Header);
         }
     }
 
@@ -179,6 +187,7 @@ function generate_bausteine_dropdown_menue($ItemName, $Label, $SpecialMode){
     $HTML .= "<option value='' disabled selected>Bitte w&auml;hlen</option>";
     $HTML .= "<option value='row_container'>row_container</option>";
     $HTML .= "<option value='parallax_mit_text'>parallax_mit_text</option>";
+    $HTML .= "<option value='slider_mit_ueberschrift'>slider_mit_ueberschrift</option>";
     $HTML .= "<option value='html_container'>html_container</option>";
     $HTML .= "<option value='collapsible_container'>collapsible_container</option>";
     $HTML .= "<option value='collection_container'>collection_container</option>";

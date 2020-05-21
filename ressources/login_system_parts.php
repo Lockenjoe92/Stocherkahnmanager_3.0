@@ -498,7 +498,7 @@ function pswd_reset_parser(){
 
 function pswd_reset_formular($Parser){
 
-    $HTML = "<h1>Passwort zurücksetzen</h1>";
+    $HTML = "<h1 class='center-align'>Passwort zurücksetzen</h1>";
 
     if($Parser == NULL){
         $HTML .= generate_reset_pswd_form();
@@ -511,8 +511,8 @@ function pswd_reset_formular($Parser){
 
 function generate_reset_pswd_form(){
 
-    $HTMLtable = table_form_email_item('EMail mit der du dich registriert hast', 'pswd_reset_mail', 'EMail', false);
-    $HTMLtable .= table_row_builder(table_header_builder(button_link_creator('Zurück', './login.php', 'arrow_back', '')."&nbsp;".form_button_builder('reset_pswd_user', 'Zurücksetzen', 'action', 'send', '')).table_data_builder(''));
+    $HTMLtable = table_form_email_item('EMail mit der du dich registriert hast', 'pswd_reset_mail', '', false);
+    $HTMLtable .= table_row_builder(table_header_builder(button_link_creator('Abbrechen', './login.php', 'arrow_back', '')).table_data_builder(form_button_builder('reset_pswd_user', 'Zurücksetzen', 'action', 'send', '')));
     $HTMLtable = table_builder($HTMLtable);
     $HTML = form_builder($HTMLtable, '#', 'post');
     $HTML = section_builder($HTML);

@@ -176,6 +176,15 @@ function parse_parallax_item_edit($Item){
     update_website_content_item($Item, 'uri_bild', $_POST['item_pic_uri']);
 
 }
+function parse_slider_item_edit($Item){
+
+    update_website_content_item($Item, 'ueberschrift', $_POST['item_title']);
+    update_website_content_item($Item, 'ueberschrift_farbe', $_POST['item_title_color']);
+    update_website_content_item($Item, 'zweite_ueberschrift', $_POST['second_item_title']);
+    update_website_content_item($Item, 'zweite_ueberschrift_farbe', $_POST['second_item_title_color']);
+    update_website_content_item($Item, 'uri_bild', $_POST['item_pic_uri']);
+
+}
 function parse_edit_website_item_page($Item){
 
     if (isset($_POST['action_edit_site_item'])){
@@ -194,6 +203,8 @@ function parse_edit_website_item_page($Item){
             parse_collapsible_item_edit($Item);
         } elseif ($BausteinMeta['typ'] == 'kostenstaffel_container'){
             parse_kostenstaffel_item_edit($Item);
+        } elseif ($BausteinMeta['typ'] == 'slider_mit_ueberschrift'){
+            parse_slider_item_edit($Item);
         }
     }
 }

@@ -39,6 +39,8 @@ if(intval($Item)>0){
         $HTML .= generate_collapsible_change_form($Item);
     } elseif ($BausteinMeta['typ'] == 'kostenstaffel_container'){
         $HTML .= generate_kostenstaffel_change_form($Item);
+    } elseif ($BausteinMeta['typ'] == 'slider_mit_ueberschrift'){
+        $HTML .= generate_slider_change_form($Item);
     }
 
     # Output site

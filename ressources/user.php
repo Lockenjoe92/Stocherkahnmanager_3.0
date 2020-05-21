@@ -438,6 +438,7 @@ function reset_user_pswd($Mail, $Mode='selbst'){
                     $MailInfos['[vorname_user]']=$UserMeta['vorname'];
                     $MailInfos['[passwort]']=$PSWD_hash;
                     $MailInfos['[verify_link]'] = lade_xml_einstellung('site_url') . "/login.php?register_code=" . $Ergebnis['register_secret'] . "";
+                    #var_dump($MailInfos);
                     if($Mode=='selbst'){
                         if(mail_senden('passwort-zurueckgesetzt-selbst', $Mail, $MailInfos)){
                             return true;
