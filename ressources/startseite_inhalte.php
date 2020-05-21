@@ -189,8 +189,8 @@ function slider_mit_ueberschrift_container_generieren($BausteinID){
             $HTML .= '<li>';
             $HTML .= '<img src="'.$Ergebnis['uri_bild'].'">';
             $HTML .= '<div class="caption center-align">';
-            $HTML .= '<h3>'.$Ergebnis['ueberschrift'].'</h3>';
-            $HTML .= '<h5>'.$Ergebnis['zweite_ueberschrift'].'</h5>';
+            $HTML .= '<h3 class="'.$Ergebnis['ueberschrift_farbe'].'">'.$Ergebnis['ueberschrift'].'</h3>';
+            $HTML .= '<h5 class="'.$Ergebnis['zweite_ueberschrift_farbe'].'">'.$Ergebnis['zweite_ueberschrift'].'</h5>';
             $HTML .= '</div>';
             $HTML .= '</li>';
         }
