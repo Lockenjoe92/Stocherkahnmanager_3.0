@@ -38,8 +38,21 @@ function seiteninhalt_liste_user($Sortierung){
 
     $Nutzergruppen = lade_alle_nutzgruppen();
     $AktuellerUser = lade_user_meta(lade_user_id());
-    $AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);
-    benutzermanagement_parser($AllUsers);
+	$link = connect_db();
+	$AnfrageParser = 'SELECT id, mail FROM users';
+	$AbfrageParser = mysqli_query($link, $AnfrageParser);
+	$AnzahlParser = mysqli_num_rows($AbfrageParser);
+	$ParserArray = array();
+	for($Pcount=1;$Pcount<=$AnzahlParser;$Pcount++){
+		$ErgebnisParser = mysqli_fetch_assoc($AbfrageParser);
+		#var_dump($ErgebnisParser);
+array_push($ParserArray, $ErgebnisParser);
+
+	}
+
+		#var_dump($AnzahlParser);
+    #$AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);
+    benutzermanagement_parser($ParserArray);
 
     //Update Changes
     $AllUsers = get_sorted_user_array_with_user_meta_fields($Sortierung);

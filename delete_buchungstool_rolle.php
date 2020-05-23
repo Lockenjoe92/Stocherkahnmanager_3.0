@@ -39,7 +39,7 @@ echo site_body($HTML);
 
 function parser($Rolle, $User){
     if(isset($_POST['loeschen'])){
-
+        
         if($Rolle=='ist_wart'){
             return wartrolle_loeschen($User);
         } elseif($Rolle=='ist_admin'){

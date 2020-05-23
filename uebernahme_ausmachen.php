@@ -195,7 +195,7 @@ function parse_uebernahme_ausmachen($ReservierungID){
     }
 
 function erklaerung_schluesseluebernahme_element(){
-
+    
     $HTML = "<div class='card-panel " .lade_xml_einstellung('card_panel_hintergrund'). " z-depth-3'>";
     $HTML .= lade_xml_einstellung('erklaerung_schluesseluebernahme');
     $HTML .= "</div>";

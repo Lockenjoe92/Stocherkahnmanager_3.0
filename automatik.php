@@ -11,6 +11,8 @@ include_once "./ressources/ressourcen.php";
 
 auto_update_uebernahmen();
 
+auto_delete_user();
+
 function auto_update_uebernahmen(){
 
     $link = connect_db();
@@ -60,4 +62,41 @@ function auto_update_uebernahmen(){
 
 }
 
+function auto_delete_user(){
+
+	$link = connect_db();
+	$Users = get_sorted_user_array_with_user_meta_fields('id');
+	
+	foreach ($Users as $User){
+		
+		$StopCount=0;
+		if($User['ist_wart']=='true'){
+         $StopCount++;
+		}
+		if($User['ist_admin']=='true'){
+         $StopCount++;
+		}
+		
+		if($StopCount==0){
+			
+			$yearNow = date("Y", strtotime('-2 years'));
+			$ZeitGrenze = $yearNow."-12-31 23:59:59";
+			$Anfrage2 = "SELECT id FROM reservierungen WHERE user = ".$User['id']." AND beginn > '".$ZeitGrenze."'";
+			#var_dump($Anfrage2);
+
+			$Abfrage2 = mysqli_query($link, $Anfrage2);
+			$Anzahl2 = mysqli_num_rows($Abfrage2);
+			
+			if($Anzahl2>0){
+          echo $UserMeta['vormame'].$UserMeta['nachname']." war aktiv<br>";
+			} elseif($Anzahl2==0) {
+				echo $UserMeta['vorname'].$UserMeta['nachname']." war seit über einem Jahr INAKTIV - KANN GELÖSCHT WERDEN!!!!<br>";
+			}
+		} elseif($StopCount>0) {
+         echo $UserMeta['vorname'].$UserMeta['nachname'].' ist WICHTIG!<br>';
+		}
+	}
+
+	return null;
+}
 ?>

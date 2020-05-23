@@ -366,7 +366,7 @@ function get_sorted_user_array_with_user_meta_fields($orderBy='nachname'){
 
     $link = connect_db();
     if($orderBy!='id'){
-        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? ORDER BY schluessel ASC"))) {
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? ORDER BY wert COLLATE utf8_german2_ci"))) {
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
 
@@ -544,20 +544,22 @@ function change_pswd_user($UserID, $PSWD, $PSWDrpt){
     } else {
         $PSWD_hashed = password_hash($PSWD, PASSWORD_DEFAULT);
         if (!($stmt = $link->prepare("UPDATE users SET secret = ?, pswd_needs_change = ? WHERE id = ?"))) {
-            $Antwort['erfolg'] = false;
+            $Antwort['success'] = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
         if (!$stmt->bind_param("sii", $PSWD_hashed, intval(0), $UserID)) {
-            $Antwort['erfolg'] = false;
+            $Antwort['success'] = false;
             echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
         if (!$stmt->execute()) {
-            $Antwort['erfolg'] = false;
+            $Antwort['success'] = false;
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-            return false;
+       
         } else {
-            return true;
+            $Antwort['success']=true;
         }
     }
+	
+	return $Antwort;
 }
 ?>

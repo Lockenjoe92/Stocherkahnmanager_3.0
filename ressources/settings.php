@@ -495,6 +495,8 @@ function user_settings_parser($SettingsArray){
             mysqli_query($link, $Anfrage);
         }
     }
+	
+	return $Antwort;
 }
 
 ?>

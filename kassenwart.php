@@ -37,7 +37,6 @@ $HTML = container_builder($HTML);
 
 # Output site
 echo site_header($Header);
-
 echo site_body($HTML);
 
 function vereinskasse_parser($YearGlobal){

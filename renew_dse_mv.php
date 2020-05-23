@@ -23,6 +23,7 @@ if($Mode == 'dse'){
 }
 
 $Parser = renew_dse_mv_parser($Mode);
+#var_dump($Parser);
 $Header = $Erklaerungheader." erneuern - " . lade_db_einstellung('site_name');
 
 #Generate content
@@ -54,13 +55,36 @@ if($Mode == 'dse'){
     $Infos = lade_user_id();
 }
 
-if(($Parser == FALSE) OR ($Parser == NULL)){
+
+
+if(($Parser['success'] == FALSE) OR ($Parser['success'] == NULL)){
+
+	if($Parser['meldung']!=''){
+       $Erklaerungheader="<b>".$Parser['meldung']."</b>";
+	}
+	#$Infos['erklaerung']=$Parser['meldung'];
+	
+	#var_dump($Erklaerungheader);
 
     $HTML .= renew_dse_mv_form($Mode, $Erklaerungheader, $Infos);
 
-} elseif ($Parser == TRUE){
+} elseif ($Parser['success'] == TRUE){
     $HTML .= section_builder(zurueck_karte_generieren(true, 'Dein Eintrag wurde erfolgreich festgehalten!', './my_reservations.php'));
 }
+
+	
+	#if($Parser['success']==NULL){
+#$HTML .= renew_dse_mv_form($Mode, $Erklaerungsheader, $Infos);
+	#} elseif ($Parser['success']==TRUE){
+#$HTML .= section_builder(zurueck_karte_generieren(true, 'Neues Passwort gespeichert!', './my_reservations.php');
+	#}
+
+	#if(($Parser['success']==FALSE) OR ($Parser==NULL)){
+		#$Erklaerungsheader.= "<b>".$Parser['meldung']."</b>";
+#$HTML .= renew_dse_mv_form($Mode, $Erklaerungsheader, $Infos);
+		
+	#} elseif {
+#$HTML .= section_builder(zurueck_karte_generieren(true, 'Das neue Passwort wurde erfolgreich eingetragen!', './my
 
 $HTML = container_builder($HTML);
 
@@ -92,22 +116,23 @@ function renew_dse_mv_parser($Mode){
         header("Location: ./wartwesen.php");
         die();
     } else {
-        $Antwort = null;
+        $Antwort['success'] = null;
 
         if(isset($_POST['action_dse'])){
             if($_POST['ds']){
-                $Antwort = ds_unterschreiben(lade_user_id(), aktuelle_ds_id_laden());
+                $Antwort['success'] = ds_unterschreiben(lade_user_id(), aktuelle_ds_id_laden());
             }
         }
 
         if(isset($_POST['action_mv'])){
             if($_POST['vertrag']) {
-                $Antwort = mietvertrag_unterschreiben(lade_user_id(), aktuellen_mietvertrag_id_laden());
+                $Antwort['success'] = mietvertrag_unterschreiben(lade_user_id(), aktuellen_mietvertrag_id_laden());
             }
         }
 
         if(isset($_POST['action_pswd'])){
             $Antwort = change_pswd_user($UserID, $_POST['change_pswd'], $_POST['change_pswd_verify']);
+			#$Antwort=NULL;
         }
 
         if(isset($_POST['action_addresse'])){
@@ -133,7 +158,7 @@ function renew_dse_mv_parser($Mode){
                 update_user_meta($UserID, 'hausnummer', $_POST['hausnummer']);
                 update_user_meta($UserID, 'stadt', $_POST['stadt']);
                 update_user_meta($UserID, 'plz', $_POST['plz']);
-                $Antwort = true;
+                $Antwort['success']= true;
             }
 
         }

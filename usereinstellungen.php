@@ -12,12 +12,13 @@ $Header = "Einstellungen - " . lade_db_einstellung('site_name');
 $Settings = ['vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'nutzergruppe', 'telefon'];
 
 #Parse input
-user_settings_parser($Settings);
+$Parser = user_settings_parser($Settings);
 
 #Generate content
 # Page Title
-$PageTitle = '<h1>Persönliche Einstellungen</h1>';
+$PageTitle = '<h1 class="center-align">Persönliche Einstellungen</h1>';
 $HTML .= section_builder($PageTitle);
+$HTML .= "<h5 class='center-align'>".$Parser['meldung']."</h5>";
 
 # Settings Form
 $UserID = lade_user_id();
@@ -81,7 +82,7 @@ $WartCollapsibleHTML = '';
 if($UserMeta['ist_wart']=='true'){
     $WartCollapsibleHTML = spalte_wartfunktionen($UserMeta);
 }
-$WartCollapsibleHTML .= spalte_passwort_aendern();
+$WartCollapsibleHTML .= spalte_passwort_aendern($Parser);
 $WartCollapsibleHTML .= spalte_konto_loeschen();
 $WartHTML .= collapsible_builder($WartCollapsibleHTML);
 $SettingTable .= section_builder($WartHTML);
@@ -266,11 +267,11 @@ function spalte_kalenderabonnement($UserMeta){
     $HTML .= section_builder(table_builder($HTMLtable));
     return $HTML;
 }
-function spalte_passwort_aendern(){
+function spalte_passwort_aendern($Parser){
     $Table = table_form_password_item('Dein neues Passwort', 'password', '', false);
     $Table .= table_form_password_item('Eingabe wiederholen', 'password_repeat', '', false);
     $Table .= table_row_builder(table_header_builder(form_button_builder('action_password', '&Auml;ndern', 'action', 'send')).table_data_builder(''));
-    return collapsible_item_builder('Passwort &auml;ndern', form_builder(table_builder($Table), '#', 'post'), 'vpn_key');
+    return collapsible_item_builder('Passwort &auml;ndern', form_builder("<h5 class='center-align'>".$Parser['meldung']."</h5>".table_builder($Table), '#', 'post','passwort_aendern_form'), 'vpn_key');
 }
 function spalte_konto_loeschen(){
 
@@ -314,7 +315,7 @@ function spalte_konto_loeschen(){
     if ($NeinGrundCounter == 0){
         $Table = table_form_swich_item('Ich m&ouml;chte mein Benutzerkonto endg&uuml;tig deaktivieren', 'konto_validate', 'Nein', 'Ja', '', false);
         $Table .= table_row_builder(table_header_builder(form_button_builder('action_konto', 'Deaktivieren', 'action', 'delete_forever', '')).table_data_builder(''));
-        return collapsible_item_builder('Konto deaktivieren', form_builder(table_builder($Table), '#', 'post'), 'delete');
+        return collapsible_item_builder('Konto deaktivieren', form_builder(table_builder($Table), '#', 'post', 'konto_loeschen_form'), 'delete');
     } else if ($NeinGrundCounter > 0){
         return collapsible_item_builder('Konto deaktivieren', 'Derzeit sind noch nicht alle Vorg&auml;nge, die dein Konto betreffen abgeschlossen. Bitte &uuml;berpr&uuml;fe ob du alle Fahrten bezahlt, deine Schl&uuml;ssel zur&uuml;ckgegeben oder dir zustehende R&uuml;ckzahlungen abgeholt hast!', 'delete');
     }

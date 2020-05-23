@@ -405,7 +405,7 @@ function listenelement_tagesgeschehen_generieren($TageVerschiebung){
             $User = "<a href='./benutzermanagement_wart.php?user=".$ResAktuell['user']."'>".$UserMeta['vorname']." ".$UserMeta['nachname']."</a>";
             $UserMobile = "<a href='./benutzermanagement_wart.php?user=".$ResAktuell['user']."'>".$UserMeta['vorname']." ".$UserMeta['nachname']."</a>";
 
-            if (($UserMeta['hat_eig_schluessel'] == "1") OR ($UserMeta['wg_hat_schluessel'] == "1")){
+            if (($UserMeta['hat_eigenen_schluessel'] == "true") OR ($UserMeta['wg_hat_eigenen_schluessel'] == "true")){
 
                 $SpanResUebergabestatus = "<span class=\"new badge\" data-badge-caption=\"User hat eigenen Schl&uuml;ssel\"></span>";
                 $SpanResUebergabestatusMobile = "<span class=\"new badge\" data-badge-caption=\"Hat eig. Schl&uuml;ssel\"></span>";
