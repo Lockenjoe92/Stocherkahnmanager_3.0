@@ -6,7 +6,7 @@
  * Time: 20:27
  */
 
-include_once "./ressourcen.php";
+#include_once "./ressources/ressourcen.php";
 
 function site_header($PageTitle, $LoginCheckActive=Null){
 
@@ -74,7 +74,7 @@ function site_skripts(){
     $HTML = '  <!--  Scripts-->';
     $HTML .= '<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>';
     $HTML .= '<script src="/materialize/js/materialize.js"></script>';
-    $HTML .= '<script src="/materialize/js/init.js"></script>';
+    #$HTML .= '<script src="/materialize/js/init.js"></script>';
     $HTML .= '<script src="/materialize/js/main.js"></script>';
 
     return $HTML;
@@ -209,10 +209,22 @@ function navbar_links_big(){
             $HTML .= '<li><a href="./administration.php">Admin</a></li>';
         }
         if($UserMeta['ist_kasse'] == 'true'){
-            $HTML .= '<li><a href="./kasse.php">Kasse</a></li>';
+            $HTML .= '<li><a href="./kassenwart.php">Kasse</a></li>';
         }
         if($UserMeta['ist_wart'] == 'true'){
-            $HTML .= '<li><a href="./wartwesen.php">Wartwesen</a></li>';
+            $HTML .= "<ul id='dropdown2' class='dropdown-content'>";
+            $HTML .= '<li><a href="../wartwesen.php">Wartwesen</a></li>';
+            $HTML .= "<li><a href='termine.php'>Termine</a></li>";
+            $HTML .= "<li><a href=\"ausfaelle.php\">Ausf&aumllle</a></li>";
+            $HTML .= "<li><a href=\"reservierungsmanagement.php\">Reservierungen</a></li>";
+            $HTML .= "<li><a href=\"schluesselmanagement.php\">Schl&uumlssel</a></li>";
+            $HTML .= "<li><a href=\"benutzermanagement_wart.php\">User</a></li>";
+            $HTML .= "<li><a href=\"wartfinanzen.php\">Wartfinanzen</a></li>";
+            if(site_exists('wartwiki')){
+                $HTML .= "<li><a href=\"index.php?tab=wartwiki\">Wartwiki</a></li>";
+            }
+            $HTML .= "</ul>";
+            $HTML .= '<li><a class="dropdown-trigger" href="#!" data-target="dropdown2">Wartfunktionen<i class="material-icons right">arrow_drop_down</i></a></li>';
         }
 
         $HTML .= '<li><a class="dropdown-trigger" href="#!" data-target="dropdown1">Buchungstool<i class="material-icons right">arrow_drop_down</i></a></li>';
@@ -251,12 +263,24 @@ function navbar_links_mobile(){
             $HTML .= '<li><a href="./administration.php">Admin</a></li>';
         }
         if($UserMeta['ist_kasse'] == 'true'){
-            $HTML .= '<li><a href="./kasse.php">Kasse</a></li>';
+            $HTML .= '<li><a href="./kassenwart.php">Kasse</a></li>';
         }
         if($UserMeta['ist_wart'] == 'true'){
-            $HTML .= '<li><a href="./wartwesen.php">Wartwesen</a></li>';
+            $HTML .= "<li><div class=\"divider\"></div></li>";
+            $HTML .= "<li><a class=\"subheader\">Wartfunktionen</a></li>";
+            $HTML .= '<li><a href="../wartwesen.php">Wartwesen</a></li>';
+            $HTML .= "<li><a href='../termine.php'>Termine</a></li>";
+            $HTML .= "<li><a href=\"../ausfaelle.php\">Ausf&aumllle</a></li>";
+            $HTML .= "<li><a href=\"../reservierungsmanagement.php\">Reservierungen</a></li>";
+            $HTML .= "<li><a href=\"../schluesselmanagement.php\">Schl&uumlssel</a></li>";
+            $HTML .= "<li><a href=\"../benutzermanagement_wart.php\">User</a></li>";
+            $HTML .= "<li><a href=\"wartfinanzen.php\">Wartfinanzen</a></li>";
+            if(site_exists('wartwiki')){
+                $HTML .= "<li><a href=\"index.php?tab=wartwiki\">Wartwiki</a></li>";
+            }
         }
 
+        $HTML .= "<li><div class=\"divider\"></div></li>";
         $HTML .= '<li><a href="./my_reservations.php">Reservierungen</a></li>';
         $HTML .= '<li><a href="./usereinstellungen.php">Einstellungen</a></li>';
         $HTML .= '<li><a href="./logout.php">Logout</a></li>';

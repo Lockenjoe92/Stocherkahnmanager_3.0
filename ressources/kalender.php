@@ -99,8 +99,7 @@ function kalender_mobil($Rolle){
 
     $Antwort .= "<table class='center-align'>";
 
-    $a = $Beginn;
-    for ($a; $a < $Ende; $a++){
+    for ($a = $Beginn; $a < $Ende; $a++){
 
         $StundenfensterAnfang = $a;
         $StundenfensterEnde = $a + 1;
@@ -213,7 +212,7 @@ function parse_wochenwechseler_kalender(){
 
     //LADE WOCHENVERSCHIEBUNG
     if (isset($_POST['wochenverschiebung'])){
-        $WochenverschiebungAlt = $_POST['wochenverschiebung'];
+        $WochenverschiebungAlt = intval($_POST['wochenverschiebung']);
     } else {
         $WochenverschiebungAlt = 0;
     }

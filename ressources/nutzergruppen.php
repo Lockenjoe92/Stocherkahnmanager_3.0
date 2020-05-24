@@ -6,9 +6,6 @@ function active_nutzergruppen_form(){
     if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE delete_user = 0 ORDER BY name ASC"))) {
         $Antwort['erfolg'] = false;
     }
-    if (!$stmt->bind_param("s", $_POST['name_nutzergruppe'])) {
-        $Antwort['erfolg'] = false;
-    }
     if (!$stmt->execute()) {
         $Antwort['erfolg'] = false;
     } else {
@@ -41,7 +38,9 @@ function active_nutzergruppen_form(){
                 //Tabelle mit aktiven Nutzern der Gruppe
                 $UserStatsNutzergruppe = load_nutzergruppe_current_user_stats($NutzergruppeInfo['id']);
                 $TableRows = table_row_builder(table_header_builder('Gesamtzahl User:').table_data_builder($UserStatsNutzergruppe['total']));
-                $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
+                if($NutzergruppeInfo['req_verify']!='false'){
+                    $TableRows .= table_row_builder(table_header_builder('Davon aktuell verifiziert:').table_data_builder($UserStatsNutzergruppe['verified']));
+                }
 
                 $NutzergruppeInfoInhalt .= "<h5>Nutzerstatistik</h5>";
                 $NutzergruppeInfoInhalt .= table_builder($TableRows);
@@ -49,7 +48,7 @@ function active_nutzergruppen_form(){
                 $NutzergruppeInfoInhalt .= divider_builder();
 
                 //Tabelle mit Knöpfen
-                $NutzergruppeInfoInhalt .= table_builder(table_row_builder(table_data_builder(button_link_creator('Bearbeiten', './admin_nutzergruppen.php?mode=edit_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'edit', ''))));
+                $NutzergruppeInfoInhalt .= table_builder(table_row_builder(table_data_builder(button_link_creator('Bearbeiten', './admin_nutzergruppen.php?mode=edit_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'edit', '')."&nbsp;".button_link_creator('Löschen', './admin_nutzergruppen.php?mode=delete_nutzergruppe&nutzergruppe='.$NutzergruppeInfo['id'].'', 'delete_forever', ''))));
 
                 $CollapsibleItems .= collapsible_item_builder($NutzergruppeInfo['name'], $NutzergruppeInfoInhalt, 'group');
             }
@@ -173,7 +172,7 @@ function add_nutzergruppe_form_parser(){
             if(isset($_POST['user_visibility'])){$SwitchPresetSichtbarkeit = 'true';}else{$SwitchPresetSichtbarkeit = 'false';}
             if(isset($_POST['alle_res_gratis'])){$SwitchPresetGratis = 'true';}else{$SwitchPresetGratis = 'false';}
             if(isset($_POST['darf_last_minute_res'])){$SwitchPresetLastMinute = 'true';}else{$SwitchPresetLastMinute = 'false';}
-            if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'on';}else{$SwitchPresetMulti = 'off';}
+            if(isset($_POST['multiselect_possible'])){$SwitchPresetMulti = 'true';}else{$SwitchPresetMulti = 'false';}
 
             //Kostenstaffelung
             if(!isset($_POST['alle_res_gratis'])){
@@ -245,12 +244,14 @@ function add_nutzergruppe($name, $erklaerung, $verification_rule, $visibility_fo
             $Ergebnis = mysqli_fetch_assoc($res);
 
             //Kostentabelle in nutzer_meta reinhacken
-            $Counter=1;
-            foreach ($array_kosten_pro_stunde as $Kosten_Stunde_Paar){
-                $Operator = 'kosten_'.$Counter.'_h';
-                $Kosten = $Kosten_Stunde_Paar[$Operator];
-                add_nutzergruppe_meta($Ergebnis['id'], $Operator,$Kosten);
-                $Counter++;
+            if($Alle_res_gratis!='true'){
+                $Counter=1;
+                foreach ($array_kosten_pro_stunde as $Kosten_Stunde_Paar){
+                    $Operator = 'kosten_'.$Counter.'_h';
+                    $Kosten = $Kosten_Stunde_Paar[$Operator];
+                    add_nutzergruppe_meta($Ergebnis['id'], $Operator,$Kosten);
+                    $Counter++;
+                }
             }
 
             $Antwort = true;
@@ -285,30 +286,14 @@ function load_nutzergruppe_current_user_stats($IDNutzergruppe){
 
     $link = connect_db();
     $Antwort = null;
+    $NutzergruppeInfos = lade_nutzergruppe_infos($IDNutzergruppe);
 
-    if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ?"))) {
-        $Antwort = false;
-        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
-    }
-    if (!$stmt->bind_param("i", $IDNutzergruppe)) {
-        $Antwort = false;
-        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-    }
-    if (!$stmt->execute()) {
-        $Antwort = false;
-        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-    } else {
-
-        //Lade erstmal alle User, die glauben in einer Nutzergruppe zu sein
-        $res = $stmt->get_result();
-        $Antwort['total'] = mysqli_num_rows($res);
-
-        //Jetzt noch feststellen, wie viele User eigentlich verifiziert sind
-        if (!($stmt = $link->prepare("SELECT id FROM nutzergruppe_verification WHERE nutzergruppe = ? AND erfolg = 'true' AND delete_user = 0"))) {
+    if($NutzergruppeInfos['visible_for_user']=='true'){
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = 'ist_nutzergruppe' AND wert = ?"))) {
             $Antwort = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
-        if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+        if (!$stmt->bind_param("s", $NutzergruppeInfos['name'])) {
             $Antwort = false;
             echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
@@ -316,25 +301,94 @@ function load_nutzergruppe_current_user_stats($IDNutzergruppe){
             $Antwort = false;
             echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
-            $res = $stmt->get_result();
-            $Antwort['verified'] = mysqli_num_rows($res);
-        }
 
-        return $Antwort;
+            //Lade erstmal alle User, die glauben in einer Nutzergruppe zu sein
+            $res = $stmt->get_result();
+            $Antwort['total'] = mysqli_num_rows($res);
+
+            //Jetzt noch feststellen, wie viele User eigentlich verifiziert sind
+            if (!($stmt = $link->prepare("SELECT id FROM nutzergruppe_verification WHERE nutzergruppe = ? AND erfolg = 'true' AND delete_user = 0"))) {
+                $Antwort = false;
+                echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+            }
+            if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+                $Antwort = false;
+                echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            }
+            if (!$stmt->execute()) {
+                $Antwort = false;
+                echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            } else {
+                $res = $stmt->get_result();
+                $Antwort['verified'] = mysqli_num_rows($res);
+            }
+
+            return $Antwort;
+        }
+    } elseif ($NutzergruppeInfos['visible_for_user']=='false'){
+        $TrueString = 'true';
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? AND wert = ?"))) {
+            $Antwort = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("ss", $NutzergruppeInfos['name'], $TrueString)) {
+            $Antwort = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        } else {
+
+            //Lade erstmal alle User, die glauben in einer Nutzergruppe zu sein
+            $res = $stmt->get_result();
+            $Antwort['total'] = mysqli_num_rows($res);
+
+            //Jetzt noch feststellen, wie viele User eigentlich verifiziert sind
+            if (!($stmt = $link->prepare("SELECT id FROM nutzergruppe_verification WHERE nutzergruppe = ? AND erfolg = 'true' AND delete_user = 0"))) {
+                $Antwort = false;
+                echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+            }
+            if (!$stmt->bind_param("i", $IDNutzergruppe)) {
+                $Antwort = false;
+                echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            }
+            if (!$stmt->execute()) {
+                $Antwort = false;
+                echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            } else {
+                $res = $stmt->get_result();
+                $Antwort['verified'] = mysqli_num_rows($res);
+            }
+
+            return $Antwort;
+        }
     }
 }
 
-function lade_nutzergruppe_infos($ID){
+function lade_nutzergruppe_infos($ID, $Mode = 'id'){
 
     $link = connect_db();
-    if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE id = ?"))) {
-        $Antwort = false;
-        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    if($Mode == 'id'){
+        if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE id = ?"))) {
+            $Antwort = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("i", $ID)) {
+            $Antwort = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    } elseif ($Mode == 'name'){
+        if (!($stmt = $link->prepare("SELECT * FROM nutzergruppen WHERE name = ?"))) {
+            $Antwort = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("s", $ID)) {
+            $Antwort = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
     }
-    if (!$stmt->bind_param("i", $ID)) {
-        $Antwort = false;
-        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-    }
+
     if (!$stmt->execute()) {
         $Antwort = false;
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
@@ -344,6 +398,44 @@ function lade_nutzergruppe_infos($ID){
     }
 
     return $Antwort;
+}
+
+function lade_nutzergruppe_meta($ID, $Key){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT wert FROM nutzergruppe_meta WHERE nutzergruppe = ? AND schluessel = ?"))) {
+        $Antwort = false;
+        var_dump("Prepare failed: (" . $link->errno . ") " . $link->error);
+    }
+    if (!$stmt->bind_param("is", $ID, $Key)) {
+        $Antwort = false;
+        var_dump("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        var_dump("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+    } else {
+        $res = $stmt->get_result();
+        $Antwort = mysqli_fetch_assoc($res);
+        $Antwort = $Antwort['wert'];
+    }
+
+    return $Antwort;
+
+}
+
+function lade_alle_nutzgruppen(){
+
+    $link = connect_db();
+    $Anfrage = "SELECT * FROM nutzergruppen WHERE delete_user = 0";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    $ReturnArray = array();
+    for ($a=1;$a<=$Anzahl;$a++){
+        $Nutzergruppe = mysqli_fetch_assoc($Abfrage);
+        array_push($ReturnArray, $Nutzergruppe);
+    }
+    return $ReturnArray;
 }
 
 function form_nutzergruppe_select($ItemName, $StartValue, $Mode='normaluser', $Disabled=false, $SpecialMode=''){
@@ -482,4 +574,108 @@ function form_nutzergruppe_verification_mode_select($ItemName, $StartValue, $Dis
     $HTML .= "</div>";
 
     return $HTML;
+}
+
+function load_last_nutzergruppe_verification_user($NutzergruppeID, $UserID){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT * FROM nutzergruppe_verification WHERE user = ? AND nutzergruppe = ? AND delete_user = 0 ORDER BY timestamp DESC"))) {
+        $Antwort = false;
+        var_dump("Prepare failed: (" . $link->errno . ") " . $link->error);
+    }
+    if (!$stmt->bind_param("ii", $UserID, $NutzergruppeID)) {
+        $Antwort = false;
+        var_dump("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        var_dump("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+    } else {
+        $res = $stmt->get_result();
+        $Antwort = mysqli_fetch_assoc($res);
+    }
+
+    return $Antwort;
+
+}
+
+function nutzergruppen_verifications_user_loeschen($UserID, $NutzergruppeID){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("UPDATE nutzergruppe_verification SET delete_user = ? AND delete_time = ? WHERE user = ? AND nutzergruppe = ?"))) {
+        $Antwort = false;
+        var_dump("Prepare failed: (" . $link->errno . ") " . $link->error);
+    }
+    if (!$stmt->bind_param("isii", lade_user_id(), timestamp(), $UserID, $NutzergruppeID)) {
+        $Antwort = false;
+        var_dump("Binding parameters nutzergruppen_verifications_user_loeschen failed: (" . $stmt->errno . ") " . $stmt->error);
+    }
+    if (!$stmt->execute()) {
+        $Antwort = false;
+        var_dump("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+    } else {
+        $Antwort = true;
+    }
+    return $Antwort;
+}
+
+function verify_nutzergruppe($User, $Eintragender, $success='true'){
+
+    $link = connect_db();
+    $UserMeta = lade_user_meta($User);
+    $NutzergruppeMeta = lade_nutzergruppe_infos($UserMeta['ist_nutzergruppe'], 'name');
+
+    $Anfrage = "INSERT INTO nutzergruppe_verification (nutzergruppe, user, erfolg, kommentar, ueberpruefer, timestamp, delete_user, delete_time) VALUES ('".$NutzergruppeMeta['id']."','".$User."','".$success."','','".$Eintragender."','".timestamp()."',0,'0000-00-00 00:00:00')";
+    if(mysqli_query($link, $Anfrage)){
+        return true;
+    } else {
+        return false;
+    }
+
+}
+
+function adminrolle_loeschen($User){
+    $Admins = get_sorted_user_array_with_user_meta_fields('ist_admin');
+    if(count($Admins)<=1){
+        return false;
+    } else {
+        return delete_user_meta($User, 'ist_admin', 'true');
+    }
+}
+
+function wartrolle_loeschen($User){
+    $Admins = get_sorted_user_array_with_user_meta_fields('ist_wart');
+    if(count($Admins)<=1){
+        return false;
+    } else {
+        return delete_user_meta($User, 'ist_wart', 'true');
+    }
+}
+
+function delete_nutzergruppe_parser($IDNutzergruppe){
+
+    if(isset($_POST['delete_nutzergruppe_'.$IDNutzergruppe.''])){
+        return nutzergruppe_loeschen($IDNutzergruppe);
+    } else {
+        return false;
+    }
+
+}
+
+function nutzergruppe_loeschen($IDNutzergruppe){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("UPDATE nutzergruppen SET delete_user = ?, delete_timestamp = ? WHERE id = ?"))) {
+        return false;
+    }
+
+    if (!$stmt->bind_param("isi", lade_user_id(),$IDNutzergruppe, $IDNutzergruppe)) {
+        return false;
+    }
+    if (!$stmt->execute()) {
+        return false;
+    } else {
+        return true;
+    }
+
 }

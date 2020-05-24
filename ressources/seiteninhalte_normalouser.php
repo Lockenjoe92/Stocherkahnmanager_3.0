@@ -3,9 +3,9 @@
 //STARTSEITE NORMALOUSER
 function seiteninhalt_normalouser_generieren(){
     $HTML = eigene_reservierungen_user();
-    #$HTML .= faellige_schluesselrueckgaben_user();
-    #$HTML .= faellige_zahlungen_user();
-    #$HTML .= moegliche_rueckzahlungen_user();
+    $HTML .= anstehende_termine_user();
+    $HTML .= faellige_schluesselrueckgaben_user();
+    $HTML .= faellige_zahlungen_user();
     return $HTML;
 }
 function eigene_reservierungen_user(){
@@ -13,6 +13,7 @@ function eigene_reservierungen_user(){
     $link = connect_db();
     $Timestamp = timestamp();
     $UserID = lade_user_id();
+    $UserMeta = lade_user_meta($UserID);
     zeitformat();
 
     //Alle res laden
@@ -33,7 +34,7 @@ function eigene_reservierungen_user(){
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
     } else {
 
-        $SectionHTML = "<h3>Deine Reservierungen</h3>";
+        $SectionHTML = "<h3 class='center-align'>Deine Reservierungen</h3>";
 
         $res = $stmt->get_result();
         $AnzahlLadeAlleReservierungenDiesesJahres = mysqli_num_rows($res);
@@ -54,23 +55,28 @@ function eigene_reservierungen_user(){
                 $UhrzeitBeginn = strftime("%H:00", strtotime($Reservierung['beginn']));
                 $UhrzeitEnde = strftime("%H:00", strtotime($Reservierung['ende']));
 
-
                 if ($Reservierung['storno_user'] == 0) {
 
                     //Reservierung ist in zukunft und nicht storniert
                     $SpanUebergabeNotwendig = "";
                     if ((res_hat_uebergabe($Reservierung['id']) == FALSE) AND (res_hat_uebernahme($Reservierung['id']) == FALSE)) {
-                        $SpanUebergabeNotwendig = "<span class=\"new badge yellow darken-2\" data-badge-caption=\"Du musst noch eine Schl&uuml;bergabe ausmachen!\"></span>";
+                        if (($UserMeta['hat_eigenen_schluessel'] === 'true') OR ($UserMeta['wg_hat_eigenen_schluessel'] === 'true')){
+                            $SpanUebergabeNotwendig = "";
+                        }else{
+                            $SpanUebergabeNotwendig = "<span class=\"new badge yellow darken-2\" data-badge-caption=\"Du musst noch eine Schl&uuml;bergabe ausmachen!\"></span>";
+                        }
                     }
 
-                    $CollpsibleHeader = "" . $SpanUebergabeNotwendig . " Reservierung #" . $Reservierung['id'] . " - " . $DatumHeader . "";
+                    $CollpsibleHeader = "Reservierung #" . $Reservierung['id'] . " - " . $DatumHeader . "" . $SpanUebergabeNotwendig . "";
 
-                    $TableRows = table_row_builder(table_header_builder('schedule') . table_data_builder("Abfahrt: " . $UhrzeitBeginn . " Uhr<br>R&uuml;ckgabe: " . $UhrzeitEnde . " Uhr"));
-                    $TableRows .= table_row_builder(table_header_builder('payment') . table_data_builder(zahlungswesen($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder('fast_forward') . table_data_builder(uebergabewesen($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder('vpn_key') . table_data_builder(schluesselwesen($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder('skip_next') . table_data_builder(anschlussfahrt($Reservierung['id'])));
-                    $TableRows .= table_row_builder(table_header_builder(button_link_creator('Bearbeiten', 'reservierung_bearbeiten.php?id=' . $Reservierung['id'] . '', 'edit', 'materialize-' . lade_xml_einstellung('site_buttons_color') . '')) . table_data_builder(button_link_creator('Löschen', 'reservierung_loeschen.php?id=' . $Reservierung['id'] . '', 'delete', 'materialize-' . lade_xml_einstellung('site_error_buttons_color') . '')));
+                    $TableRows = table_row_builder(table_header_builder('Fahrzeiten') . table_data_builder("Abfahrt: " . $UhrzeitBeginn . " Uhr<br>R&uuml;ckgabe: " . $UhrzeitEnde . " Uhr"));
+                    $TableRows .= table_row_builder(table_header_builder('Kosten') . table_data_builder("".kosten_reservierung($Reservierung['id'])."&euro;"));
+                    $TableRows .= table_row_builder(table_header_builder('Bezahlung') . table_data_builder(zahlungswesen($Reservierung['id'])));
+                    $TableRows .= table_row_builder(table_header_builder('Schlüsselübergabe') . table_data_builder(uebergabewesen($Reservierung['id'])));
+                    $TableRows .= table_row_builder(table_header_builder('Schlüssel') . table_data_builder(schluesselwesen($Reservierung['id'])));
+                    $TableRows .= table_row_builder(table_header_builder('Anschlussfahrt') . table_data_builder(anschlussfahrt($Reservierung['id'])));
+                    $TableRows .= table_row_builder(table_header_builder('') . table_data_builder(button_link_creator('Bearbeiten', 'reservierung_bearbeiten.php?id=' . $Reservierung['id'] . '', 'edit', 'materialize-' . lade_xml_einstellung('site_buttons_color') . '')." ".button_link_creator('Löschen', 'reservierung_loeschen.php?id=' . $Reservierung['id'] . '', 'delete', 'materialize-' . lade_xml_einstellung('site_error_buttons_color') . '')));
+
                     $CollapsibleContent = table_builder($TableRows);
                     $CollapsibleItems .= collapsible_item_builder($CollpsibleHeader, $CollapsibleContent, 'label_outline');
 
@@ -78,7 +84,8 @@ function eigene_reservierungen_user(){
 
                     //Reservierung ist in Zukunft und storniert
                     $CounterMussNochWasAngezeigtWerden = 0;
-                    $OffeneAusgleiche = lade_offene_ausgleiche_res($Reservierung['id']);
+                    ##########$OffeneAusgleiche = lade_offene_ausgleiche_res($Reservierung['id']);
+                    $OffeneAusgleiche = array();
 
                     if (sizeof($OffeneAusgleiche) > 0) {
                         $CounterMussNochWasAngezeigtWerden++;
@@ -91,8 +98,8 @@ function eigene_reservierungen_user(){
                     if ($CounterMussNochWasAngezeigtWerden > 0) {
 
                         $CollpsibleHeader = "Resvierung #" . $Reservierung['id'] . " - " . $DatumHeader . " +++ STORNIERT +++";
-                        $TableRows = table_row_builder(table_header_builder('payment') . table_data_builder(zahlungswesen($Reservierung['id'])));
-                        $TableRows .= table_row_builder(table_header_builder('vpn_key') . table_data_builder(schluesselwesen($Reservierung['id'])));
+                        $TableRows = table_row_builder(table_header_builder('Zahlungswesen') . table_data_builder(zahlungswesen($Reservierung['id'])));
+                        $TableRows .= table_row_builder(table_header_builder('Schlüssel') . table_data_builder(schluesselwesen($Reservierung['id'])));
                         $CollapsibleContent = table_builder($TableRows);
                         $CollapsibleItems .= collapsible_item_builder($CollpsibleHeader, $CollapsibleContent, 'label_outline');
 
@@ -102,12 +109,12 @@ function eigene_reservierungen_user(){
 
             }
 
-            $CollapsibleItems .= collapsible_item_builder("<a href='reservierung_hinzufuegen.php?typ=pause'>Hinzuf&uuml;gen</a>", '', 'note_add');
+            $CollapsibleItems .= collapsible_item_builder("<a href='../reservierung_hinzufuegen.php?typ=pause'>Hinzuf&uuml;gen</a>", '', 'note_add');
             $SectionHTML .= collapsible_builder($CollapsibleItems);
         }
     }
 
-    $HTML = section_builder($SectionHTML);
+    $HTML = section_builder($SectionHTML, '', 'center-align');
     $HTML .= divider_builder();
 
     $HelpfulLinksHTML = dokumente_listenelement_generieren();
@@ -205,7 +212,9 @@ function faellige_schluesselrueckgaben_user(){
             }
 
             if ($a > 0) {
-                $HTML = collection_builder($ErforderlicheRueckgabenInhalt);
+                $HTML = '<h3 class="hide-on-med-and-down center-align">Fällige Schlüsselrückaben!</h3>';
+                $HTML .= '<h3 class="hide-on-large-only center-align">Schlüsselrückaben</h3>';
+                $HTML .= collection_builder($ErforderlicheRueckgabenInhalt);
             }
         }
 
@@ -213,11 +222,43 @@ function faellige_schluesselrueckgaben_user(){
 
     return $HTML;
 }
-function faellige_zahlungen_user(){
-    return null;
+function anstehende_termine_user(){
+
+    $link = connect_db();
+    $Anfrage = "SELECT id FROM termine WHERE user = ".lade_user_id()." AND storno_user = 0 AND durchfuehrung = '0000-00-00 00:00:00' ORDER BY zeitpunkt ASC";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    if($Anzahl>0){
+        $Items='';
+        for($a=1;$a<=$Anzahl;$a++){
+            $Ergebnis = mysqli_fetch_assoc($Abfrage);
+            $Items .= termin_listenelement_user_generieren($Ergebnis['id']);
+        }
+        $HTML = '<h3 class="center-align">Anstehende Termine</h3>';
+        $HTML .= collapsible_builder($Items);
+        return $HTML;
+    } else {
+        return null;
+    }
 }
-function moegliche_rueckzahlungen_user(){
-    return null;
+function faellige_zahlungen_user(){
+
+    $Forderungen = lade_offene_forderungen_user(lade_user_id());
+    if(sizeof($Forderungen)>0){
+        $ReturnHTMLitems = '';
+        foreach ($Forderungen as $Forderung){
+            if($Forderung['referenz_res']=='0'){
+                $ReturnHTMLitems .= listenelement_offene_forderung_generieren($Forderung);
+            }
+        }
+
+        $HTML = '<h3 class="center-align">Offene Forderungen</h3>';
+        $HTML .= collapsible_builder($ReturnHTMLitems);
+        return $HTML;
+
+    }else{
+        return null;
+    }
 }
 function dokumente_listenelement_generieren(){
 
@@ -246,10 +287,10 @@ function seiteninhalt_reservierung_hinzufuegen(){
 
     //Parser
     $Parser = reservierung_hinzufuegen_parser();
-    if($Parser === TRUE){
-        $HTML .= section_builder(error_button_creator('Fehler beim Anlegen', '', ''));
-    } elseif ($Parser === FALSE){
-        $HTML .= section_builder(error_button_creator('Anlegen erfolgreich', '', 'materialize-green darken-2'));
+    if($Parser['success'] === FALSE){
+        $HTML .= section_builder("<h5 class='center-align'>".$Parser['meldung']."</h5>");
+    } elseif ($Parser['success'] === TRUE){
+        $HTML .= section_builder("<h5 class='center-align'>".$Parser['meldung']."</h5>");
     }
 
     //Kalender
@@ -258,8 +299,8 @@ function seiteninhalt_reservierung_hinzufuegen(){
 
 
     //Buchungsfenster
-    $HTML .= section_builder(buchungsfenster($Kalenderrolle, $Parser), '', 'hide-on-small-and-down');
-    $HTML .= section_builder(buchungsfenster_mobil($Kalenderrolle, $Parser), '', 'hide-on-med-and-up');
+    $HTML .= section_builder(buchungsfenster($Kalenderrolle, $Parser['success']), '', 'hide-on-small-and-down');
+    $HTML .= section_builder(buchungsfenster_mobil($Kalenderrolle, $Parser['success']), '', 'hide-on-med-and-up');
 
     return $HTML;
 }
@@ -321,7 +362,7 @@ function buchungsfenster($Kalenderrolle, $Buttonmode)
 
         $TableHTML = table_form_datepicker_reservation_item('Datum', 'datum_buchung', $_POST['datum_buchung'], false, true);
         $TableHTML .= table_form_select_item('Abfahrt', 'beginn_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
-        $TableHTML .= table_form_select_item('Ende', 'ende_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['beginn_reservierung'], 'Uhr', '', '');
+        $TableHTML .= table_form_select_item('Ende', 'ende_reservierung', lade_xml_einstellung('earliest_begin'), lade_xml_einstellung('latest_begin'), $_POST['ende_reservierung'], 'Uhr', '', '');
         $Antwort .= table_builder($TableHTML);
 
         if ($Kalenderrolle === "wart") {
@@ -364,7 +405,7 @@ function buchungsfenster($Kalenderrolle, $Buttonmode)
 }
 function reservierung_hinzufuegen_parser(){
 
-    $Antwort = NULL;
+    $Ergebnis = NULL;
 
     if (isset($_POST['input_action'])) {
 
@@ -398,13 +439,6 @@ function reservierung_hinzufuegen_parser(){
         } else {
             $UserRes = $AktuelleUserID;
             $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, NULL, NULL);
-        }
-
-        //Eintrag auswerten
-        if ($Ergebnis['success'] == TRUE) {
-            $Antwort = TRUE;
-        } else if ($Ergebnis['success'] == FALSE) {
-            $Antwort = FALSE;
         }
     }
 
@@ -441,14 +475,7 @@ function reservierung_hinzufuegen_parser(){
             $UserRes = $AktuelleUserID;
             $Ergebnis = reservierung_hinzufuegen($Anfang, $Ende, $UserRes, NULL, NULL);
         }
-
-        //Eintrag auswerten
-        if ($Ergebnis['success'] == TRUE) {
-            $Antwort = TRUE;
-        } else if ($Ergebnis['success'] == FALSE) {
-            $Antwort = FALSE;
-        }
     }
 
-    return $Antwort;
+    return $Ergebnis;
 }

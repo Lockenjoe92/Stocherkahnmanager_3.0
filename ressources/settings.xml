@@ -26,10 +26,19 @@
     <absender_mail>buchungstool@stocherkahn.fachschaftmedizin.de</absender_mail>
     <absender_name>Buchungstool Stocherkahn Medizin e.V.</absender_name>
     <reply_mail>info@stocherkahn.fachschaftmedizin.de</reply_mail>
+    <site_url>https://www.stocherkahn.marcsprojects.de</site_url>
+
+    <!--SMS-->
+    <sms-active>on</sms-active>
+    <user-sms>StocherkahnMedizin</user-sms>
+    <key-sms>g19pF7qM3f3yr4tukMwHOeSzi0881QPO</key-sms>
+    <absender-sms>Stocherkahn</absender-sms>
+    <type-sms>direct</type-sms>
 
     <!--- GENERAL -->
     <max_items_row_container>4</max_items_row_container>
     <max_size_file_upload>500000</max_size_file_upload>
+    <index_tabs_that_require_wart_rights>wartwiki</index_tabs_that_require_wart_rights>
 
     <!--- VERLEIH -->
     <earliest_begin>8</earliest_begin>
@@ -52,10 +61,29 @@
     <max-dauer-einer-reservierung>6</max-dauer-einer-reservierung>
     <max-stunden-vor-abfahrt-buchbar>6</max-stunden-vor-abfahrt-buchbar>
     <dauer-uebergabe-minuten>15</dauer-uebergabe-minuten>
-    <uebernahmefunktion-globel-aktiv>true</uebernahmefunktion-globel-aktiv>
+    <uebernahmefunktion-global-aktiv>true</uebernahmefunktion-global-aktiv>
+    <max-tage-vor-abfahrt-uebergabe>5</max-tage-vor-abfahrt-uebergabe>
+    <max-minuten-vor-abfahrt-uebergabe>5</max-minuten-vor-abfahrt-uebergabe>
+    <zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>4</zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage>
+    <tage-spontanuebergabe-reservierungen-zukunft-dropdown>14</tage-spontanuebergabe-reservierungen-zukunft-dropdown>
+    <tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>3</tage-spontanuebergabe-reservierungen-vergangenheit-dropdown>
+    <erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>2</erinnerung-schluessel-zurueckgeben-manuell-intervallgroesse>
+    <moegliche_schluesselorte>rueckgabekasten,vermisst,verloren</moegliche_schluesselorte>
+    <termin_typen>Geldrückgabe,andere</termin_typen>
+    <kritischer-abstand-storno-vor-beginn>60</kritischer-abstand-storno-vor-beginn>
+    <wochen-vergangenheit-durchgefuehrte-uebergaben>2</wochen-vergangenheit-durchgefuehrte-uebergaben>
+    <wochen-vergangenheit-durchgefuehrte-transaktionen>2</wochen-vergangenheit-durchgefuehrte-transaktionen>
+    <schluesseluebernahme-ueber-mehrere-res>false</schluesseluebernahme-ueber-mehrere-res>
+    <erinnerung-uebergabe-ausmachen-1>3</erinnerung-uebergabe-ausmachen-1>
+    <erinnerung-uebergabe-ausmachen-2>1</erinnerung-uebergabe-ausmachen-2>
+    <erinnerung-schluessel-zurueckgeben-intervall-beginn>2</erinnerung-schluessel-zurueckgeben-intervall-beginn>
+    <erinnerung-schluessel-zurueckgeben-intervall-groesse>2</erinnerung-schluessel-zurueckgeben-intervall-groesse>
+    <stunden-bis-uebergabe-eingetragen-sein-soll>6</stunden-bis-uebergabe-eingetragen-sein-soll>
+    <grill-global-aktiv>false</grill-global-aktiv>
 
     <!--PAYMENT-->
     <paypal-aktiv>false</paypal-aktiv>
+    <zeit-tage-nach-res-ende-zahlen>5</zeit-tage-nach-res-ende-zahlen>
 
     <!--- COLORS -->
     <site_menue_color>white</site_menue_color>
@@ -65,6 +93,7 @@
     <farbe-button-kalender-buchbar>green</farbe-button-kalender-buchbar>
     <farbe-button-kalender-nicht-buchbar>red</farbe-button-kalender-nicht-buchbar>
     <farbe-button-kalender-reserviert>yellow</farbe-button-kalender-reserviert>
+    <card_panel_hintergrund>white</card_panel_hintergrund>
 
     <!--- INFOs FOR USERS -->
     <titelinfo-reservierung-hinzufuegen><![CDATA[
@@ -85,5 +114,28 @@
     <h5>Grillen an Bord</h5>
     <p>Wir stecken in unseren Kahn viel Arbeit und hatten leider in den letzten Jahren &ouml;fters schlechte Erfahrungen mit Gruppen die gegrillt und nicht aufgepasst haben. Daher erkennt das ge&uuml;bte Auge auch die eine oder andere Brandspur am Kahn. Daher k&ouml;nnen wir es euch leider nicht mehr erlauben auf dem Kahn zu grillen:/</p>
     </div>]]></html-faq-user-hauptansicht>
+    <text-info-uebergabe-dabei-haben><![CDATA[
+    <ul class='collection'>
+        <li class='collection-item'>Geld f&uuml;r die Bezahlung deiner Reservierung</li>
+        <li class='collection-item'>Studentenausweis, falls du dein Konto als Stundentenkonto laufen hast</li>
+    </ul>
+]]></text-info-uebergabe-dabei-haben>
+    <text-info-uebergabe-ablauf><![CDATA[
+    <p>In der Schl&uuml;ssel&uuml;bergabe bekommst du von der/dem zust&auml;ndigen/m Stocherkahnwart/-in den Kahnschl&uuml;ssel und aktuelle Informationen was es organisatorisch und meteorologisch zu beachten gibt. Du kannst bei der Gelegenheit auch deine Fahrt bezahlen, oder auch nach der Fahrt wenn du deinen Schl&uuml;ssel zur&uuml;ck gibst.</p><p>Falls du neu bei unserem Kahn bist, wird es eine kurze Ersteinweisung geben.</p>
+]]></text-info-uebergabe-ablauf>
+    <text-info-uebergabe-einweisung><![CDATA[
+    <p>Stocherkahn fahren ist einfach, aber dennoch gibt es einige Sachen die man beachten muss. Du kannst dich hier auf der Homepage schon vorab informieren, aber die wichtigsten Facts und Regeln werden wir dir nochmal pers&ouml;hnlich erkl&auml;ren und dir gerne deine Fragen beantworten.</p>
+    <p>Eine Ersteinweisung dauert in etwa 5-10 Minuten.</p>
+]]></text-info-uebergabe-einweisung>
+    <erklaerung_schluesseluebernahme><![CDATA[
+        <p><table><tr><th><i class='large material-icons'>new_releases</i> </th><td>Du bist im Begriff eine Schl&uuml;ssel&uuml;bernahme f&uuml;r deine Reservierung auszumachen. Damit kannst du dir und uns Stocherkahnw&auml;rten ein bisschen Arbeit ersparen, indem du den Schl&uuml;ssel nicht pers&ouml;nlich bei uns abholen kommst. Dennoch gibt es folgende Dinge zu beachten:</td></tr></table></p>
+    <p><ul class='collection'>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>schedule</i> </th><td>Eine Schl&uuml;ssel&uuml;bernahme h&auml;ngt sowohl von deiner P&uuml;nktlichkeit, als auch der der Gruppe vor dir ab. Sei daher bitte p&uuml;nktlich an der Anlegestelle zu Beginn deiner Reservierung damit die Gruppe vor dir nicht warten muss.<br>Im Gegenzug erh&auml;t die Gruppe vor dir von uns nochmal den Hinweis ebenfalls p&uuml;nktlich an die Anlegestelle zur&uuml;ckzukehren.</td></tr></table></li>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Die Gruppe vor dir wird eine eMail erhalten, die sie &uuml;ber dein Vorhaben in Kenntnis setzt. Sollte die Gruppe dies nicht w&uuml;nschen (z.B. wenn sie den Kahn nicht bis ganz ans Ende der Fahrt nutzen m&ouml;chte), kann diese die geplante Schl&uuml;ssel&uuml;bernahme absagen und du erh&auml;ltst eine Mail.</td></tr></table></li>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>info</i> </th><td>Wir Stocherkahnw&auml;rte k&ouml;nnen keine Garantie daf&uuml;r &Uuml;bernehmen, dass die &Uuml;bernahme klappt. Falls also kurzfristig sich doch etwas &auml;ndern sollte, kann es daher sein, dass du doch keinen Schl&uuml;ssel bekommst.</td></tr></table></li>
+    <li class='collection-item'><table><tr><th><i class='small material-icons'>loyalty</i> </th><td>Da du deine Fahrt nicht pers&ouml;hnlich bei einem unserer W&auml;rte bezahlen kannst, verlassen wir uns darauf, dass du die Ausleihgeb&uuml;hr und den Schl&uuml;ssel zuverl&auml;ssig direkt nach deiner Fahrt in den R&uuml;ckgabebriefkasten wirfst.</td></tr></table></li>
+    </ul></p>
+    ]]></erklaerung_schluesseluebernahme>
+    <erklaerung-forderung-zahlen-user><![CDATA[ <ul><li>Werfe das Geld einfach in den Rückgabebriefkasten - denke bitte dabei das Geld zB in einen Umschlag zu packen und drauf zu schrieben von wem das Geld ist, damit wir es auch zuordnen können:)</li></ul> ]]></erklaerung-forderung-zahlen-user>
 
 </global_settings>

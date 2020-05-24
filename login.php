@@ -12,7 +12,7 @@ include_once "./ressources/ressourcen.php";
 #Generate Content
 $Header = "Login - " . lade_db_einstellung('site_name');
 $SessionMessage = load_session_message();
-$Parser = login_parser();
+$Parser = login_parser($_GET['register_code']);
 $HTML = login_formular($Parser, $SessionMessage);
 
 # Output site

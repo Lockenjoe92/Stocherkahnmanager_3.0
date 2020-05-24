@@ -94,7 +94,15 @@ function parse_datei_upload_form(){
 
             // if everything is ok, try to upload file
         } else {
-            if (move_uploaded_file($_FILES["file_to_upload"]["tmp_name"], $target_file)) {
+
+            if($_POST['upload_dir'] == '/media/pictures/'){
+                #$File = resize_image($_FILES["file_to_upload"]["tmp_name"], 1440, 743);
+                $File = $_FILES["file_to_upload"]["tmp_name"];
+            } else {
+                $File = $_FILES["file_to_upload"]["tmp_name"];
+            }
+
+            if (move_uploaded_file($File, $target_file)) {
                 $Antwort = "Die Datei ". basename( $_FILES["file_to_upload"]["name"]). " wurde hochgeladen.";
             } else {
                 $Antwort = "Sorry, es gab einen Fehler beim Hochladen.";
@@ -103,6 +111,33 @@ function parse_datei_upload_form(){
 
         return $Antwort;
     }
+}
+
+function resize_image($file, $w, $h, $crop=FALSE) {
+    list($width, $height) = getimagesize($file);
+    $r = $width / $height;
+    if ($crop) {
+        if ($width > $height) {
+            $width = ceil($width-($width*abs($r-$w/$h)));
+        } else {
+            $height = ceil($height-($height*abs($r-$w/$h)));
+        }
+        $newwidth = $w;
+        $newheight = $h;
+    } else {
+        if ($w/$h > $r) {
+            $newwidth = $h*$r;
+            $newheight = $h;
+        } else {
+            $newheight = $w/$r;
+            $newwidth = $w;
+        }
+    }
+    $src = imagecreatefromjpeg($file);
+    $dst = imagecreatetruecolor($newwidth, $newheight);
+    imagecopyresampled($dst, $src, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+
+    return $dst;
 }
 
 ?>

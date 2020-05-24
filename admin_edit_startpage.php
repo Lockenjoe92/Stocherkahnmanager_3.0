@@ -11,6 +11,7 @@ session_manager('ist_admin');
 $link = connect_db();
 #Parse Input
 add_website_bausteine_parser();
+parse_change_items_rang();
 
 #Generate content
 # Page Title
@@ -18,8 +19,14 @@ $Header = "Webseite Editieren - " . lade_db_einstellung('site_name');
 $PageTitle = '<h1>Webseite Editieren</h1>';
 $HTML .= section_builder($PageTitle);
 
+//
+$PageParser = add_new_site_parser();
+if($PageParser['success']!=null){
+    $HTML .= section_builder(error_button_creator($PageParser['meldung'], 'error', ''));
+}
+
 # Load Subsites
-$Anfrage = "SELECT * FROM homepage_sites WHERE delete_user = 0 ORDER BY menue_rang ASC";
+$Anfrage = "SELECT * FROM homepage_sites WHERE delete_user = 0 ORDER BY name ASC";
 $Abfrage = mysqli_query($link, $Anfrage);
 $Anzahl = mysqli_num_rows($Abfrage);
 $CollapsibleItems = '';
@@ -32,6 +39,8 @@ for($x=1;$x<=$Anzahl;$x++){
 
     #Build Title Content
     $TitleHTML = $Ergebnis['menue_text'];
+    parse_change_page_rang($TitleHTML, $Ergebnis['menue_rang']);
+    parse_change_bausteine_rang($Ergebnis['name']);
 
     #Build Card Content
     $ContentHTML = generate_bausteine_view($Ergebnis['name']);
@@ -73,9 +82,9 @@ function generate_bausteine_view($Seite){
         for ($x = 1; $x <= $Anzahl; $x++) {
 
             $Ergebnis = mysqli_fetch_assoc($Abfrage);
-            $ReferenceDelete = "./delete_website_baustein.php?baustein=".$Ergebnis['id']."";
-            $Operators = "<a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
-            $Operators .= generate_move_buttons_baustein_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Seite);
+            $ReferenceDelete = "delete_website_baustein_".$Ergebnis['id']."";
+            $Operators = form_button_builder($ReferenceDelete, 'Löschen', 'action', 'delete_forever', '');
+            $Operators .= " ".generate_move_buttons_baustein_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Seite);
 
             $Header = "" . $Ergebnis['rang'] . " - " . $Ergebnis['typ'] . " - " . $Ergebnis['name'] . " ".$Operators."";
             $Items = generate_inhalte_views($Ergebnis['id']);
@@ -100,7 +109,7 @@ function generate_inhalte_views($BausteinID){
     $Anzahl = mysqli_num_rows($Abfrage);
 
     if ($Anzahl == 0){
-        if ($Baustein['typ'] == 'row_container') {
+        if (($Baustein['typ'] == 'row_container') OR ($Baustein['typ'] == 'collection_container') OR ($Baustein['typ'] == 'collapsible_container')) {
             $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
             $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
             $InhalteHTML .= collection_item_builder($Header);
@@ -127,6 +136,22 @@ function generate_inhalte_views($BausteinID){
                 $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
                 $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
                 $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'collection_container'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'collapsible_container'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'kostenstaffel_container'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
+            } elseif ($Baustein['typ'] == 'slider_mit_ueberschrift'){
+                $Operators = "<a href='".$ReferenceEdit."'><i class='tiny material-icons'>edit</i></a> <a href='".$ReferenceDelete."'><i class='tiny material-icons'>delete_forever</i></a> ";
+                $Operators .= generate_move_buttons_item_level($Anzahl, $Ergebnis['id'], $Ergebnis['rang'], $Ergebnis['id_baustein']);
+                $Header = "".$Ergebnis['rang']." - ".$Ergebnis['ueberschrift']." ".$Operators."";
             }
 
             $InhalteHTML .= collection_item_builder($Header);
@@ -139,6 +164,14 @@ function generate_inhalte_views($BausteinID){
                 $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
                 $InhalteHTML .= collection_item_builder($Header);
             }
+        } elseif (($Baustein['typ'] == 'collection_container') OR ($Baustein['typ'] == 'collapsible_container')){
+                $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
+                $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
+                $InhalteHTML .= collection_item_builder($Header);
+        } elseif (($Baustein['typ'] == 'slider_mit_ueberschrift')){
+            $ReferenceEdit = "./add_website_item.php?baustein=" . $BausteinID . "";
+            $Header = "<a href='" . $ReferenceEdit . "'>Inhaltselement hinzufügen <i class='tiny material-icons'>edit</i></a> ";
+            $InhalteHTML .= collection_item_builder($Header);
         }
     }
 
@@ -154,8 +187,12 @@ function generate_bausteine_dropdown_menue($ItemName, $Label, $SpecialMode){
     $HTML .= "<option value='' disabled selected>Bitte w&auml;hlen</option>";
     $HTML .= "<option value='row_container'>row_container</option>";
     $HTML .= "<option value='parallax_mit_text'>parallax_mit_text</option>";
+    $HTML .= "<option value='slider_mit_ueberschrift'>slider_mit_ueberschrift</option>";
     $HTML .= "<option value='html_container'>html_container</option>";
+    $HTML .= "<option value='collapsible_container'>collapsible_container</option>";
+    $HTML .= "<option value='collection_container'>collection_container</option>";
     $HTML .= "<option value='kalender_container'>kalender_container</option>";
+    $HTML .= "<option value='kostenstaffel_container'>kostenstaffel_container</option>";
     $HTML .= "</select>";
 
     if ($Label!=''){
@@ -203,22 +240,22 @@ function generate_move_buttons_page_level($AnzahlGesamtSeiten, $ZeroRangCounter,
             $Output = row_builder(divider_builder());
             $Output .= row_builder('<h4>Rang verschieben</h4>');
             $HTML = '';
-            $ButtonDownName = "./decrease_page_rank.php?name=".$AktuellerName."&rang=".$AktuellerRang."";
-            $ButtonUpName = "./increase_page_rank.php?name=".$AktuellerName."&rang=".$AktuellerRang."";
+            $ButtonDownName = "./decrease_page_rank_".$AktuellerName."";
+            $ButtonUpName = "./increase_page_rank_".$AktuellerName."";
             $DownToo = false;
 
             #Can be moved down
             if($AktuellerRang < $NumberRankedSites){
-                $HTML .= button_link_creator('Rang senken', $ButtonDownName, 'arrow_downward', "col s5 ".lade_db_einstellung('site_buttons_color')."");
+                $HTML .= form_button_builder($ButtonDownName, 'Rang senken', 'action', 'arrow_downward', 'col s5');
                 $DownToo = True;
             }
 
             #Can be moved up
             if($AktuellerRang > 1){
                 if($DownToo){
-                    $HTML .= button_link_creator('Rang erhöhen', $ButtonUpName, 'arrow_upward', "col s5 offset-s1 ".lade_db_einstellung('site_buttons_color')."");
+                    $HTML .= form_button_builder($ButtonUpName, 'Rang erhöhen', 'action', 'arrow_upward', 'col s5 offset-s1');
                     } else {
-                    $HTML .= button_link_creator('Rang erhöhen', $ButtonUpName, 'arrow_upward', "col s5 ".lade_db_einstellung('site_buttons_color')."");
+                    $HTML .= form_button_builder($ButtonUpName, 'Rang erhöhen', 'action', 'arrow_upward', 'col s5');
                 }
             }
 
@@ -241,14 +278,15 @@ function generate_move_buttons_baustein_level($AnzahlGesamtBausteine, $Aktueller
 
         #Can be moved down
         if($AktuellerBausteinRang < $AnzahlGesamtBausteine){
-            $ButtonDownName = "./parsers/increase_baustein_rank.php?baustein=".$AktuellerBausteinID."&site=".$AktuelleSeiteName."";
-            $HTML .= "<a href='".$ButtonDownName."'><i class='tiny material-icons'>arrow_downward</i></a> ";
+            $ButtonDownName = "increase_baustein_".$AktuellerBausteinID."";
+            $HTML .= form_button_builder($ButtonDownName, 'Nach unten', 'action', 'arrow_downward', '');
+
         }
 
         #Can be moved up
         if($AktuellerBausteinRang > 1){
-            $ButtonDownName = "./parsers/decrease_baustein_rank.php?baustein=".$AktuellerBausteinID."&site=".$AktuelleSeiteName."";
-            $HTML .= "<a href='".$ButtonDownName."'><i class='tiny material-icons'>arrow_upward</i></a> ";
+            $ButtonUpName = "decrease_baustein_".$AktuellerBausteinID."";
+            $HTML .= form_button_builder($ButtonUpName, 'Nach oben', 'action', 'arrow_upward', '');
         }
 
         return $HTML;
@@ -267,14 +305,14 @@ function generate_move_buttons_item_level($AnzahlGesamtItems, $AktuellerItemID, 
 
         #Can be moved down
         if($AktuellerItemRang < $AnzahlGesamtItems){
-            $ButtonDownName = "./parsers/increase_item_rank.php?item=".$AktuellerItemID."&baustein=".$AktuellerBaustein."";
-            $HTML .= "<a href='".$ButtonDownName."'><i class='tiny material-icons'>arrow_downward</i></a> ";
+            $ButtonDownName = "increase_item_rank_item_".$AktuellerItemID."";
+            $HTML .= form_button_builder($ButtonDownName, 'Nach unten', 'action', 'arrow_downward', '');
         }
 
         #Can be moved up
         if($AktuellerItemRang > 1){
-            $ButtonUpName = "./parsers/decrease_item_rank.php?item=".$AktuellerItemID."&baustein=".$AktuellerBaustein."";
-            $HTML .= "<a href='".$ButtonUpName."'><i class='tiny material-icons'>arrow_upward</i></a> ";
+            $ButtonUpName = "decrease_item_rank_item_".$AktuellerItemID."";
+            $HTML .= form_button_builder($ButtonUpName, 'Nach oben', 'action', 'arrow_upward', '');
         }
 
         return $HTML;
@@ -326,4 +364,138 @@ function add_website_bausteine_parser(){
     return $Action;
 }
 
+function parse_change_page_rang($PageName, $Rang){
+
+    $ButtonDownName = "./decrease_page_rank_".$PageName."";
+    $ButtonUpName = "./increase_page_rank_".$PageName."";
+
+    if(isset($_POST[$ButtonDownName])){
+        return decrease_page_rank_parser($Rang, $PageName);
+    }
+    if(isset($_POST[$ButtonUpName])){
+        return increase_page_rank_parse($Rang, $PageName);
+    }
+
+}
+
+function parse_change_bausteine_rang($PageName){
+
+    $link = connect_db();
+    $Anfrage = "SELECT id,ort FROM homepage_bausteine";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    for($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        $Baustein = $Ergebnis['id'];
+        $ButtonDownName = "increase_baustein_".$Baustein."";
+        $ButtonUpName = "decrease_baustein_".$Baustein."";
+        $ReferenceDelete = "delete_website_baustein_".$Baustein."";
+        if($Ergebnis['ort']==$PageName){
+            if(isset($_POST[$ButtonDownName])){
+                return increase_baustein_rank_parse($Baustein, $PageName);
+            }
+            if(isset($_POST[$ButtonUpName])){
+                return decrease_baustein_rank_parser($Baustein, $PageName);
+            }
+            if(isset($_POST[$ReferenceDelete])){
+                return delete_website_baustein_parser($Baustein);
+            }
+        }
+    }
+}
+
+function parse_change_items_rang(){
+    $link = connect_db();
+    $Anfrage = "SELECT id FROM homepage_content";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+    for($a=1;$a<=$Anzahl;$a++){
+        $Ergebnis = mysqli_fetch_assoc($Abfrage);
+        $Item = $Ergebnis['id'];
+        $ButtonUpName = "decrease_item_rank_item_".$Item."";
+        $ButtonDownName = "increase_item_rank_item_".$Item."";
+        if(isset($_POST[$ButtonUpName])){
+            return decrease_item_rank_parser($Item);
+        }
+        if(isset($_POST[$ButtonDownName])){
+            return increase_item_rank_parse($Item);
+        }
+    }
+}
+
+function add_new_site_parser(){
+
+    if(isset($_POST['add_new_site'])){
+
+        $link = connect_db();
+        $DAUcounter = 0;
+        $DAUmessage = '';
+
+        if(empty($_POST['new_site_title'])){
+            $DAUcounter++;
+            $DAUmessage .= 'Bitte gebe einen Seitentitel an!<br>';
+        }
+
+        if(empty($_POST['new_site_name'])){
+            $DAUcounter++;
+            $DAUmessage .= 'Bitte gebe einen Seitennamen an!<br>';
+        } else {
+
+            if (!($stmt = $link->prepare("SELECT id FROM homepage_sites WHERE name = ? AND delete_user = 0"))) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->bind_param("s", $_POST['new_site_name'])) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->execute()) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            $res = $stmt->get_result();
+            if(mysqli_num_rows($res)>0){
+                $DAUcounter++;
+                $DAUmessage .= 'Eine Seite mit diesem Seitennamen existiert bereits!<br>';
+            }
+        }
+
+        if($DAUcounter>0){
+            $Antwort['success']=false;
+            $Antwort['meldung']=$DAUmessage;
+        }else{
+
+            $AnfrageListSites = "SELECT id FROM homepage_sites WHERE menue_rang > 0 AND delete_user = 0";
+            $AbfrageListSites = mysqli_query($link,$AnfrageListSites);
+            $AktZahlRang = mysqli_num_rows($AbfrageListSites);
+            $RangNewPage = $AktZahlRang+1;
+            if(isset($_POST['new_site_menue_visibility'])){
+                $Visibility = 'on';
+            } else {
+                $Visibility = 'off';
+                $RangNewPage = 0;
+            }
+
+            if (!($stmt = $link->prepare("INSERT INTO homepage_sites (name, menue_text, menue_rang, show_in_main_menue) VALUES (?,?,?,?)"))) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->bind_param("ssis", $_POST['new_site_name'], $_POST['new_site_title'], $RangNewPage, $Visibility)) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            }
+            if (!$stmt->execute()) {
+                $Antwort['success'] = false;
+                $Antwort['meldung']='Datenbankfehler';
+            } else {
+                $Antwort['success']=true;
+            }
+        }
+    } else {
+        $Antwort['success']=null;
+    }
+
+    return $Antwort;
+}
 ?>

@@ -12,7 +12,6 @@ function lade_user_id(){
     $UserSessionID = intval($_SESSION['user_id']);
     return $UserSessionID;
 }
-
 function lade_user_meta($UserID){
 
     $link = connect_db();
@@ -37,10 +36,29 @@ function lade_user_meta($UserID){
         $Result[$Row['schluessel']] = $Row['wert'];
     }
 
+    if (!($stmt = $link->prepare("SELECT * FROM users WHERE id = ?"))) {
+        $Antwort['erfolg'] = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("i", $UserID)) {
+        $Antwort['erfolg'] = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['erfolg'] = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Stuff = mysqli_fetch_assoc($res);
+
+    $Result['registrierung'] = $Stuff['register'];
+    $Result['mail'] = $Stuff['mail'];
+    $Result['id'] = $UserID;
+
     return $Result;
 }
-
-function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, $Mail, $PSWD, $Rollen){
+function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, $Mail, $PSWD, $Rollen, $TransferMode=false){
 
     $link = connect_db();
 
@@ -85,14 +103,24 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
         #echo "adding user meta";
         add_user_meta($Ergebnis['id'], 'vorname', $Vorname);
         add_user_meta($Ergebnis['id'], 'nachname', $Nachname);
-        add_user_meta($Ergebnis['id'], 'strasse', $Strasse);
-        add_user_meta($Ergebnis['id'], 'hausnummer', $Hausnummer);
-        add_user_meta($Ergebnis['id'], 'plz', $PLZ);
-        add_user_meta($Ergebnis['id'], 'stadt', $Stadt);
+
+        if(!$TransferMode){
+            add_user_meta($Ergebnis['id'], 'strasse', $Strasse);
+            add_user_meta($Ergebnis['id'], 'hausnummer', $Hausnummer);
+            add_user_meta($Ergebnis['id'], 'plz', $PLZ);
+            add_user_meta($Ergebnis['id'], 'stadt', $Stadt);
+        }
 
         #Rollen eingeben
         foreach($Rollen as $Rolle => $Wert){
             add_user_meta($Ergebnis['id'], $Rolle, $Wert);
+        }
+
+        if(!$TransferMode) {
+            $MailArray = array();
+            $MailArray['[vorname_empfaenger]'] = $Vorname;
+            $MailArray['[verify_link]'] = lade_xml_einstellung('site_url') . "/login.php?register_code=" . $ID_hash . "";
+            mail_senden('registrierung_user', $Mail, $MailArray);
         }
 
         $Antwort['erfolg'] = True;
@@ -102,7 +130,6 @@ function add_new_user($Vorname, $Nachname, $Strasse, $Hausnummer, $PLZ, $Stadt, 
 
     return $Antwort;
 }
-
 function add_user_meta($UserID, $Key, $Value){
 
     $link = connect_db();
@@ -123,20 +150,35 @@ function add_user_meta($UserID, $Key, $Value){
     }
 
 }
+function delete_user_meta($UserID, $Key, $Value){
 
+    $link = connect_db();
+
+    if (!($stmt = $link->prepare("DELETE FROM user_meta WHERE user = ? AND schluessel = ? AND wert = ?"))) {
+        $Antwort['erfolg'] = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("iss", $UserID, $Key, $Value)) {
+        $Antwort['erfolg'] = false;
+        echo  "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['erfolg'] = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    } else {
+        return true;
+    }
+
+}
 function update_user_meta($UserID, $Key, $Value){
 
     $link = connect_db();
 
-    if ($Value == ''){
-        return false;
-    } else {
-
-        if (!($stmt = $link->prepare("INSERT INTO user_meta (user,schluessel,wert,timestamp) VALUES (?,?,?,?)"))) {
+        if (!($stmt = $link->prepare("UPDATE user_meta SET wert = ?, timestamp = ? WHERE user = ? AND schluessel = ?"))) {
             $Antwort['erfolg'] = false;
             echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
-        if (!$stmt->bind_param("isss", $UserID, $Key, $Value, timestamp())) {
+        if (!$stmt->bind_param("ssis", $Value, timestamp(), $UserID, $Key)) {
             $Antwort['erfolg'] = false;
             echo  "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
@@ -146,9 +188,14 @@ function update_user_meta($UserID, $Key, $Value){
         } else {
             return true;
         }
-    }
 }
+function verify_user_mail($UserID){
 
+    $link = connect_db();
+    $Anfrage = "UPDATE users SET mail_verified = '".date("Y-m-d")."' WHERE id = ".$UserID."";
+    return mysqli_query($link, $Anfrage);
+
+}
 function check_password($PSWD) {
 
     // Define URL for haveibeenpwned.com API as constant
@@ -215,5 +262,304 @@ function check_password($PSWD) {
     else
         return 'OK';
 }
+function wart_verfuegbare_schluessel($IDuser){
 
+    $link = connect_db();
+    $ZugeteilteSchluessel = user_zugeteilte_schluessel($IDuser);
+
+    $TageGrenze = intval(lade_xml_einstellung('zeit-ab-wann-zukuenftige-uebergaben-in-schluesselverfuegbarkeitskalkulation-einfliessen-tage'));
+    $ZeitBefehl = "+ ".$TageGrenze." days";
+    $Grenzzeit = date("Y-m-d G:i:s", strtotime($ZeitBefehl));
+
+    $Anfrage = "SELECT id FROM uebergaben WHERE wart = '$IDuser' AND durchfuehrung = '0000-00-00 00:00:00' AND beginn < '".$Grenzzeit."' AND storno_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl= mysqli_num_rows($Abfrage);
+
+    $Differenz = $ZugeteilteSchluessel - $Anzahl;
+
+    return $Differenz;
+}
+function user_zugeteilte_schluessel($IDuser){
+
+    $link = connect_db();
+
+    $Anfrage = "SELECT id FROM schluessel WHERE akt_user = '$IDuser' AND delete_user = '0'";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    return $Anzahl;
+}
+function generiere_kontaktinformation_fuer_usermail_wart($IDwart){
+
+    $User = lade_user_meta($IDwart);
+    $Antwort = "";
+    $Antwort .= "".$User['vorname']." ".$User['nachname']."";
+
+    //Gemäß Wartwunsch
+    if ($User['mail-userinfo'] == "true"){
+        $Antwort .= " - Mail: ".$User['mail']."";
+    }
+
+    if ($User['tel-userinfo'] == "true"){
+        $Antwort .= " - Telefon (f&uuml;r dringende F&auml;lle): ".$User['telefon']."";
+    }
+
+    return $Antwort;
+}
+function get_sorted_user_array_with_user_meta_fields_old($orderBy='nachname'){
+
+    $link = connect_db();
+    if($orderBy!='id'){
+        if (!($stmt = $link->prepare("SELECT schluessel, wert, user FROM user_meta WHERE schluessel = ?"))) {
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        if (!$stmt->bind_param("s",$orderBy)) {
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    } else {
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? ORDER BY id ASC"))) {
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        $Schluesel = 'nachname';
+        if (!$stmt->bind_param("s",$Schluesel)) {
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    }
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $num_user = mysqli_num_rows($res);
+
+    if($orderBy!='id') {
+        $SortArray = array();
+        for ($a = 1; $a <= $num_user; $a++) {
+            $Ergebnis = mysqli_fetch_assoc($res);
+            $array = array();
+            $array['wert'] = $Ergebnis['wert'];
+            $array['user'] = $Ergebnis['user'];
+            array_push($SortArray, $array);
+        }
+    } else {
+        $SortArray = array();
+        for ($a = 1; $a <= $num_user; $a++) {
+            $Ergebnis = mysqli_fetch_assoc($res);
+            $array = array();
+            $array['user'] = $Ergebnis['user'];
+            array_push($SortArray, $array);
+        }
+    }
+
+    asort($SortArray);
+
+    $ReturnArray = array();
+    foreach ($SortArray as $Array){
+        array_push($ReturnArray, lade_user_meta($Array['user']));
+    }
+
+    return $ReturnArray;
+}
+function get_sorted_user_array_with_user_meta_fields($orderBy='nachname'){
+
+    $link = connect_db();
+    if($orderBy!='id'){
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? ORDER BY wert COLLATE utf8_german2_ci"))) {
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        if (!$stmt->bind_param("s",$orderBy)) {
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    } else {
+        if (!($stmt = $link->prepare("SELECT user FROM user_meta WHERE schluessel = ? ORDER BY id ASC"))) {
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+
+        $Schluesel = 'nachname';
+        if (!$stmt->bind_param("s",$Schluesel)) {
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+    }
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $num_user = mysqli_num_rows($res);
+    $ReturnArray = array();
+
+    for ($a = 1; $a <= $num_user; $a++) {
+        $Ergebnis = mysqli_fetch_assoc($res);
+        array_push($ReturnArray, lade_user_meta($Ergebnis['user']));
+    }
+
+    return $ReturnArray;
+}
+function reset_user_pswd($Mail, $Mode='selbst'){
+
+    $link = connect_db();
+
+    #echo "selecting user id";
+    if (!($stmt = $link->prepare("SELECT * FROM users WHERE mail = ? AND deaktiviert = 0"))) {
+        $Antwort['erfolg'] = false;
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+    if (!$stmt->bind_param("s", $Mail)) {
+        $Antwort['erfolg'] = false;
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    if (!$stmt->execute()) {
+        $Antwort['erfolg'] = false;
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+    $res = $stmt->get_result();
+    $Anzahl = mysqli_num_rows($res);
+
+    if($Anzahl == 1){
+        $Ergebnis = mysqli_fetch_assoc($res);
+        $UserMeta = lade_user_meta($Ergebnis['id']);
+        if($UserMeta['ist_gesperrt'] == 'true'){
+            return 'gesperrt';
+        } else {
+            $ID_hash = generateRandomString(32);
+            $PSWD_hash = generateRandomString(32);
+            $PSWD_hashed = password_hash($PSWD_hash, PASSWORD_DEFAULT);
+            if($PSWD_hashed == false){
+                #var_dump('Hashing Fail');
+                return 'hash kaputt';
+            } else {
+                $Anfrage = "UPDATE users SET secret = '".$PSWD_hashed."', pswd_needs_change = 1 WHERE id = ".$Ergebnis['id']."";
+                $Abfrage = mysqli_query($link, $Anfrage);
+                if($Abfrage){
+                    $MailInfos = array();
+                    $MailInfos['[vorname_user]']=$UserMeta['vorname'];
+                    $MailInfos['[passwort]']=$PSWD_hash;
+                    $MailInfos['[verify_link]'] = lade_xml_einstellung('site_url') . "/login.php?register_code=" . $Ergebnis['register_secret'] . "";
+                    #var_dump($MailInfos);
+                    if($Mode=='selbst'){
+                        if(mail_senden('passwort-zurueckgesetzt-selbst', $Mail, $MailInfos)){
+                            return true;
+                        }else{
+                            #var_dump('MAIL fail');
+                            return false;
+                        }
+                    } elseif($Mode=='wart'){
+                        if(mail_senden('passwort-zurueckgesetzt-wart', $Mail, $MailInfos)){
+                            return true;
+                        }else{
+                            #var_dump('MAIL fail');
+                            return false;
+                        }
+                    } elseif($Mode=='transfer'){
+                        return true;
+                    }
+
+                } else {
+                    #var_dump($Anfrage);
+                    #var_dump('UPDATE fail');
+                    return 'update fail';
+                }
+            }
+        }
+    } else {
+        #var_dump('too many users');
+        return 'zu viele user';
+    }
+}
+function user_needs_pswd_change($UserID){
+
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT pswd_needs_change FROM users WHERE id = ?"))) {
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+
+    if (!$stmt->bind_param("i",$UserID)) {
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Ergebnis = mysqli_fetch_assoc($res);
+
+    if($Ergebnis['pswd_needs_change'] == 1){
+        return true;
+    } else {
+        return false;
+    }
+
+}
+function lade_user_id_from_mail($MailAdresse){
+    $link = connect_db();
+    if (!($stmt = $link->prepare("SELECT id FROM users WHERE mail = ?"))) {
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+    }
+
+    if (!$stmt->bind_param("s",$MailAdresse)) {
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+    }
+
+    $res = $stmt->get_result();
+    $Ergebnis = mysqli_fetch_assoc($res);
+    return $Ergebnis['id'];
+}
+function change_pswd_user($UserID, $PSWD, $PSWDrpt){
+
+    $link = connect_db();
+    ## DAU CHECKS BEFORE LOGIN ATTEMPT ##
+    $DAUcounter = 0;
+    $DAUerror = "";
+
+    if(empty($PSWD)){
+        $DAUcounter ++;
+        $DAUerror .= "Gib bitte ein Passwort an!<br>";
+    } else {
+
+        $PSWDcheck = check_password($PSWD);
+        if($PSWD != $PSWDrpt){
+            $DAUcounter ++;
+            $DAUerror .= "Die eingegebenen Passw&ouml;rter sind nicht identisch!<br>";
+        }
+
+        if($PSWDcheck != 'OK') {
+            $DAUcounter++;
+            $DAUerror .= $PSWDcheck;
+        }
+    }
+
+    ## DAU auswerten
+    if ($DAUcounter > 0){
+        $Antwort['meldung'] = $DAUerror;
+        $Antwort['success'] = false;
+        return $Antwort;
+    } else {
+        $PSWD_hashed = password_hash($PSWD, PASSWORD_DEFAULT);
+        if (!($stmt = $link->prepare("UPDATE users SET secret = ?, pswd_needs_change = ? WHERE id = ?"))) {
+            $Antwort['success'] = false;
+            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        }
+        if (!$stmt->bind_param("sii", $PSWD_hashed, intval(0), $UserID)) {
+            $Antwort['success'] = false;
+            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        }
+        if (!$stmt->execute()) {
+            $Antwort['success'] = false;
+            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+       
+        } else {
+            $Antwort['success']=true;
+        }
+    }
+	
+	return $Antwort;
+}
 ?>

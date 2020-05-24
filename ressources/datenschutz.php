@@ -8,14 +8,41 @@
 
 function ds_anlegen_formular($Parser){
 
-    $HTML = "<h2>Neue Datenschutzerkl&auml;rung anlegen</h2>";
-    $HTML .= $Parser['meldung'];
-    $HTML .= "<form action='datenschutzerklaerungen.php' method='post'>";
-    $HTML .= "Version: <input type='text' name='version_large' id='version_large' placeholder='".$_POST['version_large']."'>";
-    $HTML .= "Erkl&auml;rung: <input type='text' name='erklaerung_large' id='erklaerung_large' placeholder='".$_POST['erklaerung_large']."'>";
-    $HTML .= "Inhalt: <textarea type='text' name='inhalt_large' id='inhalt_large'>".$_POST['inhalt_large']."</textarea>";
-    $HTML .= "<input type='submit' name='action_large'>";
-    $HTML .= "</form>";
+    $HTML = "<p class='center-align'>DANGER-ZONE!!! Gibst du eine neue DSE ein, wird die andere archiviert und ALLE USER müssen sie neu akzeptieren!<br>Das System überprüft nur, dass die Felder nicht leer sind, für den Inhalt der DSE bist du verantwortlich.<br>Vor dem tatsächlichen Eintragen generiert das System eine Vorschau deines Inputs. So kannst du dein HTML erstmal austesten:)</p>";
+
+    if(isset($Parser['meldung'])) {
+        $HTML .= "<h3 class='center-align'>" . $Parser['meldung'] . "</h3>";
+    }
+
+    if(!isset($_POST['add_dse_action'])){
+        $Table = table_form_string_item('Version', 'version', $_POST['version'], false);
+        $Table .= table_form_string_item('Erklärung', 'erklaerung', $_POST['erklaerung'], false);
+        $Table .= table_form_html_area_item('Inhalt', 'text', $_POST['text'], false);
+        $Table .= table_row_builder(table_header_builder(form_button_builder('add_dse_action', 'Überprüfen', 'action', 'send', '')).table_data_builder(''));
+        $HTML .= section_builder(form_builder(table_builder($Table), '#', 'post'));
+    } elseif(isset($_POST['add_dse_action'])) {
+        if($Parser['success'] == TRUE){
+            $Table = table_form_string_item('Version', 'version', $_POST['version'], false);
+            $Table .= table_form_string_item('Erklärung', 'erklaerung', $_POST['erklaerung'], false);
+            $Table .= table_form_html_area_item('Inhalt', 'text', $_POST['text'], false);
+            $Table .= table_row_builder(table_header_builder(form_button_builder('add_dse_action_do_it', 'Eintragen', 'action', 'send', '')."&nbsp;".form_button_builder('add_dse_action', 'Überprüfen', 'action', 'send', '')).table_data_builder(''));
+            $HTML .= section_builder(form_builder(table_builder($Table), '#', 'post'));
+        } elseif ($Parser['success'] == FALSE){
+            $Table = table_form_string_item('Version', 'version', $_POST['version'], false);
+            $Table .= table_form_string_item('Erklärung', 'erklaerung', $_POST['erklaerung'], false);
+            $Table .= table_form_html_area_item('Inhalt', 'text', $_POST['text'], false);
+            $Table .= table_row_builder(table_header_builder(form_button_builder('add_dse_action', 'Überprüfen', 'action', 'send', '')).table_data_builder(''));
+            $HTML .= section_builder(form_builder(table_builder($Table), '#', 'post'));
+        }
+    }
+
+    if(isset($_POST['add_dse_action_do_it'])){
+        if($Parser['success'] == TRUE){
+            $HTML .= zurueck_karte_generieren(true, 'Datenschutzerklärung erfolgreich angelegt.', 'datenschutzerklaerungen.php');
+        } else {
+            $HTML .= zurueck_karte_generieren(false, $Parser['meldung'], 'datenschutzerklaerungen.php');
+        }
+    }
 
     return $HTML;
 
@@ -23,71 +50,74 @@ function ds_anlegen_formular($Parser){
 
 function ds_anlegen_parser(){
 
-    $link = connect_db();
-    $CurrentUser = lade_user_id();
-    $UserMeta = lade_user_meta($CurrentUser);
+    if(isset($_POST['add_dse_action'])){
 
-    if(isset($_POST['action_large'])){
-
-        ## DAU CHECKS BEFORE LOGIN ATTEMPT ##
         $DAUcounter = 0;
-        $DAUerror = "";
-        $arg = "large";
+        $DAUerr = "";
 
-        if($UserMeta['ist_admin'] != 'true'){
-            $DAUcounter ++;
-            $DAUerror .= "Du hast keine Berechtigung f&uuml;r diesen Vorgang!<br>";
+        if($_POST['erklaerung'] == ''){
+            $DAUcounter++;
+            $DAUerr .= "Gib bitte eine Erklärung zum Update der DSE an!<br>";
         }
 
-        if(empty($_POST['inhalt_'.$arg.''])){
-            $DAUcounter ++;
-            $DAUerror .= "Gib bitte den Inhalt der Datenschutzerkl&auml;rung an!<br>";
+        if($_POST['version'] == ''){
+            $DAUcounter++;
+            $DAUerr .= "Gib bitte der DSE eine Versionsangabe!<br>";
         }
 
-        if(empty($_POST['erklaerung_'.$arg.''])){
-            $DAUcounter ++;
-            $DAUerror .= "Gib bitte eine Erkl&auml;rung f&uuml;r die User an!<br>";
+        if($_POST['text'] == ''){
+            $DAUcounter++;
+            $DAUerr .= "Der Inhalt der DSE darf nicht leer sein!<br>";
         }
 
-        if(empty($_POST['version_'.$arg.''])){
-            $DAUcounter ++;
-            $DAUerror .= "Gib bitte eine Versionsangabe an!<br>";
-        } else {
-
-            if (!($stmt = $link->prepare("SELECT id FROM datenschutzerklaerungen WHERE version = ?"))) {
-                echo "Prepare failed: (" . $link->errno . ") " . $link->error;
-            }
-
-            if (!$stmt->bind_param("s",$_POST['version_'.$arg.''])) {
-                echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-            }
-
-            if (!$stmt->execute()) {
-                echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-            }
-
-            $res = $stmt->get_result();
-            $num_results = mysqli_num_rows($res);
-
-            if($num_results > 0){
-                $DAUcounter ++;
-                $DAUerror .= "Die von dir eingegebene Version ist bereits vergeben!<br>";
-            }
-
+        if($DAUcounter == 0){
+            $Antwort['success'] = true;
+            $Antwort['meldung'] = 'Deine Eingaben können eingetragen werden! Überprüfe das Ergebnis in der Vorschau, bevor du die neue DSE endgültig abspeicherst.<br>';
+        } elseif ($DAUcounter > 0){
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = $DAUerr;
         }
 
-        ## DAU auswerten
-        if ($DAUcounter > 0){
-            $Antwort['meldung'] = $DAUerror;
-            return $Antwort;
+        return $Antwort;
+    }
 
-        } else {
-            $Antwort = ds_anlegen($_POST['erklaerung_'.$arg.''], $_POST['version_'.$arg.''], $_POST['inhalt_'.$arg.''], $CurrentUser);
-            return $Antwort;
+    if(isset($_POST['add_dse_action_do_it'])){
+
+        $DAUcounter = 0;
+        $DAUerr = "";
+
+        if($_POST['erklaerung'] == ''){
+            $DAUcounter++;
+            $DAUerr .= "Gib bitte eine Erklärung zum Update der DSE an!<br>";
         }
 
-    } else{return null;}
+        if($_POST['version'] == ''){
+            $DAUcounter++;
+            $DAUerr .= "Gib bitte der DSE eine Versionsangabe!<br>";
+        }
 
+        if($_POST['text'] == ''){
+            $DAUcounter++;
+            $DAUerr .= "Der Inhalt der DSE darf nicht leer sein!<br>";
+        }
+
+        if($DAUcounter == 0){
+
+            $link = connect_db();
+            $Anfrage = "UPDATE datenschutzerklaerungen SET archivar = ".lade_user_id().", archiv_time = ".timestamp()." WHERE id = ".aktuelle_ds_id_laden()."";
+            $Abfrage = mysqli_query($link, $Anfrage);
+            $CleanedText = str_replace( '<pre><code>', '', $_POST['text']);
+            $CleanedText = str_replace( '</code></pre>', '', $CleanedText);
+            $Antwort = ds_anlegen($_POST['erklaerung'], $_POST['version'], $CleanedText, lade_user_id());
+
+      } elseif ($DAUcounter > 0){
+            $Antwort['success'] = false;
+            $Antwort['meldung'] = $DAUerr;
+        }
+
+        return $Antwort;
+
+    }
 }
 
 function ds_anlegen($Erklaerung, $Version, $Inhalt, $User){
@@ -97,20 +127,20 @@ function ds_anlegen($Erklaerung, $Version, $Inhalt, $User){
 
     if (!($stmt = $link->prepare("INSERT INTO datenschutzerklaerungen (version, erklaerung, inhalt, ersteller, create_time) VALUES (?,?,?,?,?)"))) {
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
-        return $Antwort['erfolg'] = false;
+        return $Antwort['success'] = false;
     }
 
     if (!$stmt->bind_param("sssis",$Version, $Erklaerung, $Inhalt, $User, $timestamp)) {
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-        return $Antwort['erfolg'] = false;
+        return $Antwort['success'] = false;
     }
 
     if (!$stmt->execute()) {
         echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-        return $Antwort['erfolg'] = false;
+        return $Antwort['success'] = false;
     } else {
         $Antwort['meldung'] = 'Anlegen erfolgreich!';
-        $Antwort['erfolg'] = true;
+        $Antwort['success'] = true;
         return $Antwort;
     }
 
@@ -127,16 +157,43 @@ function aktuelle_ds_id_laden(){
     return $Ergebnis['id'];
 }
 
+function lade_ds($ID){
+
+    $link = connect_db();
+
+    if (!($stmt = $link->prepare("SELECT * FROM datenschutzerklaerungen WHERE archivar = '0' AND id = ? ORDER BY create_time DESC"))) {
+        echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+        return $Antwort['erfolg'] = false;
+    }
+
+    if (!$stmt->bind_param("i",$ID)) {
+        echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+        return $Antwort['erfolg'] = false;
+    }
+
+    if (!$stmt->execute()) {
+        echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+        return $Antwort['erfolg'] = false;
+    } else {
+        $res = $stmt->get_result();
+        $num_results = mysqli_fetch_assoc($res);
+
+        return $num_results;
+    }
+}
+
 function ds_unterschreiben($User, $DSid){
 
     $link = connect_db();
+    $Meta = lade_user_meta($User);
+    $UserString = $Meta['vorname'].' '.$Meta['nachname'];
     $Timestamp = timestamp();
 
-    if (!($stmt = $link->prepare("INSERT INTO ds_unterzeichnungen (ds_id, user_id, timestamp) VALUES (?,?,?)"))) {
+    if (!($stmt = $link->prepare("INSERT INTO ds_unterzeichnungen (ds_id, user_id, user_string, timestamp) VALUES (?,?,?,?)"))) {
         echo "Prepare failed: (" . $link->errno . ") " . $link->error;
     }
 
-    if (!$stmt->bind_param("iis",$DSid, $User, $Timestamp)) {
+    if (!$stmt->bind_param("iiss",$DSid, $User, $UserString, $Timestamp)) {
         echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
     }
 
@@ -167,4 +224,40 @@ function ds_unterschreiben_formular_parts(){
 
 }
 
-?>
+function user_needs_dse(){
+
+    $link = connect_db();
+    $UserID = lade_user_id();
+    $AktDSEid = aktuelle_ds_id_laden();
+
+    $Anfrage = "SELECT id FROM ds_unterzeichnungen WHERE ds_id = ".$AktDSEid." AND user_id = ".$UserID."";
+    $Abfrage = mysqli_query($link, $Anfrage);
+    $Anzahl = mysqli_num_rows($Abfrage);
+
+    if($Anzahl == 1){
+        return false;
+    } else {
+        return true;
+    }
+}
+
+function needs_dse_mv_update(){
+    $ID = lade_user_id();
+    if(user_needs_dse()){
+        header("Location: ./renew_dse_mv.php?mode=dse");
+        die();
+    }
+    if(user_needs_pswd_change($ID)){
+        header("Location: ./renew_dse_mv.php?mode=pswd");
+        die();
+    }
+    $UserMeta=lade_user_meta($ID);
+    if($UserMeta['strasse']==''){
+        header("Location: ./renew_dse_mv.php?mode=addresse");
+        die();
+    }
+    if(user_needs_mv()) {
+        header("Location: ./renew_dse_mv.php?mode=mv");
+        die();
+    }
+}
