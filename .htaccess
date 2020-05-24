@@ -1,0 +1,17 @@
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteRule ^(.*)$ https://stocherkahn.fachschaftmedizin.de/$1 [L,R=301]
+
+Header always set Cache-Control "private, no-cache, no-store, must-revalidate"
+Header always set Pragma "no-cache"
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "DENY"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Content-Security-Policy "default-src 'self';"
+Header always set X-Robots-Tag "none"
+Header always set X-Permitted-Cross-Domain-Policies "none"
+
+# PHP-Fehlermeldungen deaktivieren
+php_flag display_startup_errors off
+php_flag display_errors off
+php_flag html_errors off

@@ -172,15 +172,15 @@ function session_manager($Necessary_User_Role = NULL){
         $link = connect_db();
         if (!($stmt = $link->prepare("SELECT * FROM users WHERE id = ?"))) {
             $Ergebnis = false;
-            echo "Prepare failed: (" . $link->errno . ") " . $link->error;
+            #echo "Prepare failed: (" . $link->errno . ") " . $link->error;
         }
         if (!$stmt->bind_param("i", intval($User_login))) {
             $Ergebnis = false;
-            echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+            #echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
         }
         if (!$stmt->execute()) {
             $Ergebnis = false;
-            echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+            #echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
         } else {
 
             $res = $stmt->get_result();
@@ -189,19 +189,19 @@ function session_manager($Necessary_User_Role = NULL){
 
             if ($AnzahlLoginUeberpruefen == 0) {
                 #Userkonto existiert nicht
-                echo "No user account found!";
+                #echo "No user account found!";
                 $Ergebnis = false;
             } else {
 
                 if($_SESSION['sess_id'] != md5($Vals['register_secret'])){
-                    echo "Sess ID wrong!";
+                    #echo "Sess ID wrong!";
                     $Ergebnis = false;
                 } else {
                     if ($Necessary_User_Role != NULL) {
 
                         $UserMeta = lade_user_meta($User_login);
                         if ($UserMeta[$Necessary_User_Role] != 'true') {
-                            echo "User does not have neccessary rights.";
+                            #echo "User does not have neccessary rights.";
                             $Ergebnis = false;
                         }
 
@@ -222,7 +222,7 @@ function session_manager($Necessary_User_Role = NULL){
 
     } else {
         #Session enthält keine User-ID
-        echo "No user ID in Session.";
+        #echo "No user ID in Session.";
         $Ergebnis = false;
     }
 
@@ -232,9 +232,9 @@ function session_manager($Necessary_User_Role = NULL){
         //Session initiieren
         session_start();
         session_destroy();
-        session_start();
+        #session_start();
 
-        $_SESSION['session_overtime'] = $SessionOvertime;
+        #$_SESSION['session_overtime'] = $SessionOvertime;
 
         //Redirect
         header("Location: ./login.php");

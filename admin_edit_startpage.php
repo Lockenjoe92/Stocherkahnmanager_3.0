@@ -26,7 +26,7 @@ if($PageParser['success']!=null){
 }
 
 # Load Subsites
-$Anfrage = "SELECT * FROM homepage_sites WHERE delete_user = 0 ORDER BY menue_rang ASC";
+$Anfrage = "SELECT * FROM homepage_sites WHERE delete_user = 0 ORDER BY name ASC";
 $Abfrage = mysqli_query($link, $Anfrage);
 $Anzahl = mysqli_num_rows($Abfrage);
 $CollapsibleItems = '';
